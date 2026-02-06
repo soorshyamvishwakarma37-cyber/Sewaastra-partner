@@ -1,2 +1,0 @@
-# Sewaastra-partner
-Sewaastra
