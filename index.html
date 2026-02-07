@@ -3,232 +3,308 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Partner - Universe Edition</title>
+    <title>SewaAstra Partner Titan | Pro Edition</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Plus+Jakarta+Sans:wght@200;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
-        :root { --p: #ff6b00; --s: #0f172a; --bg: #f8fafc; --grad: linear-gradient(135deg, #ff6b00, #ff9e00); }
-        body { background: var(--bg); font-family: 'Outfit', sans-serif; transition: 0.3s; }
-        
-        /* Preloader */
-        #preloader { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-        
-        /* Layout */
-        .page { display: none; min-height: 100vh; padding-bottom: 100px; animation: fadeIn 0.4s ease-in-out; }
-        .active-page { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* CSS Root & Global Reset */
+        :root { 
+            --primary: #E23744; --secondary: #1C1C1C; --success: #27AE60; 
+            --info: #2D9CDB; --dark-bg: #0A0B10; --glass-bg: rgba(255, 255, 255, 0.05);
+            --neon-glow: 0 0 15px rgba(226, 55, 68, 0.4);
+        }
 
-        /* Dashboard Elements */
-        .u-card { background: white; border-radius: 28px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 10px 30px rgba(0,0,0,0.02); padding: 25px; margin-bottom: 20px; }
-        .wallet-master { background: var(--s); color: white; border-radius: 35px; padding: 35px; position: relative; overflow: hidden; margin-bottom: 30px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2); }
-        .wallet-master::before { content: ''; position: absolute; top: -20%; right: -10%; width: 180px; height: 180px; background: var(--p); filter: blur(70px); opacity: 0.3; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: #f8f9fa; color: var(--secondary); font-family: 'Plus Jakarta Sans', sans-serif; margin: 0; transition: 0.4s; }
         
-        /* Job Status UI */
-        .status-pill { font-size: 10px; font-weight: 800; padding: 6px 14px; border-radius: 50px; text-transform: uppercase; }
-        .st-open { background: #fff7ed; color: #ea580c; }
-        .st-active { background: #ecfdf5; color: #10b981; }
-        
-        /* Buttons */
-        .btn-sewa { background: var(--grad); color: white; border: none; border-radius: 20px; padding: 16px; width: 100%; font-weight: 800; box-shadow: 0 10px 20px rgba(255,107,0,0.3); transition: 0.3s; }
-        .btn-sewa:active { transform: scale(0.96); }
-        
-        /* Bottom Navigation */
-        .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-radius: 25px; display: flex; justify-content: space-around; padding: 12px; z-index: 999; }
-        .dock-item { color: #94a3b8; text-decoration: none; text-align: center; font-size: 10px; font-weight: 600; }
-        .dock-item.active { color: var(--p); }
-        .dock-item i { font-size: 20px; margin-bottom: 4px; display: block; }
+        /* Full Page Loader */
+        #master-loader { position: fixed; inset: 0; background: var(--dark-bg); z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+        .spinner-custom { width: 60px; height: 60px; border: 5px solid var(--glass-bg); border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Real-time Job Progress Bar */
-        .progress-line { height: 4px; background: #e2e8f0; border-radius: 10px; margin: 15px 0; position: relative; }
-        .progress-fill { height: 100%; background: var(--p); width: 0%; border-radius: 10px; transition: 1s; }
+        /* Auth Screen (Heavy Styling) */
+        .auth-wrapper { min-height: 100vh; background: radial-gradient(circle at top right, #1a1a1a, #000); display: flex; align-items: center; justify-content: center; padding: 25px; }
+        .auth-card { background: var(--glass-bg); backdrop-filter: blur(25px); border: 1px solid rgba(255,255,255,0.1); border-radius: 40px; width: 100%; max-width: 480px; padding: 50px 35px; text-align: center; box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+        .btn-google-custom { background: #fff; color: #000; border: none; padding: 18px; border-radius: 20px; width: 100%; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 12px; transition: 0.3s; }
+
+        /* Dashboard Architecture */
+        .main-app { display: none; padding-bottom: 110px; }
+        .top-navbar { background: #fff; padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 900; box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        
+        .titan-wallet { background: var(--secondary); color: #fff; margin: 20px; border-radius: 35px; padding: 35px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+        .wallet-stats { display: flex; justify-content: space-between; align-items: center; }
+        .earning-label { font-size: 12px; font-weight: 800; opacity: 0.6; letter-spacing: 1px; }
+        .earning-val { font-family: 'Orbitron'; font-size: 38px; margin: 5px 0; color: var(--info); }
+
+        /* Map & Tracking Area */
+        #map-container { height: 260px; width: 90%; margin: 15px auto; border-radius: 30px; border: 5px solid #fff; box-shadow: 0 15px 35px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
+
+        /* Order/Job Feed Styling (Zomato Style) */
+        .job-card { background: #fff; border-radius: 28px; margin: 18px; padding: 25px; border-left: 10px solid var(--primary); box-shadow: 0 12px 25px rgba(0,0,0,0.04); position: relative; transition: 0.3s; }
+        .job-card.active-order { border-left-color: var(--info); background: #f0f7ff; }
+        .swipe-btn { background: var(--primary); color: #fff; border: none; padding: 20px; border-radius: 20px; width: 100%; font-weight: 900; font-family: 'Orbitron'; box-shadow: var(--neon-glow); text-transform: uppercase; margin-top: 15px; }
+
+        /* Navigation Dock */
+        .bottom-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 92%; background: #fff; border-radius: 35px; display: flex; justify-content: space-around; padding: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); z-index: 1000; border: 1px solid #eee; }
+        .dock-item { font-size: 24px; color: #cbd5e0; transition: 0.3s; cursor: pointer; }
+        .dock-item.active { color: var(--primary); transform: translateY(-5px); }
+
+        /* KYC States */
+        .kyc-overlay { position: fixed; inset: 0; background: #fff; z-index: 2000; display: none; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 40px; }
     </style>
 </head>
 <body>
 
-    <div id="preloader">
-        <h1 class="fw-800">Sewa<span style="color:var(--p)">Astra</span></h1>
-        <div class="spinner-border text-warning" role="status"></div>
+    <div id="master-loader">
+        <div class="spinner-custom"></div>
+        <h4 class="mt-4 text-white logo-font fw-900" style="letter-spacing:5px;">TITAN OS</h4>
     </div>
 
-    <div id="login-pg" class="page active-page container py-5 text-center">
-        <div class="mt-5 pt-5">
-            <h1 class="display-3 fw-800">Welcome<span style="color:var(--p)">.</span></h1>
-            <p class="text-muted lead">SewaAstra Professional Partner Portal</p>
-            <div class="u-card mt-5 mx-auto" style="max-width: 400px;">
-                <button class="btn btn-dark w-100 py-3 rounded-4" onclick="handleAuth()">
-                    <img src="https://img.icons8.com/color/24/google-logo.png" class="me-2"> Google Login
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="dash-pg" class="page">
-        <div class="container py-4">
-            <div class="wallet-master">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <small class="opacity-75 fw-bold text-uppercase">Net Earnings</small>
-                        <h1 id="wall-bal" class="display-4 fw-800">₹0.00</h1>
-                    </div>
-                    <button class="btn btn-light btn-sm rounded-pill px-3 fw-bold h-25" onclick="cashout()">Withdraw</button>
-                </div>
-                <div class="mt-4 row">
-                    <div class="col-6 border-end border-secondary"><small class="opacity-50">Jobs Done</small><h4 id="jobs-done" class="m-0">0</h4></div>
-                    <div class="col-6 ps-4"><small class="opacity-50">Rating</small><h4 class="m-0">4.9 ★</h4></div>
-                </div>
-            </div>
-
-            <h5 class="fw-800 mb-4 px-2">Live Opportunities</h5>
-            <div id="feed-container">
-                </div>
-        </div>
-
-        <div class="nav-dock">
-            <a href="#" class="dock-item active"><i class="fa fa-briefcase"></i>Jobs</a>
-            <a href="#" class="dock-item" onclick="showHistory()"><i class="fa fa-history"></i>History</a>
-            <a href="#" class="dock-item" onclick="logout()"><i class="fa fa-power-off text-danger"></i>Exit</a>
+    <div id="scr-auth" class="auth-wrapper">
+        <div class="auth-card animate__animated animate__zoomIn">
+            <h1 class="logo-font text-white fw-900 mb-2">SEWA<span>ASTRA</span></h1>
+            <p class="text-white-50 mb-5">Enterprise Partner Node v5.0.2</p>
+            <button class="btn-google-custom shadow-lg" id="btn-login">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="24">
+                LOGIN WITH TITAN ID
+            </button>
+            <p class="mt-5 small text-white-30">© 2026 SewaAstra Global Systems</p>
         </div>
     </div>
 
-    <div class="modal fade" id="verifyModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content rounded-5 border-0 shadow-lg">
-                <div class="modal-body p-5 text-center">
-                    <h3 class="fw-800">Job Complete?</h3>
-                    <p class="text-muted">Enter the 4-digit code provided by customer</p>
-                    <input type="number" id="otp-code" class="form-control form-control-lg text-center my-4 border-0 bg-light py-3 rounded-4 fw-bold fs-1" placeholder="0000" style="letter-spacing: 12px;">
-                    <button class="btn-sewa" id="confirm-job-btn">Release Payment</button>
+    <div id="scr-kyc" class="kyc-overlay">
+        <div class="animate__animated animate__pulse animate__infinite">
+            <i class="fa fa-shield-halved fa-5x text-warning mb-4"></i>
+        </div>
+        <h2 class="fw-900">SECURITY REVIEW</h2>
+        <p class="text-muted mb-4 px-4">आपका अकाउंट अभी रिव्यु में है। एडमिन की अनुमति के बाद ही आप सिस्टम में प्रवेश कर पाएंगे।</p>
+        <div class="bg-light p-3 rounded-4 w-100 mb-5">
+            <small class="fw-bold text-uppercase">Profile UID: <span id="p-uid-display">...</span></small>
+        </div>
+        <button class="btn btn-outline-dark rounded-pill px-5" onclick="titanLogout()">Sign Out</button>
+    </div>
+
+    <div id="scr-titan-dash" class="main-app">
+        <header class="top-navbar">
+            <div class="d-flex align-items-center gap-3">
+                <div id="p-avatar" class="rounded-circle bg-dark" style="width:40px;height:40px;background-size:cover;"></div>
+                <div>
+                    <h6 class="m-0 fw-800" id="p-name-greet">Welcome</h6>
+                    <small class="text-success"><i class="fa fa-circle me-1 small"></i> Online & Active</small>
                 </div>
             </div>
+            <i class="fa fa-bell-slash text-muted fa-lg"></i>
+        </header>
+
+        <div class="titan-wallet shadow-lg">
+            <div class="wallet-stats">
+                <div>
+                    <span class="earning-label">AVAILABLE EARNINGS</span>
+                    <h2 id="p-wallet-val" class="earning-val">₹0.00</h2>
+                    <span class="badge bg-success rounded-pill">Safe to Withdraw</span>
+                </div>
+                <div class="text-end">
+                    <canvas id="mini-chart" width="80" height="40"></canvas>
+                </div>
+            </div>
+            <div class="row g-2 mt-4">
+                <div class="col-6"><button class="btn btn-light w-100 rounded-4 fw-bold p-3" onclick="triggerPayout()">Withdraw</button></div>
+                <div class="col-6"><button class="btn btn-outline-light w-100 rounded-4 p-3" onclick="showLedger()">Analytics</button></div>
+            </div>
         </div>
+
+        <div id="map-container"></div>
+
+        <div class="container-fluid px-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="fw-900 text-muted m-0">LIVE MISSION BOARD</h6>
+                <span class="badge bg-danger rounded-pill px-3" id="live-job-count">0</span>
+            </div>
+            <div id="titan-job-feed">
+                </div>
+        </div>
+
+        <nav class="bottom-dock">
+            <i class="fa fa-compass dock-item active"></i>
+            <i class="fa fa-layer-group dock-item"></i>
+            <i class="fa fa-envelope-open-text dock-item"></i>
+            <i class="fa fa-sliders dock-item" onclick="titanLogout()"></i>
+        </nav>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, onSnapshot, updateDoc, setDoc, getDoc, collection, query, where, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // FIREBASE CONFIG (SAME AS CUSTOMER APP)
+        // FIREBASE CONFIGURATION
         const firebaseConfig = {
-            apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
+            apiKey: "AIzaSyA4kInzUxzF6Or1sHfzXavx1nVM0x40lak",
             authDomain: "sewaastra.firebaseapp.com",
             projectId: "sewaastra",
             storageBucket: "sewaastra.firebasestorage.app",
             messagingSenderId: "211091351218",
-            appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
+            appId: "1:211091351218:web:5602f5f1a36a21c3464bab"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
+        const alertAudio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-modern-technology-select-3124.mp3');
 
-        let userState = null;
-        let activeJobId = null;
+        let partnerMap, partnerMarker, currentUID;
 
-        window.navigate = (id) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-            document.getElementById(id).classList.add('active-page');
-        };
-
-        window.handleAuth = () => signInWithPopup(auth, provider);
-        window.logout = () => signOut(auth).then(() => location.reload());
-
+        // AUTH CONTROL ENGINE
         onAuthStateChanged(auth, async (user) => {
-            document.getElementById('preloader').style.display = 'none';
             if (user) {
-                userState = user;
+                currentUID = user.uid;
                 const pRef = doc(db, "partners", user.uid);
-                const pSnap = await getDoc(pRef);
-                if (!pSnap.exists()) {
-                    await setDoc(pRef, { name: user.displayName, wallet: 0, uid: user.uid, totalJobs: 0, joined: new Date().toISOString() });
+                const snap = await getDoc(pRef);
+
+                if (!snap.exists()) {
+                    await setDoc(pRef, {
+                        uid: user.uid, name: user.displayName, email: user.email,
+                        status: 'pending', wallet: 0, lat: 23.2599, lng: 77.4126,
+                        isOnline: true, photo: user.photoURL, joinedAt: serverTimestamp()
+                    });
+                    renderUI('scr-kyc');
+                } else {
+                    const data = snap.data();
+                    if (data.status === 'active') {
+                        renderUI('scr-titan-dash');
+                        bootPartnerOS(user);
+                    } else {
+                        document.getElementById('p-uid-display').innerText = user.uid.slice(0,10);
+                        renderUI('scr-kyc');
+                    }
                 }
-                navigate('dash-pg');
-                initSync();
             } else {
-                navigate('login-pg');
+                renderUI('scr-auth');
             }
+            hideLoader();
         });
 
-        function initSync() {
-            // Sync Wallet
-            onSnapshot(doc(db, "partners", userState.uid), d => {
-                document.getElementById('wall-bal').innerText = `₹${d.data().wallet.toFixed(2)}`;
-                document.getElementById('jobs-done').innerText = d.data().totalJobs;
+        // MAIN OS BOOTLOADER
+        function bootPartnerOS(user) {
+            document.getElementById('p-name-greet').innerText = user.displayName;
+            document.getElementById('p-avatar').style.backgroundImage = `url(${user.photoURL})`;
+
+            // Live Wallet Listener
+            onSnapshot(doc(db, "partners", user.uid), d => {
+                const bal = d.data().wallet || 0;
+                document.getElementById('p-wallet-val').innerText = `₹${bal.toFixed(2)}`;
             });
 
-            // Global Job Sync (Connects with Customer & Admin Bookings)
-            onSnapshot(query(collection(db, "bookings"), orderBy("createdAt", "desc")), snap => {
-                const feed = document.getElementById('feed-container');
+            // Map Engine
+            if (!partnerMap) {
+                partnerMap = L.map('map-container', { zoomControl: false }).setView([23.2599, 77.4126], 15);
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(partnerMap);
+                partnerMarker = L.marker([23.2599, 77.4126]).addTo(partnerMap);
+            }
+
+            // High-Frequency Job Feed
+            onSnapshot(collection(db, "bookings"), snap => {
+                const feed = document.getElementById('titan-job-feed');
                 feed.innerHTML = "";
+                let count = 0;
+
                 snap.forEach(res => {
                     const job = res.data();
-                    const id = res.id;
-                    if(job.status === 'open' || (job.status === 'active' && job.partnerId === userState.uid)) {
-                        const isMyJob = job.status === 'active';
+                    if (job.status === 'open' || (job.status === 'active' && job.partnerId === user.uid)) {
+                        count++;
+                        if (job.status === 'open') alertAudio.play();
+                        
+                        const isActive = job.status === 'active';
                         feed.innerHTML += `
-                            <div class="u-card">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="status-pill ${isMyJob ? 'st-active' : 'st-open'}">${job.status}</span>
-                                    <h5 class="fw-800 m-0">₹${job.price}</h5>
-                                </div>
-                                <h6 class="fw-800 mb-1 text-dark">${job.type || job.serviceName}</h6>
-                                <p class="small text-muted mb-3"><i class="fa fa-location-dot me-1 text-primary"></i> ${job.address}</p>
-                                ${isMyJob ? `
-                                    <div class="d-flex gap-2">
-                                        <button onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(job.address)}')" class="btn btn-light flex-fill rounded-3 fw-bold">Map</button>
-                                        <button onclick="openVerify('${id}')" class="btn btn-dark flex-fill rounded-3 fw-bold">Finish Job</button>
+                            <div class="job-card ${isActive ? 'active-order' : ''} animate__animated animate__fadeInUp">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="fw-800 m-0">${job.serviceName}</h5>
+                                        <small class="text-muted">Order Ref: #${res.id.slice(0,8)}</small>
                                     </div>
-                                ` : `
-                                    <button onclick="takeJob('${id}')" class="btn-sewa py-2">Take Job</button>
-                                `}
-                            </div>`;
+                                    <div class="text-end">
+                                        <h3 class="fw-900 m-0 text-primary">₹${job.price}</h3>
+                                        <small class="fw-bold text-success">Net: ₹${(job.price * 0.85).toFixed(0)}</small>
+                                    </div>
+                                </div>
+                                <hr class="my-3 opacity-10">
+                                <div class="d-flex align-items-center mb-3">
+                                    <i class="fa fa-location-arrow text-primary me-2"></i>
+                                    <span class="small fw-bold">${job.address}</span>
+                                </div>
+                                <button class="swipe-btn" onclick="handleTitanAction('${res.id}', '${job.status}', ${job.otp})">
+                                    ${isActive ? 'Verify Completion' : 'Accept Mission'}
+                                </button>
+                            </div>
+                        `;
                     }
                 });
+                document.getElementById('live-job-count').innerText = count;
             });
         }
 
-        window.takeJob = async (id) => {
-            const otp = Math.floor(1000 + Math.random() * 9000);
-            await updateDoc(doc(db, "bookings", id), {
-                status: 'active',
-                partnerId: userState.uid,
-                otp: otp,
-                acceptedAt: new Date().toISOString()
-            });
-            Swal.fire('Job Started!', `Customer OTP is: ${otp}`, 'success');
-        };
-
-        window.openVerify = (id) => {
-            activeJobId = id;
-            new bootstrap.Modal(document.getElementById('verifyModal')).show();
-        };
-
-        document.getElementById('confirm-job-btn').onclick = async () => {
-            const code = document.getElementById('otp-code').value;
-            const jRef = doc(db, "bookings", activeJobId);
-            const jSnap = await getDoc(jRef);
-            if(code == jSnap.data().otp) {
-                const price = parseFloat(jSnap.data().price);
-                const commission = price * 0.15; // 15% Admin
-                const payout = price - commission;
-
-                await updateDoc(doc(db, "partners", userState.uid), { wallet: increment(payout), totalJobs: increment(1) });
-                await updateDoc(jRef, { status: 'completed', commission: commission, partnerPay: payout, endedAt: new Date().toISOString() });
-                
-                Swal.fire('Paid!', `₹${payout} added to your wallet.`, 'success').then(() => location.reload());
+        // ACTION HANDLER (OTP & WALLET)
+        window.handleTitanAction = async (id, status, otp) => {
+            if (status === 'open') {
+                const newOtp = Math.floor(1000 + Math.random() * 9000);
+                await updateDoc(doc(db, "bookings", id), {
+                    status: 'active', partnerId: currentUID, otp: newOtp, acceptedAt: serverTimestamp()
+                });
+                Swal.fire('Mission Accepted', 'Please navigate to client location.', 'success');
             } else {
-                Swal.fire('Error', 'Incorrect Verification Code', 'error');
+                const { value: inputOtp } = await Swal.fire({
+                    title: 'Service Verification',
+                    text: 'Ask customer for completion OTP',
+                    input: 'number',
+                    inputAttributes: { maxlength: 4 }
+                });
+
+                if (inputOtp == otp) {
+                    const snap = await getDoc(doc(db, "bookings", id));
+                    const price = snap.data().price;
+                    const netAmt = price * 0.85;
+                    const commission = price * 0.15;
+
+                    await updateDoc(doc(db, "partners", currentUID), { wallet: increment(netAmt) });
+                    await updateDoc(doc(db, "bookings", id), { 
+                        status: 'completed', 
+                        commission: commission, 
+                        finishedAt: serverTimestamp() 
+                    });
+                    
+                    Swal.fire('Earnings Added', `₹${netAmt.toFixed(0)} credited to wallet.`, 'success');
+                } else {
+                    Swal.fire('Security Alert', 'Invalid OTP Code.', 'error');
+                }
             }
         };
 
-        window.cashout = () => Swal.fire('Request Sent', 'Payment will be sent to your UPI in 2 hours', 'success');
+        // UI HELPERS
+        function renderUI(scrId) {
+            document.getElementById('scr-auth').style.display = 'none';
+            document.getElementById('scr-kyc').style.display = 'none';
+            document.getElementById('scr-titan-dash').style.display = 'none';
+            document.getElementById(scrId).style.display = (scrId === 'scr-titan-dash' ? 'block' : 'flex');
+        }
 
+        window.titanLogout = () => signOut(auth);
+        document.getElementById('btn-login').onclick = () => signInWithPopup(auth, new GoogleAuthProvider());
+        function hideLoader() { document.getElementById('master-loader').fadeOut(); }
+        
+        // jQuery style fade out for loader
+        Element.prototype.fadeOut = function() {
+            this.style.opacity = 1;
+            (function fade() {
+                (this.style.opacity -= .1) < 0 ? this.style.display = "none" : setTimeout(fade.bind(this), 40);
+            }).bind(this)();
+        };
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
