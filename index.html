@@ -1,285 +1,234 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra - Partner All-in-One</title>
+    <title>SewaAstra Partner - Universe Edition</title>
     
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <style>
-        :root { --p: #ff6b00; --s: #0f172a; --bg: #f4f7fe; --success: #22c55e; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
-        body { background: var(--bg); }
-
-        .page { position: fixed; inset: 0; background: var(--bg); z-index: 100; display: none; flex-direction: column; overflow-y: auto; padding-bottom: 80px; }
-        .active-page { display: flex; }
-
-        /* UI elements */
-        .btn-main { width: 100%; padding: 16px; background: var(--p); color: white; border: none; border-radius: 12px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-        .btn-google { width: 100%; padding: 14px; background: white; color: #444; border: 1px solid #ddd; border-radius: 12px; font-weight: 600; cursor: pointer; margin-top: 15px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        :root { --p: #ff6b00; --s: #0f172a; --bg: #f8fafc; --grad: linear-gradient(135deg, #ff6b00, #ff9e00); }
+        body { background: var(--bg); font-family: 'Outfit', sans-serif; transition: 0.3s; }
         
-        input, select { width: 100%; padding: 14px; border: 1.5px solid #eee; border-radius: 10px; margin-bottom: 12px; }
-        .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
-        .upload-box { border: 2px dashed var(--p); padding: 15px; border-radius: 15px; text-align: center; background: #fff; min-height: 100px; position: relative; cursor: pointer; }
-        .preview-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; border-radius: 13px; z-index: 5; }
+        /* Preloader */
+        #preloader { position: fixed; inset: 0; background: white; z-index: 10000; display: flex; align-items: center; justify-content: center; flex-direction: column; }
         
-        #sig-wrapper { background: #fff; border: 2px solid #000; border-radius: 15px; height: 180px; margin-bottom: 15px; position: relative; }
-        .dash-card { background: var(--s); color: white; padding: 25px; border-radius: 0 0 30px 30px; margin-bottom: 20px; }
-        .job-card { background: white; margin: 15px; padding: 20px; border-radius: 20px; border-left: 6px solid var(--p); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        /* Layout */
+        .page { display: none; min-height: 100vh; padding-bottom: 100px; animation: fadeIn 0.4s ease-in-out; }
+        .active-page { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #eee; z-index: 1000; }
-        .nav-item { color: #94a3b8; text-align: center; font-size: 11px; }
-        .nav-item.active { color: var(--p); }
+        /* Dashboard Elements */
+        .u-card { background: white; border-radius: 28px; border: 1px solid rgba(0,0,0,0.03); box-shadow: 0 10px 30px rgba(0,0,0,0.02); padding: 25px; margin-bottom: 20px; }
+        .wallet-master { background: var(--s); color: white; border-radius: 35px; padding: 35px; position: relative; overflow: hidden; margin-bottom: 30px; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2); }
+        .wallet-master::before { content: ''; position: absolute; top: -20%; right: -10%; width: 180px; height: 180px; background: var(--p); filter: blur(70px); opacity: 0.3; }
+        
+        /* Job Status UI */
+        .status-pill { font-size: 10px; font-weight: 800; padding: 6px 14px; border-radius: 50px; text-transform: uppercase; }
+        .st-open { background: #fff7ed; color: #ea580c; }
+        .st-active { background: #ecfdf5; color: #10b981; }
+        
+        /* Buttons */
+        .btn-sewa { background: var(--grad); color: white; border: none; border-radius: 20px; padding: 16px; width: 100%; font-weight: 800; box-shadow: 0 10px 20px rgba(255,107,0,0.3); transition: 0.3s; }
+        .btn-sewa:active { transform: scale(0.96); }
+        
+        /* Bottom Navigation */
+        .nav-dock { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); border-radius: 25px; display: flex; justify-content: space-around; padding: 12px; z-index: 999; }
+        .dock-item { color: #94a3b8; text-decoration: none; text-align: center; font-size: 10px; font-weight: 600; }
+        .dock-item.active { color: var(--p); }
+        .dock-item i { font-size: 20px; margin-bottom: 4px; display: block; }
+
+        /* Real-time Job Progress Bar */
+        .progress-line { height: 4px; background: #e2e8f0; border-radius: 10px; margin: 15px 0; position: relative; }
+        .progress-fill { height: 100%; background: var(--p); width: 0%; border-radius: 10px; transition: 1s; }
     </style>
 </head>
 <body>
 
-    <div id="login-page" class="page active-page" style="justify-content:center; align-items:center; text-align:center; padding:30px;">
-        <h1 style="font-family:'Montserrat'; font-size:45px;">Sewa<span style="color:var(--p)">Astra</span></h1>
-        <p style="color:#64748b; margin-bottom:30px;">पार्टनर पोर्टल</p>
-        
-        <input type="tel" id="log-phone" placeholder="मोबाइल नंबर" maxlength="10">
-        <button class="btn-main" onclick="handleLogin()">Login / Join Now</button>
-        
-        <button class="btn-google" onclick="googleLogin()">
-            <img src="https://img.icons8.com/color/24/google-logo.png"/> Google के साथ जुड़ें
-        </button>
+    <div id="preloader">
+        <h1 class="fw-800">Sewa<span style="color:var(--p)">Astra</span></h1>
+        <div class="spinner-border text-warning" role="status"></div>
     </div>
 
-    <div id="reg-page" class="page" style="padding:20px;">
-        <h3>नया पार्टनर रजिस्ट्रेशन</h3>
-        <p style="font-size:12px; color:red; margin-bottom:15px;">* सभी फोटो और सिग्नेचर अनिवार्य हैं</p>
-        
-        <input type="text" id="p-name" placeholder="आपका नाम">
-        <input type="tel" id="p-mobile" placeholder="WhatsApp नंबर">
-        <input type="text" id="p-father" placeholder="पिता का नाम">
-        <input type="text" id="p-address" placeholder="पूरा पता">
-        
-        <select id="p-work">
-            <option value="">हुनर चुनें (Expert Type)</option>
-            <option>AC Mechanic</option><option>Electrician</option>
-            <option>Plumber</option><option>RO Technician</option>
-        </select>
-
-        <select id="p-range" style="border: 2px solid var(--p);">
-            <option value="">काम करने की रेंज (Range) चुनें</option>
-            <option value="5km">5 KM के अंदर</option>
-            <option value="10km">10 KM के अंदर</option>
-            <option value="20km">20 KM के अंदर</option>
-            <option value="50km">पूरे शहर में (Full City)</option>
-        </select>
-        
-        <input type="text" id="p-bank" placeholder="बैंक अकाउंट नंबर">
-        <input type="text" id="p-ifsc" placeholder="IFSC कोड">
-
-        <p style="font-weight:bold; margin-bottom:10px;">दस्तावेज फोटो (Photos):</p>
-        <div class="upload-grid">
-            <div class="upload-box" onclick="document.getElementById('f1').click()">
-                <i class="fa fa-id-card"></i><br><small>आधार Front</small>
-                <input type="file" id="f1" accept="image/*" capture="environment" hidden onchange="pv(this, 'v1')">
-                <img id="v1" class="preview-img">
-            </div>
-            <div class="upload-box" onclick="document.getElementById('f2').click()">
-                <i class="fa fa-id-card"></i><br><small>आधार Back</small>
-                <input type="file" id="f2" accept="image/*" capture="environment" hidden onchange="pv(this, 'v2')">
-                <img id="v2" class="preview-img">
-            </div>
-            <div class="upload-box" onclick="document.getElementById('f3').click()">
-                <i class="fa fa-credit-card"></i><br><small>पैन कार्ड</small>
-                <input type="file" id="f3" accept="image/*" capture="environment" hidden onchange="pv(this, 'v3')">
-                <img id="v3" class="preview-img">
-            </div>
-            <div class="upload-box" onclick="document.getElementById('f4').click()">
-                <i class="fa fa-shield"></i><br><small>Police Veri.</small>
-                <input type="file" id="f4" accept="image/*" capture="environment" hidden onchange="pv(this, 'v4')">
-                <img id="v4" class="preview-img">
-            </div>
-        </div>
-
-        <p style="font-weight:bold;">हस्ताक्षर (Sign):</p>
-        <div id="sig-wrapper">
-            <canvas id="sig-canvas" style="width:100%; height:100%; touch-action:none;"></canvas>
-            <button type="button" onclick="clearSig()" style="position:absolute; top:10px; right:10px; background:var(--s); color:white; border:none; padding:5px 10px; border-radius:8px; font-size:11px; z-index:10;">
-                <i class="fa fa-eraser"></i> मिटाएं
-            </button>
-        </div>
-
-        <button class="btn-main" id="regBtn" onclick="submitRegistration()" style="background:var(--success)">रजिस्टर करें और WhatsApp भेजें</button>
-    </div>
-
-    <div id="home-page" class="page">
-        <div class="dash-card">
-            <p style="opacity:0.8;">कुल कमाई (Balance)</p>
-            <h1 id="balance">₹0.00</h1>
-            <button onclick="reqWithdraw()" style="margin-top:10px; background:rgba(255,255,255,0.2); border:none; color:white; padding:8px 15px; border-radius:8px;">Withdrawal Request</button>
-        </div>
-
-        <div style="padding:0 20px;"><h4><span style="height:10px; width:10px; background:red; border-radius:50%; display:inline-block; animation: blink 1s infinite;"></span> नए जॉब्स (Live Jobs)</h4></div>
-
-        <div id="job-list">
-            <div class="job-card">
-                <h4 style="color:var(--p)">AC Installation</h4>
-                <p style="font-size:12px; color:#64748b;">Indrapuri, Bhopal (3 km)</p>
-                <button class="btn-main" style="background:var(--success)" onclick="startJob('AC101')">Accept & Start</button>
+    <div id="login-pg" class="page active-page container py-5 text-center">
+        <div class="mt-5 pt-5">
+            <h1 class="display-3 fw-800">Welcome<span style="color:var(--p)">.</span></h1>
+            <p class="text-muted lead">SewaAstra Professional Partner Portal</p>
+            <div class="u-card mt-5 mx-auto" style="max-width: 400px;">
+                <button class="btn btn-dark w-100 py-3 rounded-4" onclick="handleAuth()">
+                    <img src="https://img.icons8.com/color/24/google-logo.png" class="me-2"> Google Login
+                </button>
             </div>
         </div>
     </div>
 
-    <nav class="bottom-nav" id="nav-bar" style="display:none;">
-        <div class="nav-item active" onclick="changePage('home-page')"><i class="fa fa-home fa-lg"></i><p>Home</p></div>
-        <div class="nav-item" onclick="location.reload()"><i class="fa fa-sign-out-alt fa-lg"></i><p>Logout</p></div>
-    </nav>
+    <div id="dash-pg" class="page">
+        <div class="container py-4">
+            <div class="wallet-master">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <small class="opacity-75 fw-bold text-uppercase">Net Earnings</small>
+                        <h1 id="wall-bal" class="display-4 fw-800">₹0.00</h1>
+                    </div>
+                    <button class="btn btn-light btn-sm rounded-pill px-3 fw-bold h-25" onclick="cashout()">Withdraw</button>
+                </div>
+                <div class="mt-4 row">
+                    <div class="col-6 border-end border-secondary"><small class="opacity-50">Jobs Done</small><h4 id="jobs-done" class="m-0">0</h4></div>
+                    <div class="col-6 ps-4"><small class="opacity-50">Rating</small><h4 class="m-0">4.9 ★</h4></div>
+                </div>
+            </div>
 
-    <script>
+            <h5 class="fw-800 mb-4 px-2">Live Opportunities</h5>
+            <div id="feed-container">
+                </div>
+        </div>
+
+        <div class="nav-dock">
+            <a href="#" class="dock-item active"><i class="fa fa-briefcase"></i>Jobs</a>
+            <a href="#" class="dock-item" onclick="showHistory()"><i class="fa fa-history"></i>History</a>
+            <a href="#" class="dock-item" onclick="logout()"><i class="fa fa-power-off text-danger"></i>Exit</a>
+        </div>
+    </div>
+
+    <div class="modal fade" id="verifyModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-5 border-0 shadow-lg">
+                <div class="modal-body p-5 text-center">
+                    <h3 class="fw-800">Job Complete?</h3>
+                    <p class="text-muted">Enter the 4-digit code provided by customer</p>
+                    <input type="number" id="otp-code" class="form-control form-control-lg text-center my-4 border-0 bg-light py-3 rounded-4 fw-bold fs-1" placeholder="0000" style="letter-spacing: 12px;">
+                    <button class="btn-sewa" id="confirm-job-btn">Release Payment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, updateDoc, increment, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // FIREBASE CONFIG (SAME AS CUSTOMER APP)
         const firebaseConfig = {
             apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
             authDomain: "sewaastra.firebaseapp.com",
             projectId: "sewaastra",
             storageBucket: "sewaastra.firebasestorage.app",
             messagingSenderId: "211091351218",
-            appId: "1:211091351218:web:bb555f4cae275b4f464bab"
+            appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
 
-        let partnerMobile = "";
-        let isSigned = false;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
 
-        function changePage(id) {
+        let userState = null;
+        let activeJobId = null;
+
+        window.navigate = (id) => {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
             document.getElementById(id).classList.add('active-page');
-            if(id === 'home-page') document.getElementById('nav-bar').style.display = 'flex';
-            if(id === 'reg-page') setTimeout(initSig, 500);
-        }
+        };
 
-        function handleLogin() {
-            partnerMobile = document.getElementById('log-phone').value;
-            if(partnerMobile.length === 10) {
-                document.getElementById('p-mobile').value = partnerMobile;
-                changePage('reg-page');
+        window.handleAuth = () => signInWithPopup(auth, provider);
+        window.logout = () => signOut(auth).then(() => location.reload());
+
+        onAuthStateChanged(auth, async (user) => {
+            document.getElementById('preloader').style.display = 'none';
+            if (user) {
+                userState = user;
+                const pRef = doc(db, "partners", user.uid);
+                const pSnap = await getDoc(pRef);
+                if (!pSnap.exists()) {
+                    await setDoc(pRef, { name: user.displayName, wallet: 0, uid: user.uid, totalJobs: 0, joined: new Date().toISOString() });
+                }
+                navigate('dash-pg');
+                initSync();
             } else {
-                alert("सही मोबाइल नंबर डालें");
+                navigate('login-pg');
             }
-        }
+        });
 
-        function googleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then(res => {
-                document.getElementById('p-name').value = res.user.displayName;
-                changePage('reg-page');
+        function initSync() {
+            // Sync Wallet
+            onSnapshot(doc(db, "partners", userState.uid), d => {
+                document.getElementById('wall-bal').innerText = `₹${d.data().wallet.toFixed(2)}`;
+                document.getElementById('jobs-done').innerText = d.data().totalJobs;
+            });
+
+            // Global Job Sync (Connects with Customer & Admin Bookings)
+            onSnapshot(query(collection(db, "bookings"), orderBy("createdAt", "desc")), snap => {
+                const feed = document.getElementById('feed-container');
+                feed.innerHTML = "";
+                snap.forEach(res => {
+                    const job = res.data();
+                    const id = res.id;
+                    if(job.status === 'open' || (job.status === 'active' && job.partnerId === userState.uid)) {
+                        const isMyJob = job.status === 'active';
+                        feed.innerHTML += `
+                            <div class="u-card">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span class="status-pill ${isMyJob ? 'st-active' : 'st-open'}">${job.status}</span>
+                                    <h5 class="fw-800 m-0">₹${job.price}</h5>
+                                </div>
+                                <h6 class="fw-800 mb-1 text-dark">${job.type || job.serviceName}</h6>
+                                <p class="small text-muted mb-3"><i class="fa fa-location-dot me-1 text-primary"></i> ${job.address}</p>
+                                ${isMyJob ? `
+                                    <div class="d-flex gap-2">
+                                        <button onclick="window.open('https://www.google.com/maps/search/${encodeURIComponent(job.address)}')" class="btn btn-light flex-fill rounded-3 fw-bold">Map</button>
+                                        <button onclick="openVerify('${id}')" class="btn btn-dark flex-fill rounded-3 fw-bold">Finish Job</button>
+                                    </div>
+                                ` : `
+                                    <button onclick="takeJob('${id}')" class="btn-sewa py-2">Take Job</button>
+                                `}
+                            </div>`;
+                    }
+                });
             });
         }
 
-        function pv(input, target) {
-            const r = new FileReader();
-            r.onload = e => { document.getElementById(target).src = e.target.result; document.getElementById(target).style.display='block'; }
-            r.readAsDataURL(input.files[0]);
-        }
+        window.takeJob = async (id) => {
+            const otp = Math.floor(1000 + Math.random() * 9000);
+            await updateDoc(doc(db, "bookings", id), {
+                status: 'active',
+                partnerId: userState.uid,
+                otp: otp,
+                acceptedAt: new Date().toISOString()
+            });
+            Swal.fire('Job Started!', `Customer OTP is: ${otp}`, 'success');
+        };
 
-        // --- Signature Logic ---
-        function initSig() {
-            const canvas = document.getElementById('sig-canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth; 
-            canvas.height = canvas.offsetHeight;
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = "#000";
+        window.openVerify = (id) => {
+            activeJobId = id;
+            new bootstrap.Modal(document.getElementById('verifyModal')).show();
+        };
 
-            const draw = (e) => {
-                isSigned = true;
-                const r = canvas.getBoundingClientRect();
-                const x = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
-                const y = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
-                ctx.lineTo(x, y); ctx.stroke();
-            };
-            canvas.addEventListener('touchstart', (e) => { ctx.beginPath(); draw(e); e.preventDefault(); });
-            canvas.addEventListener('touchmove', (e) => { draw(e); e.preventDefault(); });
-            canvas.addEventListener('mousedown', (e) => { ctx.beginPath(); canvas.onmousemove = draw; });
-            canvas.addEventListener('mouseup', () => { canvas.onmousemove = null; });
-        }
+        document.getElementById('confirm-job-btn').onclick = async () => {
+            const code = document.getElementById('otp-code').value;
+            const jRef = doc(db, "bookings", activeJobId);
+            const jSnap = await getDoc(jRef);
+            if(code == jSnap.data().otp) {
+                const price = parseFloat(jSnap.data().price);
+                const commission = price * 0.15; // 15% Admin
+                const payout = price - commission;
 
-        function clearSig() {
-            const canvas = document.getElementById('sig-canvas');
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            isSigned = false;
-        }
-
-        async function submitRegistration() {
-            const name = document.getElementById('p-name').value;
-            const mobile = document.getElementById('p-mobile').value;
-            const range = document.getElementById('p-range').value;
-            const work = document.getElementById('p-work').value;
-
-            if(!name || !mobile || !range || !work || !isSigned) {
-                alert("कृपया सभी जानकारी भरें, रेंज चुनें और हस्ताक्षर करें!");
-                return;
+                await updateDoc(doc(db, "partners", userState.uid), { wallet: increment(payout), totalJobs: increment(1) });
+                await updateDoc(jRef, { status: 'completed', commission: commission, partnerPay: payout, endedAt: new Date().toISOString() });
+                
+                Swal.fire('Paid!', `₹${payout} added to your wallet.`, 'success').then(() => location.reload());
+            } else {
+                Swal.fire('Error', 'Incorrect Verification Code', 'error');
             }
+        };
 
-            alert("पंजीकरण सफल! व्हाट्सएप पर विवरण भेजा जा रहा है।");
-            const waMsg = `SewaAstra-New-Partner%0AName: ${name}%0AMobile: ${mobile}%0AWork: ${work}%0ARange: ${range}`;
-            window.open(`https://wa.me/917869969190?text=${waMsg}`);
-            changePage('home-page');
-        }
+        window.cashout = () => Swal.fire('Request Sent', 'Payment will be sent to your UPI in 2 hours', 'success');
 
-        function startJob(id) {
-            alert("Job Started! Live location active.");
-            window.open(`https://wa.me/917869969190?text=Job-Started-ID-${id}`);
-        }
-
-        function reqWithdraw() {
-            const amt = prompt("कितने पैसे निकालना चाहते हैं?");
-            if(amt) window.open(`https://wa.me/917869969190?text=Withdraw-Request-₹${amt}`);
-        }
     </script>
- <script type="module">
-    // 1. फायरबेस मॉड्यूल्स इम्पोर्ट करें
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    // 2. आपकी कॉन्फ़िगरेशन (तीनों फाइल्स में एक ही रहेगी)
-    const firebaseConfig = {
-        apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
-        authDomain: "sewaastra.firebaseapp.com",
-        projectId: "sewaastra",
-        storageBucket: "sewaastra.firebasestorage.app",
-        messagingSenderId: "211091351218",
-        appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
-    };
-
-    // 3. फायरबेस शुरू करें
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app); // अब डेटा Firestore में जाएगा
-
-    // --- अब तीनों फाइल्स के लिए अलग-अलग फंक्शन्स ---
-
-    // A. पार्टनर ऐप के लिए (डेटा भेजना)
-    window.registerPartner = async (partnerData) => {
-        await addDoc(collection(db, "partners"), partnerData);
-    };
-
-    // B. कस्टमर ऐप के लिए (बुकिंग करना)
-    window.makeBooking = async (bookingData) => {
-        await addDoc(collection(db, "bookings"), bookingData);
-    };
-
-    // C. एडमिन ऐप के लिए (डेटा देखना)
-    window.loadAdminData = () => {
-        onSnapshot(collection(db, "partners"), (snap) => { /* टेबल अपडेट करें */ });
-        onSnapshot(collection(db, "bookings"), (snap) => { /* टेबल अपडेट करें */ });
-    };
-
-</script>
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
