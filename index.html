@@ -3,121 +3,550 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra - Partner</title>
+    <title>SewaAstra Titan | Architecture</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800&family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <style>
-        :root { --p: #ff6b00; --s: #0f172a; --bg: #f4f7fe; }
-        body { background: var(--bg); font-family: 'Poppins', sans-serif; margin:0; }
-        .page { display: none; padding: 20px; padding-bottom: 80px; }
-        .active-page { display: block; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; }
-        .btn-main { width: 100%; padding: 15px; background: var(--p); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
-        .job-card { background: white; padding: 15px; border-radius: 15px; margin-bottom: 10px; border-left: 5px solid var(--p); box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .nav-bar { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 10px; border-top: 1px solid #eee; }
+        :root {
+            --z-red: #E23744; --z-dark: #121212; --z-green: #24963F;
+            --z-blue: #2D9CDB; --z-light: #F4F4F4; --z-border: #E8E8E8;
+            --z-gold: #FFD700;
+        }
+
+        /* Base UI & Typography */
+        body { 
+            background: var(--z-light); font-family: 'Plus Jakarta Sans', sans-serif; 
+            margin: 0; overflow-x: hidden; color: var(--z-dark);
+        }
+        .orbitron { font-family: 'Orbitron', sans-serif; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+        /* --- STYLING: REGISTRATION & LOGIN GATE --- */
+        .auth-overlay {
+            position: fixed; inset: 0; background: #fff; z-index: 9000;
+            display: flex; flex-direction: column; padding: 30px;
+        }
+        .brand-logo { font-size: 32px; font-weight: 800; font-style: italic; margin-bottom: 50px; }
+        .brand-logo span { color: var(--z-red); }
+
+        .onboarding-card {
+            background: #fff; border-radius: 24px; padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05); border: 1px solid var(--z-border);
+        }
+        .step-progress { display: flex; gap: 8px; margin-bottom: 25px; }
+        .step-bar { height: 6px; flex: 1; background: #eee; border-radius: 10px; overflow: hidden; }
+        .step-bar-fill { height: 100%; width: 0; background: var(--z-red); transition: 0.5s; }
+        .step-bar-fill.active { width: 100%; }
+
+        /* Form Elements */
+        .form-label-custom { font-size: 12px; font-weight: 800; color: #888; text-transform: uppercase; }
+        .custom-input {
+            border: 2px solid #f0f0f0; padding: 15px; border-radius: 14px;
+            font-weight: 600; width: 100%; transition: 0.3s; margin-bottom: 20px;
+        }
+        .custom-input:focus { border-color: var(--z-red); outline: none; background: #fff; }
+
+        /* Upload Slots */
+        .upload-slot {
+            border: 2px dashed #ddd; border-radius: 16px; padding: 20px;
+            text-align: center; cursor: pointer; background: #fafafa;
+            margin-bottom: 15px; transition: 0.3s;
+        }
+        .upload-slot:active { transform: scale(0.96); background: #fdf2f2; }
+        .upload-slot i { color: var(--z-red); font-size: 20px; margin-bottom: 8px; }
+        .upload-slot p { margin: 0; font-size: 13px; font-weight: 700; color: #555; }
+
+        /* Buttons */
+        .btn-titan {
+            background: var(--z-red); color: #fff; border: none; width: 100%;
+            padding: 18px; border-radius: 16px; font-weight: 800; font-size: 16px;
+            box-shadow: 0 8px 25px rgba(226, 55, 68, 0.3); transition: 0.3s;
+        }
+        .btn-titan:disabled { background: #ccc; box-shadow: none; }
+
+        /* --- STYLING: DUTY & DASHBOARD --- */
+        .duty-strip {
+            background: #fff; padding: 12px 20px; display: flex; 
+            justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid #eee;
+        }
+        .duty-toggle-wrap { display: flex; align-items: center; gap: 12px; }
+        .slider-rail {
+            width: 100px; height: 36px; background: #eee; border-radius: 50px;
+            position: relative; cursor: pointer; transition: 0.4s;
+        }
+        .slider-knob {
+            position: absolute; left: 3px; top: 3px; width: 45px; height: 30px;
+            background: #fff; border-radius: 50px; display: flex; align-items: center;
+            justify-content: center; font-size: 10px; font-weight: 800;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.4s;
+        }
+        .online-mode .slider-rail { background: var(--z-green); }
+        .online-mode .slider-knob { left: 52px; color: var(--z-green); }
+        
+        /* Stats Grid */
+        .stats-row { display: flex; gap: 12px; padding: 15px; }
+        .stat-card {
+            background: #fff; flex: 1; padding: 15px; border-radius: 20px;
+            border: 1px solid var(--z-border); box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+        }
+        .stat-card small { font-size: 10px; font-weight: 800; color: #999; text-transform: uppercase; }
+        .stat-card h3 { margin: 5px 0 0 0; font-weight: 800; font-size: 20px; }
+        
+        /* Animations */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .animate-up { animation: slideUp 0.5s ease-out; }
     </style>
 </head>
 <body>
 
-    <div id="login-page" class="page active-page" style="text-align: center; margin-top: 50px;">
-        <h1 style="color:var(--s)">Sewa<span style="color:var(--p)">Astra</span> Partner</h1>
-        <p>अपना भविष्य हमारे साथ बनाएं</p>
-        <button class="btn-main" id="btnGoogleLogin" style="background: white; color: #444; border: 1px solid #ddd;">
-            <img src="https://img.icons8.com/color/24/google-logo.png" style="vertical-align: middle;"> Google से जुड़ें
-        </button>
-    </div>
-
-    <div id="reg-page" class="page">
-        <h3>नया पार्टनर पंजीकरण</h3>
-        <input type="text" id="p-name" placeholder="आपका नाम">
-        <input type="tel" id="p-phone" placeholder="WhatsApp नंबर">
-        <select id="p-work">
-            <option value="">काम चुनें</option>
-            <option>AC Mechanic</option>
-            <option>Electrician</option>
-            <option>Plumber</option>
-        </select>
-        <button class="btn-main" onclick="submitRegistration()">रजिस्टर करें</button>
-    </div>
-
-    <div id="home-page" class="page">
-        <div style="background: var(--s); color: white; padding: 20px; border-radius: 20px; margin-bottom: 20px;">
-            <p>Welcome, <span id="user-display-name">Partner</span></p>
-            <h2 id="balance">Balance: ₹0</h2>
+    <div id="auth-gate" class="auth-overlay">
+        <div class="brand-logo">sewa<span>astra</span></div>
+        <div class="onboarding-card">
+            <h4 class="fw-800 mb-2">Partner Login</h4>
+            <p class="text-muted small mb-4">भारत के सबसे बड़े सर्विस नेटवर्क का हिस्सा बनें।</p>
+            
+            <button class="btn btn-outline-dark w-100 py-3 rounded-4 fw-bold mb-3 d-flex align-items-center justify-content-center gap-2" onclick="loginWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" width="20">
+                Google से जुड़ें
+            </button>
+            <p class="text-center small text-muted px-4">By continuing, you agree to our Terms & Conditions.</p>
         </div>
-        <h4>उपलब्ध जॉब्स (Live Jobs)</h4>
-        <div id="job-list">
-            </div>
     </div>
 
-    <nav class="nav-bar" id="nav" style="display: none;">
-        <div onclick="showPage('home-page')"><i class="fa fa-home"></i><br>Home</div>
-        <div onclick="location.reload()"><i class="fa fa-sign-out"></i><br>Logout</div>
-    </nav>
+    <div id="kyc-gate" class="auth-overlay" style="display:none;">
+        <div class="step-progress">
+            <div class="step-bar"><div class="step-bar-fill active"></div></div>
+            <div class="step-bar"><div class="step-bar-fill" id="step2-fill"></div></div>
+            <div class="step-bar"><div class="step-bar-fill" id="step3-fill"></div></div>
+        </div>
+
+        <div id="kyc-step-1">
+            <h4 class="fw-800">डॉक्यूमेंट अपलोड</h4>
+            <p class="text-muted small mb-4">सुरक्षा के लिए हमें आपके डाक्यूमेंट्स की आवश्यकता है।</p>
+            <div class="upload-slot" onclick="handleUpload('aadhar_f')"><i class="fa fa-id-card"></i><p>आधार कार्ड (Front)</p></div>
+            <div class="upload-slot" onclick="handleUpload('aadhar_b')"><i class="fa fa-id-card"></i><p>आधार कार्ड (Back)</p></div>
+            <div class="upload-slot" onclick="handleUpload('pan')"><i class="fa fa-credit-card"></i><p>PAN कार्ड</p></div>
+            <button class="btn-titan mt-4" onclick="nextKYC(2)">अगला (Next)</button>
+        </div>
+
+        <div id="kyc-step-2" style="display:none;">
+            <h4 class="fw-800">अपनी स्किल चुनें</h4>
+            <p class="text-muted small mb-4">आप कौन सा काम करना चाहते हैं?</p>
+            <div class="row g-2">
+                <div class="col-6"><div class="upload-slot" onclick="selectSkill('Driver')"><b>Driver</b></div></div>
+                <div class="col-6"><div class="upload-slot" onclick="selectSkill('Delivery')"><b>Delivery</b></div></div>
+                <div class="col-6"><div class="upload-slot" onclick="selectSkill('Cleaning')"><b>Cleaning</b></div></div>
+                <div class="col-6"><div class="upload-slot" onclick="selectSkill('Electrician')"><b>Electrician</b></div></div>
+            </div>
+            <button class="btn-titan mt-4" onclick="completeKYC()">सबमिट करें</button>
+        </div>
+    </div>
+
+    <div id="app-body" style="display:none;">
+        <header class="duty-strip">
+            <div class="duty-toggle-wrap">
+                <div class="slider-rail" onclick="toggleDuty()">
+                    <div class="slider-knob" id="knob-txt">OFF</div>
+                </div>
+                <span class="status-txt orbitron fw-bold small">OFF DUTY</span>
+            </div>
+            <img id="partner-avatar" src="" class="rounded-circle border" width="38" height="38">
+        </header>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <small>आज की कमाई</small>
+                <h3 id="wal-today">₹0.00</h3>
+            </div>
+            <div class="stat-card">
+                <small>कुल आर्डर</small>
+                <h3 id="ord-total">0</h3>
+            </div>
+        </div>
+        
+        <div id="feed-container" class="p-3"></div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
+            apiKey: "AIzaSyA4kInzUxzF6Or1sHfzXavx1nVM0x40lak",
             authDomain: "sewaastra.firebaseapp.com",
             projectId: "sewaastra",
             storageBucket: "sewaastra.firebasestorage.app",
             messagingSenderId: "211091351218",
-            appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
+            appId: "1:211091351218:web:5602f5f1a36a21c3464bab"
         };
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const provider = new GoogleAuthProvider();
+        
+        let userUID, isOnline = false, userSkill = "";
 
-        window.showPage = (id) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-            document.getElementById(id).classList.add('active-page');
-        };
+        // Part 1 Logic continues...
+// --- PART 2: THE LIVE ENGINE ---
 
-        document.getElementById('btnGoogleLogin').onclick = () => signInWithPopup(auth, provider);
+let map, partnerMarker;
+let activeOrder = null;
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('user-display-name').innerText = user.displayName;
-                // Check if already registered (logic simplified for brevity)
-                showPage('reg-page');
+// 1. GPS & MAP INITIALIZATION
+function initMapSystem() {
+    // Leaflet.js का उपयोग करके मैप लोड करना
+    if (!document.getElementById('map-zone')) {
+        const mapDiv = document.createElement('div');
+        mapDiv.id = 'map-zone';
+        mapDiv.style = "height: 250px; width: 100%; border-radius: 0 0 25px 25px; margin-bottom: 20px;";
+        document.getElementById('feed-container').before(mapDiv);
+    }
+
+    map = L.map('map-zone', { zoomControl: false }).setView([23.2599, 77.4126], 15);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
+    
+    partnerMarker = L.marker([23.2599, 77.4126], {
+        icon: L.icon({
+            iconUrl: 'https://cdn-icons-png.flaticon.com/512/854/854878.png',
+            iconSize: [40, 40]
+        })
+    }).addTo(map);
+
+    // लाइव लोकेशन ट्रैकिंग
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(position => {
+            const { latitude, longitude } = position.coords;
+            const newPos = [latitude, longitude];
+            
+            map.setView(newPos);
+            partnerMarker.setLatLng(newPos);
+
+            // अगर ऑनलाइन है तो डेटाबेस में लोकेशन सिंक करें
+            if (isOnline && userUID) {
+                updateDoc(doc(db, "partners", userUID), {
+                    lat: latitude,
+                    lng: longitude,
+                    lastSeen: serverTimestamp()
+                });
+            }
+        }, err => console.error("GPS Error:", err), { enableHighAccuracy: true });
+    }
+}
+
+// 2. LIVE ORDER STREAM (ZOMATO STYLE)
+function startOrderStream() {
+    const q = query(collection(db, "bookings"), where("status", "in", ["open", "active"]));
+    
+    onSnapshot(q, (snapshot) => {
+        const feed = document.getElementById('feed-container');
+        if (!isOnline) {
+            feed.innerHTML = `<div class="text-center py-5 opacity-50"><i class="fa fa-moon fa-3x mb-3"></i><br>आप अभी ऑफलाइन हैं</div>`;
+            return;
+        }
+
+        feed.innerHTML = `<h6 class="fw-800 mb-3 px-2">नज़दीकी ऑर्डर्स (LIVE)</h6>`;
+        
+        snapshot.forEach((orderDoc) => {
+            const order = orderDoc.data();
+            const orderId = orderDoc.id;
+
+            // केवल वही ऑर्डर दिखाएं जो "Open" हैं या इस पार्टनर के पास "Active" हैं
+            if (order.status === "open" || (order.status === "active" && order.partnerId === userUID)) {
+                renderOrderCard(orderId, order);
             }
         });
 
-        window.submitRegistration = async () => {
-            const data = {
-                uid: auth.currentUser.uid,
-                name: document.getElementById('p-name').value,
-                phone: document.getElementById('p-phone').value,
-                work: document.getElementById('p-work').value,
-                status: 'pending',
-                earnings: 0,
-                timestamp: new Date()
-            };
-            await addDoc(collection(db, "partners"), data);
-            alert("पंजीकरण सफल! एडमिन की अनुमति का इंतज़ार करें।");
-            showPage('home-page');
-            document.getElementById('nav').style.display = 'flex';
-        };
+        if (snapshot.empty) {
+            feed.innerHTML += `<div class="text-center p-5 border rounded-4 bg-white">अभी कोई ऑर्डर उपलब्ध नहीं है।</div>`;
+        }
+    });
+}
 
-        // Live Jobs Listen
-        onSnapshot(collection(db, "bookings"), (snap) => {
-            const list = document.getElementById('job-list');
-            list.innerHTML = "";
-            snap.forEach(doc => {
-                const job = doc.data();
-                list.innerHTML += `<div class="job-card">
-                    <b>${job.service}</b><br>
-                    <small>${job.address}</small><br>
-                    <button class="btn-main" style="padding:5px; margin-top:5px;">Accept Job</button>
-                </div>`;
-            });
+// 3. ORDER CARD UI (PRO DESIGN)
+function renderOrderCard(id, data) {
+    const isActive = data.status === 'active';
+    const card = document.createElement('div');
+    card.className = `order-card animate-up mb-3 p-3 bg-white rounded-4 border ${isActive ? 'border-primary' : ''}`;
+    card.style = "box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative;";
+
+    card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+                <span class="badge ${isActive ? 'bg-primary' : 'bg-danger'} mb-2">${isActive ? 'चालू ऑर्डर' : 'नया ऑर्डर'}</span>
+                <h5 class="fw-800 mb-0">${data.serviceName}</h5>
+            </div>
+            <div class="text-end">
+                <small class="text-muted d-block">आपकी कमाई</small>
+                <b class="text-success fs-5">₹${(data.price * 0.8).toFixed(0)}</b>
+            </div>
+        </div>
+        <div class="small text-muted mb-3">
+            <i class="fa fa-map-marker-alt text-danger me-1"></i> ${data.address}
+        </div>
+        
+        ${isActive ? `
+            <div class="d-flex gap-2">
+                <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(data.address)}" target="_blank" class="btn btn-dark flex-fill py-2 rounded-3">
+                    <i class="fa fa-location-arrow"></i> मैप देखें
+                </a>
+                <button onclick="completeOrder('${id}', ${data.otp})" class="btn btn-success flex-fill py-2 rounded-3 fw-bold">काम पूरा करें</button>
+            </div>
+        ` : `
+            <button onclick="acceptOrder('${id}')" class="btn btn-danger w-100 py-3 rounded-4 fw-800 shadow-sm">
+                ऑर्डर स्वीकार करें (Accept)
+            </button>
+        `}
+    `;
+    document.getElementById('feed-container').appendChild(card);
+}
+
+// 4. VOICE AI CONTROL (VOICE COMMANDS)
+const voiceAI = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+voiceAI.lang = 'hi-IN'; // हिंदी सपोर्ट
+voiceAI.continuous = true;
+
+window.toggleVoice = () => {
+    const btn = document.getElementById('voice-trigger');
+    if (btn.classList.contains('text-danger')) {
+        voiceAI.stop();
+        btn.classList.replace('text-danger', 'text-muted');
+        speak("वॉइस कंट्रोल बंद कर दिया गया है");
+    } else {
+        voiceAI.start();
+        btn.classList.replace('text-muted', 'text-danger');
+        speak("SewaAstra वॉइस एक्टिव है, हुक्म दें");
+    }
+};
+
+voiceAI.onresult = (event) => {
+    const command = event.results[event.results.length - 1][0].transcript.toLowerCase();
+    console.log("Partner said:", command);
+
+    if (command.includes("स्वीकार") || command.includes("accept")) {
+        const firstBtn = document.querySelector('.btn-danger');
+        if (firstBtn) firstBtn.click();
+        speak("ऑर्डर स्वीकार कर लिया गया है। रास्ता देखें।");
+    }
+    
+    if (command.includes("ऑफलाइन") || command.includes("duty off")) {
+        if(isOnline) toggleDuty();
+        speak("आप अब ऑफलाइन हैं।");
+    }
+};
+
+function speak(text) {
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = 'hi-IN';
+    window.speechSynthesis.speak(msg);
+}
+
+// 5. CORE ACTIONS
+window.acceptOrder = async (id) => {
+    const otp = Math.floor(1000 + Math.random() * 9000); // 4 digit OTP
+    await updateDoc(doc(db, "bookings", id), {
+        status: 'active',
+        partnerId: userUID,
+        otp: otp,
+        acceptedAt: serverTimestamp()
+    });
+    Swal.fire({ icon: 'success', title: 'Accepted!', text: 'ग्राहक का पता और मैप खुल गया है।', timer: 2000 });
+};
+
+window.completeOrder = async (id, correctOtp) => {
+    const { value: userOtp } = await Swal.fire({
+        title: 'OTP भरें',
+        input: 'number',
+        inputLabel: 'ग्राहक से मिला 4 अंकों का कोड डालें',
+        showCancelButton: true
+    });
+
+    if (userOtp == correctOtp) {
+        const orderRef = doc(db, "bookings", id);
+        const orderSnap = await getDoc(orderRef);
+        const earnings = orderSnap.data().price * 0.8;
+
+        // वॉलेट और ऑर्डर काउंट अपडेट करें
+        await updateDoc(doc(db, "partners", userUID), {
+            wallet: increment(earnings),
+            orders: increment(1)
         });
-    </script>
-</body>
-</html>
+
+        await updateDoc(orderRef, { status: 'completed' });
+        
+        Swal.fire('बधाई हो!', `₹${earnings} आपके वॉलेट में जुड़ गए हैं।`, 'success');
+    } else {
+        Swal.fire('गलत OTP', 'कृपया सही कोड डालें।', 'error');
+    }
+};
+// --- PART 3: THE IDENTITY & ANALYTICS ENGINE ---
+
+// 1. TAB SWITCHING SYSTEM
+window.switchTab = (tabId, el) => {
+    // सभी टैब कंटेंट को छुपाएं
+    document.querySelectorAll('.tab-view').forEach(tab => tab.style.display = 'none');
+    // नेविगेशन बटन से 'active' क्लास हटाएं
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    
+    // चुने हुए टैब को दिखाएं
+    document.getElementById(tabId).style.display = 'block';
+    el.classList.add('active');
+
+    // अगर अर्निंग टैब है, तो चार्ट रेंडर करें
+    if(tabId === 'tab-earnings') {
+        renderEarningsChart();
+        loadHistory();
+    }
+};
+
+// 2. DIGITAL ID GENERATOR (TITAN ID)
+function renderDigitalID(data) {
+    const epart = data.epartCode || `EPART-${userUID.slice(0,6).toUpperCase()}`;
+    const profileHTML = `
+        <div class="id-card-wrap p-3">
+            <div class="titan-id" style="background: linear-gradient(135deg, #1A1A1A 0%, #444 100%); border-radius: 25px; padding: 25px; color: #fff; position: relative; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.2);">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <span class="badge bg-danger orbitron" style="font-size: 10px; letter-spacing: 1px;">SEWAASTRA VERIFIED</span>
+                    <img src="https://cdn-icons-png.flaticon.com/512/1043/1043303.png" width="30" style="filter: invert(1);">
+                </div>
+                
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <img src="${data.photo}" class="rounded-circle border border-3 border-white" width="80" height="80" style="object-fit: cover;">
+                    <div>
+                        <h4 class="m-0 fw-800">${data.name}</h4>
+                        <div class="bg-danger d-inline-block px-2 py-1 rounded small orbitron mt-1" style="font-size: 10px;">${epart}</div>
+                    </div>
+                </div>
+
+                <div class="row g-0 border-top border-secondary pt-3 mt-2">
+                    <div class="col-6 border-end border-secondary">
+                        <small class="text-white-50 d-block" style="font-size: 9px;">CATEGORY</small>
+                        <b class="small">${data.category || 'Professional'}</b>
+                    </div>
+                    <div class="col-6 ps-3">
+                        <small class="text-white-50 d-block" style="font-size: 9px;">MEMBER SINCE</small>
+                        <b class="small">FEB 2026</b>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 bg-white p-2 rounded-4 d-inline-block" style="position: absolute; bottom: 20px; right: 20px;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=${epart}" width="50">
+                </div>
+            </div>
+        </div>
+
+        <div class="px-3 mt-2">
+            <div class="list-group rounded-4 shadow-sm border-0">
+                <div class="list-group-item p-3 d-flex justify-content-between"><span>मोबाइल नंबर</span><b>${data.phone || 'Verified'}</b></div>
+                <div class="list-group-item p-3 d-flex justify-content-between"><span>पुलिस वेरिफिकेशन</span><b class="text-success">Approved</b></div>
+                <div class="list-group-item p-3 text-danger fw-bold" onclick="logout()"><i class="fa fa-sign-out-alt me-2"></i>लॉगआउट करें</div>
+            </div>
+        </div>
+    `;
+    document.getElementById('tab-profile').innerHTML = profileHTML;
+}
+
+// 3. EARNINGS ANALYTICS (CHART.JS)
+function renderEarningsChart() {
+    const ctx = document.getElementById('earningsChart').getContext('2d');
+    
+    // अगर पुराना चार्ट है तो उसे डिलीट करें
+    if(window.myEarningChart) window.myEarningChart.destroy();
+
+    window.myEarningChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['सोम', 'मंगल', 'बुध', 'गुरु', 'शुक्र', 'शनि', 'रवि'],
+            datasets: [{
+                label: 'साप्ताहिक कमाई (₹)',
+                data: [450, 800, 300, 1200, 900, 1500, 600],
+                borderColor: '#E23744',
+                backgroundColor: 'rgba(226, 55, 68, 0.1)',
+                fill: true,
+                tension: 0.4,
+                borderWidth: 3,
+                pointRadius: 4
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+        }
+    });
+}
+
+// 4. TRANSACTION HISTORY
+async function loadHistory() {
+    const historyBox = document.getElementById('history-list');
+    historyBox.innerHTML = '<h6 class="fw-800 px-2 mb-3">पिछला इतिहास</h6>';
+
+    const q = query(collection(db, "bookings"), where("partnerId", "==", userUID), where("status", "==", "completed"));
+    const snap = await getDocs(q);
+
+    if(snap.empty) {
+        historyBox.innerHTML += '<div class="text-center p-4 text-muted small">कोई ट्रांजेक्शन नहीं मिला।</div>';
+        return;
+    }
+
+    snap.forEach(doc => {
+        const item = doc.data();
+        historyBox.innerHTML += `
+            <div class="bg-white p-3 rounded-4 border mb-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <b class="d-block">${item.serviceName}</b>
+                    <small class="text-muted">${new Date(item.acceptedAt?.toDate()).toLocaleDateString()}</small>
+                </div>
+                <div class="text-success fw-800">+₹${(item.price * 0.8).toFixed(0)}</div>
+            </div>
+        `;
+    });
+}
+
+// 5. FINAL INTEGRATION HUB
+async function initTitanSystem(data) {
+    // स्क्रीन लोडर हटाना
+    document.getElementById('auth-gate').style.display = 'none';
+    document.getElementById('kyc-gate').style.display = 'none';
+    document.getElementById('app-body').style.display = 'block';
+
+    // प्रोफाइल फोटो अपडेट
+    document.getElementById('partner-avatar').src = data.photo;
+    
+    // रीयल-टाइम वॉलेट अपडेट
+    onSnapshot(doc(db, "partners", userUID), (doc) => {
+        const pData = doc.data();
+        document.getElementById('wal-today').innerText = `₹${(pData.wallet || 0).toFixed(2)}`;
+        document.getElementById('ord-total').innerText = pData.orders || 0;
+        renderDigitalID(pData); // आईडी कार्ड अपडेट करें
+    });
+
+    // मैप और आर्डर फीड शुरू करें (Part 2 Functions)
+    initMapSystem();
+    startOrderStream();
+}
+
+// 6. GLOBAL HELPERS
+window.logout = () => {
+    Swal.fire({
+        title: 'लॉगआउट?',
+        text: "क्या आप ड्यूटी बंद करके जाना चाहते हैं?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#E23744',
+        confirmButtonText: 'हाँ, लॉगआउट'
+    }).then((result) => {
+        if (result.isConfirmed) auth.signOut().then(() => location.reload());
+    });
+};
+
+window.payout = () => {
+    Swal.fire('पैसे भेज दिए गए!', 'आपका बैलेंस 24 घंटे में बैंक खाते में आ जाएगा।', 'success');
+};
