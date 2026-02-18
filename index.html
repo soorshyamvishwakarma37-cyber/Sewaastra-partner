@@ -1,273 +1,473 @@
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Partner - Ultimate Pro</title>
+    <title>SewaAstra Partner Pro | Enterprise Expert Console</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <style>
-        :root { --p: #FF6B00; --s: #0F172A; --bg: #F8FAFC; --green: #22C55E; --blue: #3B82F6; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--s); overflow-x: hidden; }
-        
-        .screen { display: none; animation: fadeIn 0.4s ease; }
-        .active-screen { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        #scr-login { 
-            background: white; position: fixed; inset: 0; z-index: 5000; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
+        :root {
+            --p: #FF6B00; --s: #0F172A; --bg: #F1F5F9; --white: #ffffff;
+            --green: #10B981; --blue: #3B82F6; --red: #EF4444; --gray: #64748B;
+            --glass: rgba(255, 255, 255, 0.9);
         }
-        .login-logo { width: 120px; margin-bottom: 20px; }
 
-        .top-header { background: var(--s); color: white; padding: 30px 20px 60px; border-radius: 0 0 40px 40px; position: relative; }
-        .card { background: white; margin: -30px 15px 15px; padding: 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        .btn-p { background: var(--p); color: white; border: none; padding: 14px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 14px; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--s); overflow-x: hidden; }
+
+        /* Multi-Layered Header */
+        .header-main { background: var(--s); color: white; padding: 40px 20px 80px; border-radius: 0 0 50px 50px; position: relative; }
+        .user-profile-header { display: flex; align-items: center; gap: 15px; }
+        .avatar-circle { width: 60px; height: 60px; border-radius: 20px; border: 3px solid var(--p); object-fit: cover; }
         
-        #map { height: 250px; width: calc(100% - 30px); margin: 15px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 3px solid white; z-index: 1; }
-        .radar-box { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--p); font-weight: bold; font-size: 13px; margin-top: -10px; padding-bottom: 10px; }
-        .pulse { width: 10px; height: 10px; background: var(--p); border-radius: 50%; animation: pulse-red 1.5s infinite; }
-        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 107, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); } }
+        /* Navigation System */
+        .bottom-bar { position: fixed; bottom: 20px; left: 20px; right: 20px; background: var(--s); border-radius: 25px; display: flex; padding: 15px; z-index: 1000; box-shadow: 0 15px 35px rgba(0,0,0,0.2); }
+        .nav-btn { flex: 1; text-align: center; color: #94A3B8; cursor: pointer; border: none; background: none; transition: 0.3s; }
+        .nav-btn.active { color: var(--p); transform: translateY(-5px); }
+        .nav-btn i { font-size: 24px; display: block; margin-bottom: 5px; }
 
-        .id-card { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; border-radius: 20px; padding: 20px; position: relative; overflow: hidden; }
-        .id-photo { width: 80px; height: 100px; border-radius: 12px; border: 2px solid var(--p); object-fit: cover; }
-        #qrcode { background: white; padding: 5px; border-radius: 5px; }
-        .verify-badge { color: var(--blue); font-size: 18px; display: none; }
+        /* Screen Management */
+        .screen { display: none; padding: 0 20px; margin-top: -50px; animation: slideFade 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        .active-screen { display: block; }
+        @keyframes slideFade { from { opacity:0; transform: translateY(30px); } to { opacity:1; transform: translateY(0); } }
+
+        /* Advanced Cards */
+        .glass-card { background: var(--glass); backdrop-filter: blur(10px); border-radius: 30px; padding: 25px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+        .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .mini-stat { background: white; padding: 15px; border-radius: 20px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
+
+        /* Map UI */
+        #radar-map { height: 320px; width: 100%; border-radius: 35px; margin-bottom: 25px; border: 5px solid white; box-shadow: 0 15px 30px rgba(0,0,0,0.1); position: relative; }
+        .online-status { position: absolute; top: 20px; right: 20px; z-index: 500; background: white; padding: 8px 15px; border-radius: 50px; display: flex; align-items: center; gap: 8px; font-weight: 700; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+
+        /* ID Card Luxury Style */
+        .luxury-id { background: linear-gradient(145deg, #1e293b, #0f172a); color: white; border-radius: 30px; position: relative; overflow: hidden; padding: 30px; }
+        .luxury-id::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,107,0,0.1) 0%, transparent 70%); }
         
-        .status-locked { background: #FFF1F2; color: #E11D48; padding: 20px; border-radius: 20px; text-align: center; margin: 15px; border: 1px dashed #FDA4AF; }
-        .doc-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        /* Floating Action Button */
+        .fab-payout { position: absolute; bottom: 100px; right: 20px; background: var(--p); color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 10px 20px rgba(255,107,0,0.3); border: none; }
 
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; padding: 12px 0; z-index: 1000; }
-        .nav-link { flex: 1; text-align: center; color: #94A3B8; cursor: pointer; border: none; background: none; font-size: 10px; }
-        .nav-link.active { color: var(--p); font-weight: bold; }
-        .nav-link i { font-size: 22px; display: block; margin-bottom: 4px; }
+        /* Job Accept Overlay */
+        .job-detail-popup { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: none; padding: 20px; align-items: center; }
+        
+        /* Forms */
+        input, select { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 15px; font-size: 16px; }
+        .btn-p { background: var(--p); color: white; border: none; padding: 18px; border-radius: 20px; width: 100%; font-weight: 800; cursor: pointer; box-shadow: 0 10px 20px rgba(255,107,0,0.2); }
 
-        #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: none; align-items: center; justify-content: center; z-index: 6000; flex-direction: column; }
+        /* Pulse Animation */
+        .pulse-orange { animation: pulse-orange 2s infinite; }
+        @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(255, 107, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); } }
     </style>
 </head>
 <body>
 
-    <div id="loading"><i class="fa fa-spinner fa-spin fa-3x" style="color:var(--p)"></i><p>प्रोसेसिंग...</p></div>
+    <div id="app-loader" style="position:fixed; inset:0; background:var(--s); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
+        <div class="pulse-orange" style="width:80px; height:80px; background:var(--p); border-radius:50%; margin-bottom:20px;"></div>
+        <h2>SewaAstra Expert</h2>
+        <p style="color:var(--gray);">Enabling Professional Services...</p>
+    </div>
 
-    <div id="scr-login">
-        <img src="https://cdn-icons-png.flaticon.com/512/1063/1063376.png" class="login-logo">
-        <h1 style="margin:0; color:var(--s);">SewaAstra</h1>
-        <p style="color:gray; margin-bottom:40px;">Expert Partner App</p>
-        <button onclick="googleLogin()" class="btn-p" style="background:white; color:#444; border:1px solid #ddd;">
-            <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" style="width:20px;">
-            <span>Google के साथ शुरू करें</span>
+    <div id="scr-login" style="position:fixed; inset:0; background:white; z-index:5000; display:none; flex-direction:column; padding:40px; justify-content:center; text-align:center;">
+        <img src="https://cdn-icons-png.flaticon.com/512/1063/1063376.png" style="width:120px; margin:0 auto 30px;">
+        <h1 style="font-size:32px; margin:0;">Expert Portal</h1>
+        <p style="color:var(--gray); margin-bottom:50px;">Join India's Most Trusted Service Network</p>
+        <button onclick="login()" class="btn-p" style="background:white; color:var(--s); border:2px solid #eee; display:flex; align-items:center; justify-content:center; gap:15px; box-shadow:none;">
+            <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" width="25">
+            Continue with Google
         </button>
     </div>
 
     <div id="scr-setup" class="screen">
-        <div class="top-header"><h2>अपनी सर्विस चुनें</h2></div>
-        <div class="card">
-            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                <button onclick="selSkill('ELEC', this)" class="btn-p skill-btn" style="background:white; color:var(--s); border:1px solid #ddd;">Electrician</button>
-                <button onclick="selSkill('PLUM', this)" class="btn-p skill-btn" style="background:white; color:var(--s); border:1px solid #ddd;">Plumber</button>
-            </div>
-            <button class="btn-p" style="margin-top:20px;" onclick="saveSetup()">रजिस्ट्रेशन पूरा करें</button>
+        <div class="header-main"><h1>अपना प्रोफाइल बनाएं</h1></div>
+        <div class="glass-card">
+            <h3 style="margin-top:0;">प्रोफेशनल जानकारी</h3>
+            <select id="setup-skill">
+                <option value="">सर्विस चुनें</option>
+                <option value="Electrician">Electrician</option>
+                <option value="Plumber">Plumber</option>
+                <option value="AC Expert">AC & Fridge Repair</option>
+                <option value="Cleaner">Deep Cleaning</option>
+            </select>
+            <input type="tel" id="setup-phone" placeholder="व्हाट्सएप नंबर (10 अंक)">
+            <input type="text" id="setup-city" placeholder="आपका शहर (उदा. इंदौर)">
+            <button onclick="saveSetup()" class="btn-p">रजिस्ट्रेशन पूरा करें</button>
         </div>
     </div>
 
-    <div id="scr-home" class="screen">
-        <div class="top-header">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div><h2 style="margin:0;">SewaAstra</h2><small id="duty-status">● वेरिफिकेशन पेंडिंग</small></div>
-                <img id="u-photo-top" src="" style="width:45px; height:45px; border-radius:12px; border:2px solid var(--p);">
+    <div id="scr-home" class="screen active-screen">
+        <div class="header-main">
+            <div class="user-profile-header">
+                <img id="u-photo" src="" class="avatar-circle">
+                <div>
+                    <h2 id="u-name" style="margin:0;">Loading...</h2>
+                    <span id="expert-id-tag" style="background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:5px; font-size:12px;">SA-000</span>
+                </div>
             </div>
         </div>
-        <div id="map"></div>
-        <div class="radar-box"><div class="pulse"></div> <span>लाइव लोकेशन सर्चिंग...</span></div>
-        <div id="lock-msg" class="status-locked">
-            <i class="fa fa-lock fa-2x"></i><br><br>
-            <b>अकाउंट लॉक है!</b><br>
-            <small>एडमिन द्वारा वेरिफिकेशन का इंतज़ार करें।</small>
+
+        <div id="radar-map">
+            <div class="online-status">
+                <div id="status-dot" style="width:10px; height:10px; background:gray; border-radius:50%;"></div>
+                <span id="status-label">Offline</span>
+                <input type="checkbox" id="duty-toggle" onchange="toggleDuty()" style="width:40px; margin:0;">
+            </div>
         </div>
+
+        <div class="stat-box">
+            <div class="mini-stat">
+                <i class="fa fa-wallet" style="color:var(--p)"></i>
+                <h3 style="margin:5px 0;">₹<span id="stat-wallet">0</span></h3>
+                <small>वॉलेट बैलेंस</small>
+            </div>
+            <div class="mini-stat">
+                <i class="fa fa-check-double" style="color:var(--green)"></i>
+                <h3 style="margin:5px 0;"><span id="stat-jobs">0</span></h3>
+                <small>पूरे किए काम</small>
+            </div>
+        </div>
+
+        <h3 style="margin:25px 0 15px; display:flex; justify-content:space-between; align-items:center;">
+            Live जॉब्स <span class="pulse-orange" style="background:var(--p); color:white; font-size:10px; padding:4px 10px; border-radius:50px;">Live Radar</span>
+        </h3>
+        <div id="job-feed">
+            <div style="text-align:center; padding:40px; color:var(--gray);">
+                <i class="fa fa-map-marked-alt fa-3x"></i><br>
+                <p>नए ऑर्डर्स के लिए ऑनलाइन आएं</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="scr-wallet" class="screen">
+        <div class="header-main"><h1>कमाई का विवरण</h1></div>
+        <div class="glass-card luxury-id" style="text-align:center;">
+            <p style="color:var(--gray); text-transform:uppercase; font-size:11px; letter-spacing:2px;">निकासी योग्य राशि</p>
+            <h1 style="font-size:48px; margin:10px 0;">₹<span id="w-amt">0.00</span></h1>
+            <button onclick="withdrawRequest()" class="btn-p" style="background:white; color:var(--s); width:auto; padding:10px 30px;">पैसे निकालें</button>
+        </div>
+        
+        <div class="glass-card">
+            <h3>साप्ताहिक प्रदर्शन</h3>
+            <canvas id="earningChart" height="200"></canvas>
+        </div>
+
+        <h3>ट्रांजैक्शन हिस्ट्री</h3>
+        <div id="wallet-history"></div>
     </div>
 
     <div id="scr-profile" class="screen">
-        <div class="top-header"><h2>प्रोफाइल</h2></div>
-        <div style="padding: 15px;">
-            <div class="id-card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <b>SEWAASTRA EXPERT</b>
-                    <i id="blue-tik" class="fa fa-check-circle verify-badge"></i>
-                </div>
-                <div style="display:flex; gap:15px;">
-                    <img id="u-photo-id" src="" class="id-photo">
-                    <div>
-                        <h4 id="u-name-id">...</h4>
-                        <p id="u-skill-label" style="font-size:12px; color:var(--p);">EXPERT</p>
-                        <h4 id="u-id-val" style="font-family:monospace;">SA-000000</h4>
-                    </div>
-                </div>
-                <div id="qrcode" style="float:right; margin-top:-40px;"></div>
+        <div class="header-main"><h1>प्रोफाइल सेटिंग्स</h1></div>
+        
+        <div class="luxury-id">
+            <div style="display:flex; justify-content:space-between;">
+                <b>SEWAASTRA EXPERT</b>
+                <i id="verify-tick" class="fa fa-check-circle" style="color:var(--blue); display:none;"></i>
             </div>
-
-            <h3 style="margin:20px 5px 10px;">Security Vault</h3>
-            <div class="card" style="margin:0; padding:15px;">
-                <div class="doc-row"><span>आधार (Front)</span><div id="st-AadharFront"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('AadharFront')">Upload Doc</button></div></div>
-                <div class="doc-row"><span>आधार (Back)</span><div id="st-AadharBack"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('AadharBack')">Upload Doc</button></div></div>
-                <div class="doc-row"><span>पैन कार्ड</span><div id="st-PAN"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('PAN')">Upload Doc</button></div></div>
-                <div class="doc-row"><span>पुलिस वेरिफिकेशन</span><div id="st-Police"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('Police')">Upload Doc</button></div></div>
+            <div style="display:flex; gap:20px; margin-top:20px;">
+                <img id="id-photo" src="" style="width:100px; height:120px; border-radius:15px; border:2px solid var(--p);">
+                <div>
+                    <h3 id="id-name" style="margin:0;">Name</h3>
+                    <p id="id-skill" style="color:var(--p); margin:5px 0;">Expert</p>
+                    <div id="id-qr" style="background:white; padding:5px; display:inline-block; border-radius:8px; margin-top:10px;"></div>
+                </div>
             </div>
-            <button class="btn-p" style="margin-top:20px; background:#FEE2E2; color:#EF4444;" onclick="logout()">Logout</button>
         </div>
+
+        <div class="glass-card" style="margin-top:20px;">
+            <h3>Security Vault (KYC)</h3>
+            <div style="display:flex; flex-direction:column; gap:12px;">
+                <div onclick="kycUpload('Aadhar_Front')" class="mini-stat" style="display:flex; justify-content:space-between; cursor:pointer;">
+                    <span>Aadhar Front</span><i class="fa fa-upload"></i>
+                </div>
+                <div onclick="kycUpload('Aadhar_Back')" class="mini-stat" style="display:flex; justify-content:space-between; cursor:pointer;">
+                    <span>Aadhar Back</span><i class="fa fa-upload"></i>
+                </div>
+                <div onclick="kycUpload('Police_Verification')" class="mini-stat" style="display:flex; justify-content:space-between; cursor:pointer;">
+                    <span>Police Verification</span><i class="fa fa-upload"></i>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="logout()" class="btn-p" style="background:#FEE2E2; color:var(--red); box-shadow:none;">Log Out</button>
     </div>
 
-    <nav class="bottom-nav">
-        <div class="nav-link active" onclick="showScr('scr-home', this)"><i class="fa fa-home"></i><span>Home</span></div>
-        <div class="nav-link" onclick="showScr('scr-profile', this)"><i class="fa fa-user-check"></i><span>Profile</span></div>
+    <nav class="bottom-bar">
+        <button class="nav-btn active" onclick="showScr('scr-home', this)"><i class="fa fa-th-large"></i><span>Home</span></button>
+        <button class="nav-btn" onclick="showScr('scr-wallet', this)"><i class="fa fa-chart-pie"></i><span>Earnings</span></button>
+        <button class="nav-btn" onclick="showScr('scr-profile', this)"><i class="fa fa-user-circle"></i><span>Profile</span></button>
     </nav>
 
+    <div id="lock-screen" style="position:fixed; inset:0; background:var(--white); z-index:4000; display:none; flex-direction:column; align-items:center; justify-content:center; padding:40px; text-align:center;">
+        <i class="fa fa-shield-halved fa-5x" style="color:var(--p); margin-bottom:20px;"></i>
+        <h2>वेरिफिकेशन पेंडिंग</h2>
+        <p style="color:var(--gray);">नमस्ते! आपके दस्तावेजों की जांच की जा रही है। इसमें 24-48 घंटे लग सकते हैं।</p>
+        <button class="btn-p" onclick="showScr('scr-profile')">दस्तावेज अपलोड करें</button>
+    </div>
+
 <script>
-    // --- FIREBASE CONFIG ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
-        authDomain: "sewaastra.firebaseapp.com",
-        projectId: "sewaastra",
-        storageBucket: "sewaastra.appspot.com",
-        messagingSenderId: "211091351218",
-        appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+// --- 1. CORE SYSTEM CONFIG ---
+const firebaseConfig = {
+    apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
+    authDomain: "sewaastra.firebaseapp.com",
+    projectId: "sewaastra",
+    storageBucket: "sewaastra.appspot.com",
+    messagingSenderId: "211091351218",
+    appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-    // --- EMAILJS CONFIG (यहाँ अपनी जानकारी भरें) ---
-    const SERVICE_ID = "service_tl1mu9g"; 
-    const PUBLIC_KEY = "yD3nW_GSHoPHH0XY3";
-    const TEMPLATE_ID = "template_n5kzv5o"; // आपके स्क्रीनशॉट से
+// EmailJS Config (Using Template template_n5kzv5o)
+const EMAILJS_KEY = "yD3nW_GSHoPHH0XY3"; // REPLACE WITH YOURS
+const EMAILJS_SERVICE = "service_tl1mu9g"; // REPLACE WITH YOURS
+const EMAILJS_TEMPLATE = "template_n5kzv5o";
 
-    (function() { emailjs.init(PUBLIC_KEY); })();
+let currentExpert = null;
+let map, expertMarker;
 
-    let pID = "", map;
-
-    // --- AUTHENTICATION ---
-    function googleLogin() { 
-        auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); 
+// --- 2. AUTHENTICATION & INITIALIZATION ---
+auth.onAuthStateChanged(user => {
+    document.getElementById('app-loader').style.display = 'none';
+    if(user) {
+        currentExpert = user;
+        document.getElementById('scr-login').style.display = 'none';
+        initExpertData();
+    } else {
+        document.getElementById('scr-login').style.display = 'flex';
     }
+});
 
-    auth.onAuthStateChanged(user => {
-        if(user) {
-            pID = user.uid;
-            document.getElementById('scr-login').style.display = 'none';
-            checkUserStatus();
+function login() {
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+}
+
+function logout() {
+    if(confirm("Logout करना चाहते हैं?")) auth.signOut();
+}
+
+// --- 3. DATA & UI SYNC ---
+function initExpertData() {
+    db.collection("partners").doc(currentExpert.uid).onSnapshot(doc => {
+        const data = doc.data();
+        
+        // Setup Logic
+        if(!data || !data.setupDone) {
+            showScr('scr-setup');
+            return;
+        }
+
+        // Global UI Update
+        document.getElementById('u-name').innerText = data.name;
+        document.getElementById('u-photo').src = currentExpert.photoURL;
+        document.getElementById('expert-id-tag').innerText = data.expertId;
+        document.getElementById('stat-wallet').innerText = data.wallet || 0;
+        document.getElementById('stat-jobs').innerText = data.totalJobs || 0;
+        document.getElementById('w-amt').innerText = data.wallet || 0;
+
+        // Profile Update
+        document.getElementById('id-name').innerText = data.name;
+        document.getElementById('id-photo').src = currentExpert.photoURL;
+        document.getElementById('id-skill').innerText = data.skill;
+        
+        document.getElementById('id-qr').innerHTML = "";
+        new QRCode(document.getElementById("id-qr"), { text: data.expertId, width: 60, height: 60 });
+
+        // Lock Control
+        if(!data.isVerified) {
+            document.getElementById('lock-screen').style.display = 'flex';
+            document.getElementById('verify-tick').style.display = 'none';
         } else {
-            document.getElementById('scr-login').style.display = 'flex';
+            document.getElementById('lock-screen').style.display = 'none';
+            document.getElementById('verify-tick').style.display = 'inline-block';
+            initMap();
+            loadJobRadar();
         }
     });
+}
 
-    // --- USER STATUS & UI UPDATE ---
-    function checkUserStatus() {
-        db.collection("partners").doc(pID).onSnapshot(doc => {
-            const d = doc.data() || {};
-            if(!d.setupDone) return showScr('scr-setup');
-            
-            document.getElementById('u-photo-top').src = auth.currentUser.photoURL;
-            document.getElementById('u-photo-id').src = auth.currentUser.photoURL;
-            document.getElementById('u-name-id').innerText = auth.currentUser.displayName;
-            document.getElementById('u-skill-label').innerText = d.skill + " EXPERT";
-            document.getElementById('u-id-val').innerText = d.expertId;
+// --- 4. MAP & RADAR SYSTEM ---
+function initMap() {
+    if(map) return;
+    map = L.map('radar-map', { zoomControl: false }).setView([22.7196, 75.8577], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
 
-            document.getElementById('qrcode').innerHTML = "";
-            new QRCode(document.getElementById("qrcode"), { text: d.expertId, width: 50, height: 50 });
+    navigator.geolocation.watchPosition(pos => {
+        const { latitude, longitude } = pos.coords;
+        const latlng = [latitude, longitude];
+        
+        if(!expertMarker) {
+            expertMarker = L.marker(latlng).addTo(map);
+            map.setView(latlng, 15);
+        } else {
+            expertMarker.setLatLng(latlng);
+        }
 
-            // Admin verification check (Firestore से manual true करना होगा)
-            if(d.isVerified === true) {
-                document.getElementById('blue-tik').style.display = 'inline-block';
-                document.getElementById('lock-msg').style.display = 'none';
-                document.getElementById('duty-status').innerText = "● एक्टिव";
-                document.getElementById('duty-status').style.color = "var(--green)";
-            }
-            initMap();
-            showScr('scr-home');
+        // Update DB
+        db.collection("partners").doc(currentExpert.uid).update({
+            lastPos: new firebase.firestore.GeoPoint(latitude, longitude),
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
         });
-    }
+    });
+}
 
-    // --- DOCUMENT UPLOAD VIA EMAIL (DIRECT) ---
-    function chooseMethod(type) {
-        const inp = document.createElement('input');
-        inp.type = 'file';
-        inp.accept = 'image/*';
-        inp.onchange = (e) => sendDocByEmail(e.target.files[0], type);
-        inp.click();
-    }
+function toggleDuty() {
+    const status = document.getElementById('duty-toggle').checked;
+    const dot = document.getElementById('status-dot');
+    const label = document.getElementById('status-label');
 
-    function sendDocByEmail(file, type) {
+    dot.style.background = status ? 'var(--green)' : 'gray';
+    label.innerText = status ? 'Online' : 'Offline';
+
+    db.collection("partners").doc(currentExpert.uid).update({ onDuty: status });
+    if(status) loadJobRadar();
+}
+
+// --- 5. JOB LIFE-CYCLE ---
+function loadJobRadar() {
+    db.collection("bookings")
+    .where("status", "==", "Pending")
+    .onSnapshot(snap => {
+        const feed = document.getElementById('job-feed');
+        feed.innerHTML = "";
+        
+        if(snap.empty) {
+            feed.innerHTML = `<div style="text-align:center; padding:40px; color:var(--gray);"><i class="fa fa-search fa-2x"></i><br><p>कोई एक्टिव जॉब नहीं मिला...</p></div>`;
+            return;
+        }
+
+        snap.forEach(doc => {
+            const job = doc.data();
+            const jobCard = `
+                <div class="glass-card" style="border-left: 6px solid var(--p);">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                        <div>
+                            <span style="font-size:10px; font-weight:800; color:var(--p); text-transform:uppercase;">${job.service}</span>
+                            <h3 style="margin:5px 0;">${job.userName}</h3>
+                        </div>
+                        <h2 style="margin:0; color:var(--green);">₹${job.price}</h2>
+                    </div>
+                    <p style="font-size:13px; color:var(--gray); margin:10px 0;"><i class="fa fa-map-marker-alt"></i> ${job.address}</p>
+                    <button onclick="acceptJob('${doc.id}')" class="btn-p" style="padding:10px; font-size:14px;">Accept Now</button>
+                </div>
+            `;
+            feed.innerHTML += jobCard;
+        });
+    });
+}
+
+async function acceptJob(id) {
+    const ok = confirm("क्या आप यह काम स्वीकार करना चाहते हैं?");
+    if(!ok) return;
+
+    try {
+        await db.collection("bookings").doc(id).update({
+            status: "Accepted",
+            partnerId: currentExpert.uid,
+            partnerName: auth.currentUser.displayName,
+            acceptedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert("जॉब स्वीकार कर लिया गया है! कस्टमर से संपर्क करें।");
+    } catch(err) {
+        alert("माफ़ करें, यह जॉब किसी और ने ले लिया है।");
+    }
+}
+
+// --- 6. WALLET & KYC LOGIC ---
+function kycUpload(docType) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+        const file = e.target.files[0];
         if(!file) return;
-        document.getElementById('loading').style.display = 'flex';
 
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = function () {
-            const base64Data = reader.result;
-            
-            // EmailJS Template Variables
+        reader.onload = function() {
             const templateParams = {
-                sewaastra: auth.currentUser.displayName, // {{sewaastra}}
-                email: auth.currentUser.email,           // {{email}}
-                title: type,                             // {{title}}
-                image_data: base64Data                   // फोटो के लिए वेरिएबल
+                sewaastra: auth.currentUser.displayName,
+                email: auth.currentUser.email,
+                title: docType,
+                image_data: reader.result
             };
 
-            emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams)
-                .then(() => {
-                    document.getElementById('loading').style.display = 'none';
-                    alert("Document verification के लिए एडमिन को भेज दिया गया है!");
-                    document.getElementById(`st-${type}`).innerHTML = '<b style="color:var(--blue)">Sent ✉</b>';
-                }, (err) => {
-                    alert("Email भेजने में समस्या आई। Public Key चेक करें।");
-                    document.getElementById('loading').style.display = 'none';
-                });
+            emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, templateParams)
+            .then(() => alert(`${docType} एडमिन को भेज दिया गया है!`))
+            .catch(err => alert("Error: " + err.text));
         };
-    }
+    };
+    input.click();
+}
 
-    // --- MAP SETTINGS ---
-    function initMap() {
-        if(map) return;
-        map = L.map('map', { zoomControl: false }).setView([23.2, 77.4], 13);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-    }
+async function saveSetup() {
+    const skill = document.getElementById('setup-skill').value;
+    const phone = document.getElementById('setup-phone').value;
+    const city = document.getElementById('setup-city').value;
 
-    // --- NAVIGATION ---
-    function showScr(id, el) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-        document.getElementById(id).classList.add('active-screen');
-        if(el) {
-            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-            el.classList.add('active');
-        }
-    }
+    if(!skill || phone.length < 10) return alert("सही जानकारी भरें");
 
-    let tempSkill = "";
-    function selSkill(code, btn) {
-        tempSkill = code;
-        document.querySelectorAll('.skill-btn').forEach(b => b.style.border = "1px solid #ddd");
-        btn.style.border = "2px solid var(--p)";
-    }
+    await db.collection("partners").doc(currentExpert.uid).set({
+        name: currentExpert.displayName,
+        email: currentExpert.email,
+        phone: phone,
+        skill: skill,
+        city: city,
+        wallet: 0,
+        totalJobs: 0,
+        expertId: "SA-" + Math.floor(Math.random()*900000 + 100000),
+        isVerified: false,
+        onDuty: false,
+        setupDone: true,
+        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+}
 
-    async function saveSetup() {
-        if(!tempSkill) return alert("Select Service");
-        await db.collection("partners").doc(pID).set({
-            skill: tempSkill,
-            expertId: "SA-" + Math.floor(100000 + Math.random() * 900000),
-            setupDone: true,
-            isVerified: false 
-        });
+// --- 7. UTILS & NAVIGATION ---
+function showScr(id, btn) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+    document.getElementById(id).classList.add('active-screen');
+    
+    if(btn) {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
     }
+    window.scrollTo(0,0);
+}
 
-    function logout() { auth.signOut(); }
+// --- 8. CHART SYSTEM ---
+function initCharts() {
+    const ctx = document.getElementById('earningChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Weekly Earnings (₹)',
+                data: [400, 800, 550, 1200, 900, 2000, 1500],
+                borderColor: '#FF6B00',
+                tension: 0.4,
+                fill: true,
+                backgroundColor: 'rgba(255, 107, 0, 0.1)'
+            }]
+        },
+        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
+    });
+}
+
+// Load chart on wallet screen
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(initCharts, 2000);
+});
 </script>
 </body>
 </html>
