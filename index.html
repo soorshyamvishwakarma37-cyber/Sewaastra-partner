@@ -3,101 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Partner Pro</title>
+    <title>SewaAstra Partner - Final</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#ff6b00">
-    <link rel="manifest" href="data:application/manifest+json,{'name':'SewaAstra','short_name':'SewaAstra','start_url':'.','display':'standalone','background_color':'#0f172a','theme_color':'#ff6b00'}">
+    <meta name="theme-color" content="#FF6B00">
+    <link rel="manifest" href="data:application/manifest+json,{'name':'SewaAstra','display':'standalone'}">
 
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
     <style>
-        :root { --p: #ff6b00; --s: #0f172a; --success: #22c55e; --bg: #f8fafc; }
+        :root { --primary: #FF6B00; --dark: #0F172A; --bg: #F8FAFC; --grad: linear-gradient(135deg, #FF6B00 0%, #FF9E00 100%); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; user-select: none; }
         
         /* Splash Screen */
-        #splash { position:fixed; inset:0; background:var(--s); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:99999; color:white; transition:0.8s; }
-        .spinner { width:40px; height:40px; border:4px solid rgba(255,255,255,0.1); border-top:4px solid var(--p); border-radius:50%; animation:spin 1s linear infinite; margin-top:20px; }
-        @keyframes spin { 0% {transform:rotate(0deg);} 100% {transform:rotate(360deg);} }
+        #splash { position:fixed; inset:0; background:var(--dark); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10000; color:white; transition: 0.8s; }
+        .loader { width:40px; height:40px; border:4px solid rgba(255,255,255,0.1); border-top:4px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin-top:20px; }
+        @keyframes spin { 0% {transform:rotate(360deg);} }
 
-        /* Screens */
-        .screen { display:none; min-height:100vh; padding-bottom:80px; }
-        .active-scr { display:block; animation: fadeIn 0.4s; }
-        @keyframes fadeIn { from {opacity:0;} to {opacity:1;} }
-
-        /* Dashboard UI */
-        .header { background:var(--s); color:white; padding:40px 20px; border-radius:0 0 30px 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .card { background:white; border-radius:20px; padding:20px; margin:15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .btn { width:100%; padding:15px; border:none; border-radius:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:10px; font-size:16px; transition:0.2s; }
-        .btn-p { background:var(--p); color:white; }
-        .btn-google { background:white; border:1px solid #ddd; color:#444; margin-top:20px; }
+        /* General UI */
+        .screen { display:none; min-height:100vh; animation: fadeIn 0.4s; }
+        .active { display:block; }
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
         
-        /* Duty Switch */
-        .switch { position:relative; width:50px; height:26px; }
-        .switch input { opacity:0; width:0; height:0; }
-        .slider { position:absolute; inset:0; background:#475569; border-radius:34px; cursor:pointer; transition:.4s; }
-        input:checked + .slider { background:var(--success); }
-        .slider:before { content:""; position:absolute; height:18px; width:18px; left:4px; bottom:4px; background:white; border-radius:50%; transition:.4s; }
-        input:checked + .slider:before { transform:translateX(24px); }
+        .card { background:white; border-radius:25px; padding:20px; margin:15px; box-shadow:0 10px 25px rgba(0,0,0,0.05); }
+        .btn { width:100%; padding:16px; border:none; border-radius:18px; font-weight:700; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; gap:10px; transition:0.2s; }
+        .btn-p { background:var(--grad); color:white; box-shadow:0 8px 20px rgba(255,107,0,0.3); }
+        .btn:active { transform:scale(0.96); }
 
+        /* Header & Stats */
+        .header { background:var(--dark); color:white; padding:40px 20px 60px; border-radius:0 0 35px 35px; }
+        .stat-bar { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:-45px; padding:0 15px; }
+        .stat-item { background:white; padding:15px; border-radius:20px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.05); }
+
+        /* Job Card */
+        .job-card { background:white; border-radius:20px; padding:15px; margin:15px; border-left:6px solid var(--primary); position:relative; }
+        
         /* Bottom Nav */
-        .b-nav { position:fixed; bottom:0; width:100%; background:white; display:flex; padding:15px 0; border-top:1px solid #eee; z-index:1000; }
-        .nav-item { flex:1; text-align:center; color:#94a3b8; font-size:12px; cursor:pointer; }
-        .nav-item.active { color:var(--p); font-weight:bold; }
-        .nav-item i { font-size:20px; display:block; margin-bottom:4px; }
+        .b-nav { position:fixed; bottom:0; width:100%; background:white; display:flex; padding:12px 0; border-top:1px solid #eee; z-index:1000; }
+        .nav-link { flex:1; text-align:center; color:#94A3B8; font-size:11px; }
+        .nav-link.active { color:var(--primary); font-weight:700; }
+        .nav-link i { font-size:22px; display:block; margin-bottom:4px; }
 
-        /* Job Cards */
-        .job-card { background:white; border-radius:16px; padding:18px; margin:15px; border-left:6px solid var(--p); box-shadow: 0 5px 15px rgba(0,0,0,0.04); }
-        
-        input[type="file"] { margin: 10px 0 20px 0; display:block; }
+        /* KYC Form */
+        .file-box { background:#F1F5F9; border:2px dashed #CBD5E1; padding:12px; border-radius:15px; margin-bottom:12px; }
+        .file-box label { font-size:12px; font-weight:700; color:var(--dark); display:block; margin-bottom:5px; }
+        #prog-wrap { display:none; background:#E2E8F0; height:6px; border-radius:10px; margin:10px 0; overflow:hidden; }
+        #prog-bar { width:0%; height:100%; background:var(--grad); transition:0.3s; }
     </style>
 </head>
 <body>
 
     <div id="splash">
-        <h1 style="letter-spacing:3px;">SEWAASTRA</h1>
-        <p style="opacity:0.7;">पार्टनर पोर्टल</p>
-        <div class="spinner"></div>
+        <h1 style="letter-spacing:5px; margin:0;">SEWAASTRA</h1>
+        <div class="loader"></div>
     </div>
 
-    <audio id="jobSound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
+    <audio id="jobAlert" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
-    <div id="scr-login" class="screen active-scr">
-        <div style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:30px; text-align:center; background:white;">
-            <div style="background:var(--s); padding:20px; border-radius:25px; margin-bottom:20px;">
-                <i class="fa fa-tools" style="font-size:50px; color:var(--p);"></i>
+    <div id="scr-login" class="screen active">
+        <div style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:30px; background:white;">
+            <div style="background:var(--dark); padding:20px; border-radius:30px; margin-bottom:20px;">
+                <i class="fa fa-screwdriver-wrench" style="font-size:50px; color:var(--primary);"></i>
             </div>
-            <h2>नमस्ते पार्टनर!</h2>
-            <p style="color:#64748b;">आगे बढ़ने के लिए अपने असली Google अकाउंट से लॉगिन करें।</p>
-            <button onclick="googleLogin()" class="btn btn-google">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
-                Google Login
+            <h2 style="color:var(--dark); font-size:26px; margin:0;">नमस्ते पार्टनर!</h2>
+            <p style="color:#64748B; margin:10px 0 40px;">काम शुरू करने के लिए अपना Google अकाउंट जोड़ें।</p>
+            <button onclick="googleLogin()" class="btn" style="background:white; border:1.5px solid #E2E8F0; color:#475569;">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="22"> Google Login
             </button>
         </div>
     </div>
 
     <div id="scr-kyc" class="screen" style="padding:20px;">
-        <h2 style="color:var(--s)">डॉक्यूमेंट वेरिफिकेशन</h2>
-        <p style="color:#ef4444;">* सेवा शुरू करने के लिए KYC ज़रूरी है।</p>
-        <div class="card">
-            <label><b>आधार कार्ड (Front)</b></label>
-            <input type="file" id="f-adh-f" accept="image/*">
-            <label><b>आधार कार्ड (Back)</b></label>
-            <input type="file" id="f-adh-b" accept="image/*">
-            <label><b>पैन कार्ड</b></label>
-            <input type="file" id="f-pan" accept="image/*">
-            <label><b>पुलिस वेरिफिकेशन रिपोर्ट</b></label>
-            <input type="file" id="f-pol" accept="image/*">
-            <hr>
-            <div style="font-size:13px; margin:15px 0;">
-                <input type="checkbox" id="check-agree"> मैं सेवाअस्त्र के सभी नियमों से सहमत हूँ।
+        <h2 style="margin:0;"><i class="fa fa-user-shield" style="color:var(--primary);"></i> KYC वेरिफिकेशन</h2>
+        <p style="color:#EF4444; font-size:13px; font-weight:700; margin-bottom:20px;">* सेवा शुरू करने के लिए दस्तावेज़ ज़रूरी हैं।</p>
+        
+        <div class="card" style="margin:0;">
+            <div class="file-box">
+                <label>आधार कार्ड (FRONT)</label>
+                <input type="file" id="k-adh-f" accept="image/*">
             </div>
-            <button id="btn-kyc" onclick="uploadKYC()" class="btn btn-p">सबमिट करें</button>
+            <div class="file-box">
+                <label>आधार कार्ड (BACK)</label>
+                <input type="file" id="k-adh-b" accept="image/*">
+            </div>
+            <div class="file-box">
+                <label>पैन कार्ड (PAN)</label>
+                <input type="file" id="k-pan" accept="image/*">
+            </div>
+            <div class="file-box">
+                <label>पुलिस वेरिफिकेशन रिपोर्ट</label>
+                <input type="file" id="k-pol" accept="image/*">
+            </div>
+
+            <div id="prog-wrap"><div id="prog-bar"></div></div>
+            
+            <div style="font-size:12px; margin:10px 0 20px; color:#64748B;">
+                <input type="checkbox" id="k-agree" style="accent-color:var(--primary);"> मैं सेवाअस्त्र के सभी नियमों से सहमत हूँ।
+            </div>
+            <button id="k-btn" onclick="uploadKYC()" class="btn btn-p">KYC सबमिट करें</button>
         </div>
     </div>
 
@@ -105,96 +112,87 @@
         <div class="header">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
-                    <small style="opacity:0.8;">स्वागत है,</small>
-                    <h2 id="p-name" style="margin:0; font-size:24px;">Partner Name</h2>
+                    <small style="opacity:0.7">पार्टनर पोर्टल</small>
+                    <h2 id="u-name" style="margin:0; font-size:22px;">...</h2>
                 </div>
                 <div style="text-align:center;">
-                    <label class="switch">
-                        <input type="checkbox" id="duty-toggle" onchange="toggleDuty()">
-                        <span class="slider"></span>
-                    </label>
-                    <div style="font-size:10px; margin-top:5px; font-weight:bold; letter-spacing:1px;">DUTY</div>
+                    <div id="u-duty-text" style="font-size:10px; font-weight:800; margin-bottom:4px; letter-spacing:1px;">OFF DUTY</div>
+                    <button id="u-duty-btn" onclick="toggleDuty()" style="border:none; border-radius:20px; padding:6px 15px; font-size:10px; font-weight:bold; cursor:pointer; background:#475569; color:white;">ON/OFF</button>
                 </div>
             </div>
         </div>
 
-        <div class="card" style="margin-top:-30px; display:flex; justify-content:space-around; text-align:center; padding:25px;">
-            <div>
-                <small style="color:#64748b;">वॉलेट बैलेंस</small>
-                <h2 id="w-balance" style="margin:5px 0; color:var(--success);">₹0</h2>
+        <div class="stat-bar">
+            <div class="stat-item">
+                <small style="color:#94A3B8;">वॉलेट बैलेंस</small>
+                <h2 id="u-wallet" style="margin:5px 0; color:var(--primary);">₹0</h2>
             </div>
-            <div style="width:1px; background:#f1f5f9;"></div>
-            <div>
-                <small style="color:#64748b;">कुल काम</small>
-                <h2 id="w-count" style="margin:5px 0;">0</h2>
+            <div class="stat-item">
+                <small style="color:#94A3B8;">पूरे काम</small>
+                <h2 id="u-jobs" style="margin:5px 0;">0</h2>
             </div>
         </div>
 
-        <div style="padding:10px 5px;">
-            <h3 style="margin-left:20px;">चालू काम (Active Jobs)</h3>
+        <div style="padding:15px;">
+            <h3 style="margin-left:5px;">लाइव काम (Jobs)</h3>
             <div id="job-list">
                 </div>
         </div>
 
         <div class="b-nav">
-            <div class="nav-item active"><i class="fa fa-tasks"></i>Jobs</div>
-            <div class="nav-item" onclick="openPayout()"><i class="fa fa-wallet"></i>Payout</div>
-            <div class="nav-item" onclick="location.reload()"><i class="fa fa-cog"></i>Settings</div>
+            <div class="nav-link active"><i class="fa fa-home-alt"></i>Home</div>
+            <div class="nav-link" onclick="openPayout()"><i class="fa fa-wallet"></i>Payout</div>
+            <div class="nav-link" onclick="location.reload()"><i class="fa fa-user-circle"></i>Profile</div>
         </div>
     </div>
 
-    <div id="modal-payout" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:9999; align-items:center; justify-content:center; padding:20px;">
+    <div id="modal-pay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;">
         <div class="card" style="width:100%;">
-            <h3>पैसे निकालें (Withdraw)</h3>
-            <p style="font-size:12px; color:gray;">न्यूनतम ₹500 निकाल सकते हैं।</p>
-            <input type="number" id="pay-amt" placeholder="राशि (Amount)" style="width:100%; padding:15px; margin-bottom:15px; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;">
-            <input type="text" id="pay-upi" placeholder="UPI ID (जैसे: name@apl)" style="width:100%; padding:15px; margin-bottom:15px; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;">
-            <button onclick="submitWithdraw()" class="btn btn-p">रिक्वेस्ट भेजें</button>
-            <button onclick="document.getElementById('modal-payout').style.display='none'" class="btn" style="margin-top:10px; background:none; color:gray;">रद्द करें</button>
+            <h3>पैसे निकालें (Payout)</h3>
+            <input type="number" id="p-amt" placeholder="राशि (Min ₹500)" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:1px solid #E2E8F0; box-sizing:border-box;">
+            <input type="text" id="p-upi" placeholder="UPI ID (उदा: name@upi)" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:1px solid #E2E8F0; box-sizing:border-box;">
+            <button onclick="requestPayout()" class="btn btn-p">रिक्वेस्ट भेजें</button>
+            <button onclick="document.getElementById('modal-pay').style.display='none'" class="btn" style="margin-top:10px; background:none; color:gray;">बंद करें</button>
         </div>
     </div>
 
     <script>
-        // --- 4. FIREBASE CONFIGURATION ---
+        // --- FIREBASE SETTINGS ---
         const firebaseConfig = {
             apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
             authDomain: "sewaastra.firebaseapp.com",
             projectId: "sewaastra",
-            storageBucket: "sewaastra.firebasestorage.app",
+            storageBucket: "sewaastra.appspot.com",
             messagingSenderId: "211091351218",
             appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
         };
-
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
         const storage = firebase.storage();
         let pID = "";
 
-        // --- 5. AUTH LOGIC ---
+        // --- AUTH & ROUTING ---
         async function googleLogin() {
             const provider = new firebase.auth.GoogleAuthProvider();
             try {
-                const result = await auth.signInWithPopup(provider);
-                const user = result.user;
+                const res = await auth.signInWithPopup(provider);
+                const user = res.user;
                 pID = user.uid;
-                
-                // Check if user exists in DB
                 const doc = await db.collection("partners").doc(pID).get();
                 if(!doc.exists) {
                     await db.collection("partners").doc(pID).set({
                         name: user.displayName,
                         email: user.email,
-                        photo: user.photoURL,
                         isVerified: false,
                         isKycSubmitted: false,
                         isOnline: false,
                         wallet: 0,
-                        joinedAt: new Date().toISOString()
+                        joined: new Date().toISOString()
                     });
                 }
                 location.reload();
-            } catch(e) { alert("Login Error: " + e.message); }
+            } catch(e) { alert("Login Failed!"); }
         }
 
         auth.onAuthStateChanged(user => {
@@ -204,140 +202,119 @@
                     if(doc.exists) route(doc.data());
                 });
             }
-            // Splash Timer
-            setTimeout(() => {
-                document.getElementById('splash').style.opacity = '0';
-                setTimeout(() => document.getElementById('splash').remove(), 800);
-            }, 2500);
+            setTimeout(() => { document.getElementById('splash').style.opacity='0'; setTimeout(()=>document.getElementById('splash').remove(),800); }, 2000);
         });
 
         function route(p) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-scr'));
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             if(!p.isKycSubmitted) {
-                document.getElementById('scr-kyc').classList.add('active-scr');
+                document.getElementById('scr-kyc').classList.add('active');
             } else if(!p.isVerified) {
-                document.body.innerHTML = `<div style="padding:60px 30px; text-align:center; height:100vh; background:white;">
-                    <i class="fa fa-user-clock" style="font-size:60px; color:var(--p);"></i>
-                    <h2>वेरिफिकेशन जारी है...</h2>
-                    <p style="color:gray;">एडमिन आपके डॉक्युमेंट्स की जांच कर रहा है। इसमें 24 घंटे लग सकते हैं।</p>
-                    <button onclick="location.reload()" class="btn btn-p">Status चेक करें</button>
-                    <button onclick="auth.signOut().then(()=>location.reload())" class="btn" style="margin-top:20px;">Logout</button>
+                document.body.innerHTML = `<div style="padding:100px 30px; text-align:center; background:white; height:100vh;">
+                    <i class="fa fa-user-clock" style="font-size:60px; color:var(--primary); margin-bottom:20px;"></i>
+                    <h2>वेरिफिकेशन जारी...</h2>
+                    <p style="color:gray;">एडमिन आपकी जांच कर रहा है। 24 घंटे इंतज़ार करें।</p>
+                    <button onclick="location.reload()" class="btn btn-p">Refresh Status</button>
+                    <button onclick="auth.signOut().then(()=>location.reload())" class="btn" style="margin-top:20px; background:none; color:gray;">Log Out</button>
                 </div>`;
             } else {
-                document.getElementById('scr-dash').classList.add('active-scr');
+                document.getElementById('scr-dash').classList.add('active');
                 initDash(p);
             }
         }
 
-        // --- 6. KYC & STORAGE LOGIC ---
+        // --- KYC LOGIC ---
         async function uploadKYC() {
-            if(!document.getElementById('check-agree').checked) return alert("Agreement स्वीकार करें!");
-            const btn = document.getElementById('btn-kyc');
-            btn.disabled = true; btn.innerText = "फाइलें अपलोड हो रही हैं...";
+            if(!document.getElementById('k-agree').checked) return alert("Agreement स्वीकार करें!");
+            const btn = document.getElementById('k-btn');
+            const pBar = document.getElementById('prog-bar');
+            const pWrap = document.getElementById('prog-wrap');
 
             const files = {
-                af: document.getElementById('f-adh-f').files[0],
-                ab: document.getElementById('f-adh-b').files[0],
-                pn: document.getElementById('f-pan').files[0],
-                pv: document.getElementById('f-pol').files[0]
+                af: document.getElementById('k-adh-f').files[0],
+                ab: document.getElementById('k-adh-b').files[0],
+                pn: document.getElementById('k-pan').files[0],
+                pv: document.getElementById('k-pol').files[0]
             };
 
-            if(!files.af || !files.ab || !files.pn || !files.pv) {
-                btn.disabled = false; btn.innerText = "सबमिट करें";
-                return alert("कृपया सभी डॉक्युमेंट्स चुनें!");
-            }
+            if(!files.af || !files.ab || !files.pn || !files.pv) return alert("सभी फाइलें चुनें!");
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> अपलोड जारी है...';
+            pWrap.style.display = 'block';
 
             try {
-                let urls = {};
+                let urls = {}; let i = 0;
                 for(let key in files) {
-                    let ref = storage.ref(`kyc_docs/${pID}/${key}`);
+                    const ref = storage.ref(`kyc_docs/${pID}/${key}`);
                     await ref.put(files[key]);
                     urls[key] = await ref.getDownloadURL();
+                    i++; pBar.style.width = (i/4*100) + "%";
                 }
-                await db.collection("partners").doc(pID).update({
-                    kycData: urls,
-                    isKycSubmitted: true
-                });
-                alert("बधाई हो! KYC सबमिट हो गया।");
-                location.reload();
-            } catch(e) { alert("Upload Error: " + e.message); btn.disabled = false; }
+                await db.collection("partners").doc(pID).update({ kycData: urls, isKycSubmitted: true });
+                alert("KYC सबमिट हो गया!"); location.reload();
+            } catch(e) { alert("Upload Failed!"); btn.disabled = false; }
         }
 
-        // --- 7. REALTIME DASHBOARD & JOBS ---
+        // --- DASHBOARD LOGIC ---
         function initDash(p) {
-            document.getElementById('p-name').innerText = p.name;
-            document.getElementById('duty-toggle').checked = p.isOnline;
+            document.getElementById('u-name').innerText = p.name;
+            updateDutyUI(p.isOnline);
 
-            // Jobs Listener
             db.collection("bookings").where("assignedPartnerId", "==", pID)
             .onSnapshot(snap => {
-                let h = ""; let earn = 0; let count = 0;
-                let sound = document.getElementById('jobSound');
-
+                let h = ""; let earn = 0; let jobs = 0;
                 snap.forEach(doc => {
                     let b = doc.data();
-                    if(b.status === "Completed") {
-                        earn += parseInt(b.total || 0); count++;
-                    } else {
-                        // Play alert for new assigned jobs
-                        if(b.status === "Auto-Assigned" || b.status === "Assigned") sound.play();
-
+                    if(b.status === "Completed") { earn += parseInt(b.total); jobs++; }
+                    else {
+                        document.getElementById('jobAlert').play();
                         h += `<div class="job-card">
-                            <div style="display:flex; justify-content:space-between; align-items:center;">
-                                <b style="font-size:18px;">${b.userName}</b>
-                                <span style="background:#fff7ed; color:var(--p); padding:4px 10px; border-radius:8px; font-size:12px; font-weight:bold;">नयी बुकिंग</span>
-                            </div>
-                            <p style="margin:10px 0; color:#475569; font-size:14px;"><i class="fa fa-map-marker-alt"></i> ${b.items}</p>
-                            <div style="font-size:18px; font-weight:bold; margin-bottom:15px;">₹${b.total}</div>
+                            <div style="display:flex; justify-content:space-between;"><b>${b.userName}</b> <span style="background:#FFF7ED; color:var(--primary); padding:3px 8px; border-radius:5px; font-size:10px;">नयी बुकिंग</span></div>
+                            <p style="font-size:13px; color:gray; margin:10px 0;">${b.items}</p>
+                            <div style="font-size:18px; font-weight:bold; margin-bottom:12px;">₹${b.total}</div>
                             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                <a href="tel:${b.userPhone}" class="btn" style="background:var(--success); color:white;"><i class="fa fa-phone"></i> Call</a>
-                                <button onclick="markDone('${doc.id}')" class="btn btn-p" style="background:var(--s);"><i class="fa fa-check-circle"></i> Finish</button>
+                                <a href="tel:${b.userPhone}" class="btn" style="background:#22C55E; color:white; padding:10px;"><i class="fa fa-phone"></i> Call</a>
+                                <button onclick="markDone('${doc.id}')" class="btn btn-p" style="padding:10px;">Complete</button>
                             </div>
                         </div>`;
                     }
                 });
-                document.getElementById('job-list').innerHTML = h || `<div style="text-align:center; padding:50px; color:#94a3b8;">
-                    <i class="fa fa-mug-hot" style="font-size:40px; margin-bottom:10px;"></i>
-                    <p>अभी कोई काम नहीं है।<br>ड्यूटी ऑन रखें!</p>
-                </div>`;
-                document.getElementById('w-balance').innerText = "₹" + earn;
-                document.getElementById('w-count').innerText = count;
+                document.getElementById('job-list').innerHTML = h || "<p style='text-align:center; color:gray; padding-top:40px;'>अभी कोई काम नहीं है...</p>";
+                document.getElementById('u-wallet').innerText = "₹" + earn;
+                document.getElementById('u-jobs').innerText = jobs;
             });
+        }
+
+        function updateDutyUI(s) {
+            const btn = document.getElementById('u-duty-btn');
+            const txt = document.getElementById('u-duty-text');
+            txt.innerText = s ? "DUTY ON" : "DUTY OFF";
+            txt.style.color = s ? "#22C55E" : "#94A3B8";
+            btn.style.background = s ? "#22C55E" : "#475569";
         }
 
         function toggleDuty() {
-            let stat = document.getElementById('duty-toggle').checked;
-            db.collection("partners").doc(pID).update({ isOnline: stat });
+            db.collection("partners").doc(pID).get().then(doc => {
+                let s = !doc.data().isOnline;
+                db.collection("partners").doc(pID).update({ isOnline: s });
+            });
         }
 
         function markDone(id) {
-            if(confirm("क्या काम पूरा हो गया है?")) {
-                db.collection("bookings").doc(id).update({ status: "Completed", completedAt: new Date().toISOString() });
-            }
+            if(confirm("काम पूरा हो गया है?")) db.collection("bookings").doc(id).update({ status: "Completed" });
         }
 
-        // --- 8. WITHDRAWAL LOGIC ---
-        function openPayout() { document.getElementById('modal-payout').style.display = 'flex'; }
-        function submitWithdraw() {
-            let amt = parseInt(document.getElementById('pay-amt').value);
-            let upi = document.getElementById('pay-upi').value;
-            let currentBal = parseInt(document.getElementById('w-balance').innerText.replace('₹',''));
-
-            if(amt < 500) return alert("न्यूनतम ₹500 की रिक्वेस्ट डालें।");
-            if(amt > currentBal) return alert("वॉलेट में बैलेंस कम है!");
-            if(!upi.includes('@')) return alert("सही UPI ID डालें।");
-
+        // --- PAYOUT LOGIC ---
+        function openPayout() { document.getElementById('modal-pay').style.display='flex'; }
+        function requestPayout() {
+            let amt = parseInt(document.getElementById('p-amt').value);
+            let upi = document.getElementById('p-upi').value;
+            if(amt < 500 || !upi.includes('@')) return alert("सही जानकारी भरें!");
             db.collection("withdrawals").add({
-                partnerId: pID,
-                partnerName: document.getElementById('p-name').innerText,
-                amount: amt,
-                upi: upi,
-                status: "Pending",
-                requestedAt: new Date().toISOString()
-            }).then(() => {
-                alert("अनुरोध भेज दिया गया! 24 घंटे में पैसे ट्रांसफर हो जाएंगे।");
-                document.getElementById('modal-payout').style.display = 'none';
-            });
+                partnerId: pID, partnerName: document.getElementById('u-name').innerText,
+                amount: amt, upi: upi, status: "Pending", requestedAt: new Date().toISOString()
+            }).then(() => { alert("रिक्वेस्ट भेज दी गयी!"); document.getElementById('modal-pay').style.display='none'; });
         }
     </script>
 </body>
