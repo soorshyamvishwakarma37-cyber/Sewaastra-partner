@@ -3,319 +3,300 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Partner - Final</title>
-
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#FF6B00">
-    <link rel="manifest" href="data:application/manifest+json,{'name':'SewaAstra','display':'standalone'}">
-
+    <title>SewaAstra Partner - Ultimate Pro</title>
+    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
     <style>
-        :root { --primary: #FF6B00; --dark: #0F172A; --bg: #F8FAFC; --grad: linear-gradient(135deg, #FF6B00 0%, #FF9E00 100%); }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; user-select: none; }
+        :root { --p: #FF6B00; --s: #0F172A; --bg: #F8FAFC; --green: #22C55E; --blue: #3B82F6; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding-bottom: 90px; color: var(--s); overflow-x: hidden; }
         
-        /* Splash Screen */
-        #splash { position:fixed; inset:0; background:var(--dark); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:10000; color:white; transition: 0.8s; }
-        .loader { width:40px; height:40px; border:4px solid rgba(255,255,255,0.1); border-top:4px solid var(--primary); border-radius:50%; animation:spin 1s linear infinite; margin-top:20px; }
-        @keyframes spin { 0% {transform:rotate(360deg);} }
+        .screen { display: none; animation: fadeIn 0.4s ease; }
+        .active-screen { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* General UI */
-        .screen { display:none; min-height:100vh; animation: fadeIn 0.4s; }
-        .active { display:block; }
-        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+        /* Login Screen Style */
+        #scr-login { 
+            background: white; position: fixed; inset: 0; z-index: 5000; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px;
+        }
+        .login-logo { width: 120px; margin-bottom: 20px; }
+
+        /* UI Components */
+        .top-header { background: var(--s); color: white; padding: 30px 20px 60px; border-radius: 0 0 40px 40px; position: relative; }
+        .card { background: white; margin: -30px 15px 15px; padding: 20px; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .btn-p { background: var(--p); color: white; border: none; padding: 14px; border-radius: 15px; width: 100%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 14px; }
         
-        .card { background:white; border-radius:25px; padding:20px; margin:15px; box-shadow:0 10px 25px rgba(0,0,0,0.05); }
-        .btn { width:100%; padding:16px; border:none; border-radius:18px; font-weight:700; cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; gap:10px; transition:0.2s; }
-        .btn-p { background:var(--grad); color:white; box-shadow:0 8px 20px rgba(255,107,0,0.3); }
-        .btn:active { transform:scale(0.96); }
+        /* Map & Radar */
+        #map { height: 250px; width: calc(100% - 30px); margin: 15px; border-radius: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 3px solid white; z-index: 1; }
+        .radar-box { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--p); font-weight: bold; font-size: 13px; margin-top: -10px; padding-bottom: 10px; }
+        .pulse { width: 10px; height: 10px; background: var(--p); border-radius: 50%; animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 107, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); } }
 
-        /* Header & Stats */
-        .header { background:var(--dark); color:white; padding:40px 20px 60px; border-radius:0 0 35px 35px; }
-        .stat-bar { display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:-45px; padding:0 15px; }
-        .stat-item { background:white; padding:15px; border-radius:20px; text-align:center; box-shadow:0 5px 15px rgba(0,0,0,0.05); }
-
-        /* Job Card */
-        .job-card { background:white; border-radius:20px; padding:15px; margin:15px; border-left:6px solid var(--primary); position:relative; }
+        /* ID Card & Security UI */
+        .id-card { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: white; border-radius: 20px; padding: 20px; position: relative; overflow: hidden; }
+        .id-photo { width: 80px; height: 100px; border-radius: 12px; border: 2px solid var(--p); object-fit: cover; }
+        #qrcode { background: white; padding: 5px; border-radius: 5px; }
+        .verify-badge { color: var(--blue); font-size: 18px; display: none; }
         
+        .status-locked { background: #FFF1F2; color: #E11D48; padding: 20px; border-radius: 20px; text-align: center; margin: 15px; border: 1px dashed #FDA4AF; }
+        .doc-row { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 12px; border-radius: 15px; margin-bottom: 10px; border: 1px solid #e2e8f0; }
+        .doc-info { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+        .verified-text { color: var(--green); font-weight: bold; font-size: 12px; }
+
         /* Bottom Nav */
-        .b-nav { position:fixed; bottom:0; width:100%; background:white; display:flex; padding:12px 0; border-top:1px solid #eee; z-index:1000; }
-        .nav-link { flex:1; text-align:center; color:#94A3B8; font-size:11px; }
-        .nav-link.active { color:var(--primary); font-weight:700; }
-        .nav-link i { font-size:22px; display:block; margin-bottom:4px; }
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; border-top: 1px solid #eee; padding: 12px 0; z-index: 1000; }
+        .nav-link { flex: 1; text-align: center; color: #94A3B8; cursor: pointer; border: none; background: none; font-size: 10px; }
+        .nav-link.active { color: var(--p); font-weight: bold; }
+        .nav-link i { font-size: 22px; display: block; margin-bottom: 4px; }
 
-        /* KYC Form */
-        .file-box { background:#F1F5F9; border:2px dashed #CBD5E1; padding:12px; border-radius:15px; margin-bottom:12px; }
-        .file-box label { font-size:12px; font-weight:700; color:var(--dark); display:block; margin-bottom:5px; }
-        #prog-wrap { display:none; background:#E2E8F0; height:6px; border-radius:10px; margin:10px 0; overflow:hidden; }
-        #prog-bar { width:0%; height:100%; background:var(--grad); transition:0.3s; }
+        #loading { position: fixed; inset: 0; background: rgba(255,255,255,0.9); display: none; align-items: center; justify-content: center; z-index: 6000; flex-direction: column; }
     </style>
 </head>
 <body>
 
-    <div id="splash">
-        <h1 style="letter-spacing:5px; margin:0;">SEWAASTRA</h1>
-        <div class="loader"></div>
-    </div>
+    <div id="loading"><i class="fa fa-spinner fa-spin fa-3x" style="color:var(--p)"></i><p id="L-loading">प्रतीक्षा करें...</p></div>
 
-    <audio id="jobAlert" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
-
-    <div id="scr-login" class="screen active">
-        <div style="height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:30px; background:white;">
-            <div style="background:var(--dark); padding:20px; border-radius:30px; margin-bottom:20px;">
-                <i class="fa fa-screwdriver-wrench" style="font-size:50px; color:var(--primary);"></i>
-            </div>
-            <h2 style="color:var(--dark); font-size:26px; margin:0;">नमस्ते पार्टनर!</h2>
-            <p style="color:#64748B; margin:10px 0 40px;">काम शुरू करने के लिए अपना Google अकाउंट जोड़ें।</p>
-            <button onclick="googleLogin()" class="btn" style="background:white; border:1.5px solid #E2E8F0; color:#475569;">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="22"> Google Login
-            </button>
+    <div id="scr-login">
+        <img src="https://cdn-icons-png.flaticon.com/512/1063/1063376.png" class="login-logo">
+        <h1 style="margin:0; color:var(--s);">SewaAstra</h1>
+        <p style="color:gray; margin-bottom:40px;">Expert Partner App</p>
+        <button onclick="googleLogin()" class="btn-p" style="background:white; color:#444; border:1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+            <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" style="width:20px;">
+            <span id="L-glogin">Google के साथ शुरू करें</span>
+        </button>
+        <div style="margin-top:30px;">
+            <select onchange="changeLang(this.value)" style="padding:8px; border-radius:10px; border:1px solid #ccc;">
+                <option value="hi">हिन्दी (Hindi)</option>
+                <option value="en">English</option>
+            </select>
         </div>
     </div>
 
-    <div id="scr-kyc" class="screen" style="padding:20px;">
-        <h2 style="margin:0;"><i class="fa fa-user-shield" style="color:var(--primary);"></i> KYC वेरिफिकेशन</h2>
-        <p style="color:#EF4444; font-size:13px; font-weight:700; margin-bottom:20px;">* सेवा शुरू करने के लिए दस्तावेज़ ज़रूरी हैं।</p>
-        
-        <div class="card" style="margin:0;">
-            <div class="file-box">
-                <label>आधार कार्ड (FRONT)</label>
-                <input type="file" id="k-adh-f" accept="image/*">
+    <div id="scr-setup" class="screen">
+        <div class="top-header"><h2 id="L-setup-title">अपनी सर्विस चुनें</h2></div>
+        <div class="card">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <button onclick="selSkill('ELEC', this)" class="btn-p skill-btn" style="background:white; color:var(--s); border:1px solid #ddd;">Electrician</button>
+                <button onclick="selSkill('PLUM', this)" class="btn-p skill-btn" style="background:white; color:var(--s); border:1px solid #ddd;">Plumber</button>
             </div>
-            <div class="file-box">
-                <label>आधार कार्ड (BACK)</label>
-                <input type="file" id="k-adh-b" accept="image/*">
-            </div>
-            <div class="file-box">
-                <label>पैन कार्ड (PAN)</label>
-                <input type="file" id="k-pan" accept="image/*">
-            </div>
-            <div class="file-box">
-                <label>पुलिस वेरिफिकेशन रिपोर्ट</label>
-                <input type="file" id="k-pol" accept="image/*">
-            </div>
-
-            <div id="prog-wrap"><div id="prog-bar"></div></div>
-            
-            <div style="font-size:12px; margin:10px 0 20px; color:#64748B;">
-                <input type="checkbox" id="k-agree" style="accent-color:var(--primary);"> मैं सेवाअस्त्र के सभी नियमों से सहमत हूँ।
-            </div>
-            <button id="k-btn" onclick="uploadKYC()" class="btn btn-p">KYC सबमिट करें</button>
+            <button class="btn-p" style="margin-top:20px;" onclick="saveSetup()" id="L-save-setup">रजिस्ट्रेशन पूरा करें</button>
         </div>
     </div>
 
-    <div id="scr-dash" class="screen">
-        <div class="header">
+    <div id="scr-home" class="screen">
+        <div class="top-header">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <small style="opacity:0.7">पार्टनर पोर्टल</small>
-                    <h2 id="u-name" style="margin:0; font-size:22px;">...</h2>
-                </div>
-                <div style="text-align:center;">
-                    <div id="u-duty-text" style="font-size:10px; font-weight:800; margin-bottom:4px; letter-spacing:1px;">OFF DUTY</div>
-                    <button id="u-duty-btn" onclick="toggleDuty()" style="border:none; border-radius:20px; padding:6px 15px; font-size:10px; font-weight:bold; cursor:pointer; background:#475569; color:white;">ON/OFF</button>
-                </div>
+                <div><h2 style="margin:0;">SewaAstra</h2><small id="duty-status">● वेरिफिकेशन पेंडिंग</small></div>
+                <img id="u-photo-top" src="" style="width:45px; height:45px; border-radius:12px; border:2px solid var(--p);">
             </div>
         </div>
-
-        <div class="stat-bar">
-            <div class="stat-item">
-                <small style="color:#94A3B8;">वॉलेट बैलेंस</small>
-                <h2 id="u-wallet" style="margin:5px 0; color:var(--primary);">₹0</h2>
-            </div>
-            <div class="stat-item">
-                <small style="color:#94A3B8;">पूरे काम</small>
-                <h2 id="u-jobs" style="margin:5px 0;">0</h2>
-            </div>
+        <div id="map"></div>
+        <div class="radar-box"><div class="pulse"></div> <span id="L-radar">लाइव लोकेशन सर्चिंग...</span></div>
+        <div id="lock-msg" class="status-locked">
+            <i class="fa fa-lock fa-2x"></i><br><br>
+            <b id="L-lock-title">अकाउंट लॉक है!</b><br>
+            <small id="L-lock-sub">काम पाने के लिए प्रोफाइल में जाकर Security दस्तावेज अपलोड करें।</small>
         </div>
+        <div id="job-feed" style="padding:0 15px;"></div>
+    </div>
 
-        <div style="padding:15px;">
-            <h3 style="margin-left:5px;">लाइव काम (Jobs)</h3>
-            <div id="job-list">
-                </div>
+    <div id="scr-wallet" class="screen">
+        <div class="top-header"><h2 id="L-wallet-title">वॉलेट</h2></div>
+        <div class="card" style="text-align:center;">
+            <p id="L-balance-txt">उपलब्ध बैलेंस</p>
+            <h1 id="u-balance">₹0</h1>
+            <button class="btn-p" onclick="toggleBank()" id="L-withdraw">पैसे निकालें</button>
         </div>
-
-        <div class="b-nav">
-            <div class="nav-link active"><i class="fa fa-home-alt"></i>Home</div>
-            <div class="nav-link" onclick="openPayout()"><i class="fa fa-wallet"></i>Payout</div>
-            <div class="nav-link" onclick="location.reload()"><i class="fa fa-user-circle"></i>Profile</div>
+        <div id="bank-form" style="display:none; padding:15px;" class="card">
+            <input type="text" id="upi-id" placeholder="UPI ID">
+            <button class="btn-p" onclick="saveBank()">Save</button>
         </div>
     </div>
 
-    <div id="modal-pay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9999; align-items:center; justify-content:center; padding:20px;">
-        <div class="card" style="width:100%;">
-            <h3>पैसे निकालें (Payout)</h3>
-            <input type="number" id="p-amt" placeholder="राशि (Min ₹500)" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:1px solid #E2E8F0; box-sizing:border-box;">
-            <input type="text" id="p-upi" placeholder="UPI ID (उदा: name@upi)" style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:1px solid #E2E8F0; box-sizing:border-box;">
-            <button onclick="requestPayout()" class="btn btn-p">रिक्वेस्ट भेजें</button>
-            <button onclick="document.getElementById('modal-pay').style.display='none'" class="btn" style="margin-top:10px; background:none; color:gray;">बंद करें</button>
+    <div id="scr-profile" class="screen">
+        <div class="top-header"><h2 id="L-profile-title">प्रोफाइल</h2></div>
+        <div style="padding: 15px;">
+            <div class="id-card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                    <b>SEWAASTRA EXPERT</b>
+                    <i id="blue-tik" class="fa fa-check-circle verify-badge"></i>
+                </div>
+                <div style="display:flex; gap:15px;">
+                    <img id="u-photo-id" src="" class="id-photo">
+                    <div>
+                        <h4 id="u-name-id">...</h4>
+                        <p id="u-skill-label" style="font-size:12px; color:var(--p);">EXPERT</p>
+                        <h4 id="u-id-val" style="font-family:monospace;">SA-000000</h4>
+                    </div>
+                </div>
+                <div id="qrcode" style="float:right; margin-top:-40px;"></div>
+            </div>
+
+            <h3 style="margin:20px 5px 10px;">Security Vault</h3>
+            <div class="card" style="margin:0; padding:15px;">
+                <div class="doc-row"><span>आधार (Front)</span><div id="st-AadharFront"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('AadharFront')">Upload</button></div></div>
+                <div class="doc-row"><span>आधार (Back)</span><div id="st-AadharBack"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('AadharBack')">Upload</button></div></div>
+                <div class="doc-row"><span>पैन कार्ड</span><div id="st-PAN"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('PAN')">Upload</button></div></div>
+                <div class="doc-row"><span>पुलिस वेरिफिकेशन</span><div id="st-Police"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('Police')">Upload</button></div></div>
+            </div>
+
+            <button class="btn-p" style="margin-top:20px; background:#FEE2E2; color:#EF4444;" onclick="logout()">Logout</button>
         </div>
     </div>
 
-    <script>
-        // --- FIREBASE SETTINGS ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
-            authDomain: "sewaastra.firebaseapp.com",
-            projectId: "sewaastra",
-            storageBucket: "sewaastra.appspot.com",
-            messagingSenderId: "211091351218",
-            appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        const auth = firebase.auth();
-        const storage = firebase.storage();
-        let pID = "";
+    <nav class="bottom-nav">
+        <div class="nav-link active" onclick="showScr('scr-home', this)"><i class="fa fa-home"></i><span id="L-nav-home">Home</span></div>
+        <div class="nav-link" onclick="showScr('scr-wallet', this)"><i class="fa fa-wallet"></i><span id="L-nav-wallet">Wallet</span></div>
+        <div class="nav-link" onclick="showScr('scr-profile', this)"><i class="fa fa-user-check"></i><span id="L-nav-profile">Profile</span></div>
+    </nav>
 
-        // --- AUTH & ROUTING ---
-        async function googleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            try {
-                const res = await auth.signInWithPopup(provider);
-                const user = res.user;
-                pID = user.uid;
-                const doc = await db.collection("partners").doc(pID).get();
-                if(!doc.exists) {
-                    await db.collection("partners").doc(pID).set({
-                        name: user.displayName,
-                        email: user.email,
-                        isVerified: false,
-                        isKycSubmitted: false,
-                        isOnline: false,
-                        wallet: 0,
-                        joined: new Date().toISOString()
-                    });
-                }
-                location.reload();
-            } catch(e) { alert("Login Failed!"); }
+<script>
+    // --- FIREBASE & CONFIG ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
+        authDomain: "sewaastra.firebaseapp.com",
+        projectId: "sewaastra",
+        storageBucket: "sewaastra.appspot.com",
+        messagingSenderId: "211091351218",
+        appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+    const storage = firebase.storage();
+
+    let pID = "", mySkill = "", map, partnerMarker, currentLang = "hi";
+
+    // --- LANGUAGE SYSTEM ---
+    const langData = {
+        hi: {
+            "loading": "प्रतीक्षा करें...", "glogin": "Google के साथ शुरू करें", "setup-title": "अपनी सर्विस चुनें",
+            "save-setup": "रजिस्ट्रेशन पूरा करें", "radar": "लाइव लोकेशन सर्चिंग...", "lock-title": "अकाउंट लॉक है!",
+            "lock-sub": "Security दस्तावेज अपलोड करें", "wallet-title": "वॉलेट", "balance-txt": "उपलब्ध बैलेंस",
+            "withdraw": "पैसे निकालें", "profile-title": "प्रोफाइल", "nav-home": "Home", "nav-wallet": "वॉलेट", "nav-profile": "प्रोफाइल"
+        },
+        en: {
+            "loading": "Please wait...", "glogin": "Start with Google", "setup-title": "Choose Your Service",
+            "save-setup": "Complete Registration", "radar": "Searching live location...", "lock-title": "Account Locked!",
+            "lock-sub": "Upload security documents", "wallet-title": "Wallet", "balance-txt": "Available Balance",
+            "withdraw": "Withdraw Money", "profile-title": "Profile", "nav-home": "Home", "nav-wallet": "Wallet", "nav-profile": "Profile"
         }
+    };
 
-        auth.onAuthStateChanged(user => {
-            if(user) {
-                pID = user.uid;
-                db.collection("partners").doc(pID).onSnapshot(doc => {
-                    if(doc.exists) route(doc.data());
-                });
-            }
-            setTimeout(() => { document.getElementById('splash').style.opacity='0'; setTimeout(()=>document.getElementById('splash').remove(),800); }, 2000);
+    function changeLang(val) {
+        currentLang = val;
+        for(let key in langData[val]) {
+            const el = document.getElementById('L-'+key);
+            if(el) el.innerText = langData[val][key];
+        }
+    }
+
+    // --- AUTH & LOGIN ---
+    function googleLogin() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider);
+    }
+
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            pID = user.uid;
+            document.getElementById('scr-login').style.display = 'none';
+            checkUserStatus();
+        } else {
+            document.getElementById('scr-login').style.display = 'flex';
+        }
+    });
+
+    function checkUserStatus() {
+        db.collection("partners").doc(pID).onSnapshot(doc => {
+            const d = doc.data() || {};
+            if(!d.setupDone) return showScr('scr-setup');
+            
+            document.getElementById('u-photo-top').src = auth.currentUser.photoURL;
+            document.getElementById('u-photo-id').src = auth.currentUser.photoURL;
+            document.getElementById('u-name-id').innerText = auth.currentUser.displayName;
+            document.getElementById('u-skill-label').innerText = d.skill + " EXPERT";
+            document.getElementById('u-id-val').innerText = d.expertId;
+
+            document.getElementById('qrcode').innerHTML = "";
+            new QRCode(document.getElementById("qrcode"), { text: d.expertId, width: 50, height: 50 });
+
+            db.collection("partners").doc(pID).collection("verification").doc("docs").onSnapshot(v => checkVerification(v.data()));
+            initMap();
+            loadJobs();
+            showScr('scr-home');
         });
+    }
 
-        function route(p) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            if(!p.isKycSubmitted) {
-                document.getElementById('scr-kyc').classList.add('active');
-            } else if(!p.isVerified) {
-                document.body.innerHTML = `<div style="padding:100px 30px; text-align:center; background:white; height:100vh;">
-                    <i class="fa fa-user-clock" style="font-size:60px; color:var(--primary); margin-bottom:20px;"></i>
-                    <h2>वेरिफिकेशन जारी...</h2>
-                    <p style="color:gray;">एडमिन आपकी जांच कर रहा है। 24 घंटे इंतज़ार करें।</p>
-                    <button onclick="location.reload()" class="btn btn-p">Refresh Status</button>
-                    <button onclick="auth.signOut().then(()=>location.reload())" class="btn" style="margin-top:20px; background:none; color:gray;">Log Out</button>
-                </div>`;
-            } else {
-                document.getElementById('scr-dash').classList.add('active');
-                initDash(p);
-            }
+    // --- CAMERA & GALLERY CHOICE ---
+    function chooseMethod(type) {
+        const choice = confirm("Camera (OK) or Gallery (Cancel)?");
+        const inp = document.createElement('input');
+        inp.type = 'file';
+        inp.accept = 'image/*';
+        if(choice) inp.capture = 'environment'; // Direct Camera
+        inp.onchange = (e) => uploadDoc(e.target.files[0], type);
+        inp.click();
+    }
+
+    async function uploadDoc(file, type) {
+        if(!file) return;
+        document.getElementById('loading').style.display = 'flex';
+        const ref = storage.ref(`kyc/${pID}/${type}`);
+        await ref.put(file);
+        const url = await ref.getDownloadURL();
+        await db.collection("partners").doc(pID).collection("verification").doc("docs").set({[type]: url}, {merge:true});
+        document.getElementById('loading').style.display = 'none';
+        alert("Uploaded!");
+    }
+
+    // --- Verification ---
+    function checkVerification(docs) {
+        const req = ['AadharFront', 'AadharBack', 'PAN', 'Police'];
+        let count = 0;
+        req.forEach(t => { if(docs && docs[t]) {
+            document.getElementById(`st-${t}`).innerHTML = '<b style="color:green">✔</b>';
+            count++;
+        }});
+        if(count === 4) {
+            document.getElementById('blue-tik').style.display = 'inline-block';
+            document.getElementById('lock-msg').style.display = 'none';
+            document.getElementById('job-feed').style.display = 'block';
         }
+    }
 
-        // --- KYC LOGIC ---
-        async function uploadKYC() {
-            if(!document.getElementById('k-agree').checked) return alert("Agreement स्वीकार करें!");
-            const btn = document.getElementById('k-btn');
-            const pBar = document.getElementById('prog-bar');
-            const pWrap = document.getElementById('prog-wrap');
+    // --- MAP ---
+    function initMap() {
+        if(map) return;
+        map = L.map('map', { zoomControl: false }).setView([23.2, 77.4], 13);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
+        navigator.geolocation.watchPosition(pos => {
+            const p = [pos.coords.latitude, pos.coords.longitude];
+            if(!partnerMarker) partnerMarker = L.marker(p).addTo(map);
+            else partnerMarker.setLatLng(p);
+            map.panTo(p);
+        });
+    }
 
-            const files = {
-                af: document.getElementById('k-adh-f').files[0],
-                ab: document.getElementById('k-adh-b').files[0],
-                pn: document.getElementById('k-pan').files[0],
-                pv: document.getElementById('k-pol').files[0]
-            };
-
-            if(!files.af || !files.ab || !files.pn || !files.pv) return alert("सभी फाइलें चुनें!");
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> अपलोड जारी है...';
-            pWrap.style.display = 'block';
-
-            try {
-                let urls = {}; let i = 0;
-                for(let key in files) {
-                    const ref = storage.ref(`kyc_docs/${pID}/${key}`);
-                    await ref.put(files[key]);
-                    urls[key] = await ref.getDownloadURL();
-                    i++; pBar.style.width = (i/4*100) + "%";
-                }
-                await db.collection("partners").doc(pID).update({ kycData: urls, isKycSubmitted: true });
-                alert("KYC सबमिट हो गया!"); location.reload();
-            } catch(e) { alert("Upload Failed!"); btn.disabled = false; }
+    // --- Basic UI ---
+    function showScr(id, el) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+        document.getElementById(id).classList.add('active-screen');
+        if(el) {
+            document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+            el.classList.add('active');
         }
+    }
 
-        // --- DASHBOARD LOGIC ---
-        function initDash(p) {
-            document.getElementById('u-name').innerText = p.name;
-            updateDutyUI(p.isOnline);
-
-            db.collection("bookings").where("assignedPartnerId", "==", pID)
-            .onSnapshot(snap => {
-                let h = ""; let earn = 0; let jobs = 0;
-                snap.forEach(doc => {
-                    let b = doc.data();
-                    if(b.status === "Completed") { earn += parseInt(b.total); jobs++; }
-                    else {
-                        document.getElementById('jobAlert').play();
-                        h += `<div class="job-card">
-                            <div style="display:flex; justify-content:space-between;"><b>${b.userName}</b> <span style="background:#FFF7ED; color:var(--primary); padding:3px 8px; border-radius:5px; font-size:10px;">नयी बुकिंग</span></div>
-                            <p style="font-size:13px; color:gray; margin:10px 0;">${b.items}</p>
-                            <div style="font-size:18px; font-weight:bold; margin-bottom:12px;">₹${b.total}</div>
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                                <a href="tel:${b.userPhone}" class="btn" style="background:#22C55E; color:white; padding:10px;"><i class="fa fa-phone"></i> Call</a>
-                                <button onclick="markDone('${doc.id}')" class="btn btn-p" style="padding:10px;">Complete</button>
-                            </div>
-                        </div>`;
-                    }
-                });
-                document.getElementById('job-list').innerHTML = h || "<p style='text-align:center; color:gray; padding-top:40px;'>अभी कोई काम नहीं है...</p>";
-                document.getElementById('u-wallet').innerText = "₹" + earn;
-                document.getElementById('u-jobs').innerText = jobs;
-            });
-        }
-
-        function updateDutyUI(s) {
-            const btn = document.getElementById('u-duty-btn');
-            const txt = document.getElementById('u-duty-text');
-            txt.innerText = s ? "DUTY ON" : "DUTY OFF";
-            txt.style.color = s ? "#22C55E" : "#94A3B8";
-            btn.style.background = s ? "#22C55E" : "#475569";
-        }
-
-        function toggleDuty() {
-            db.collection("partners").doc(pID).get().then(doc => {
-                let s = !doc.data().isOnline;
-                db.collection("partners").doc(pID).update({ isOnline: s });
-            });
-        }
-
-        function markDone(id) {
-            if(confirm("काम पूरा हो गया है?")) db.collection("bookings").doc(id).update({ status: "Completed" });
-        }
-
-        // --- PAYOUT LOGIC ---
-        function openPayout() { document.getElementById('modal-pay').style.display='flex'; }
-        function requestPayout() {
-            let amt = parseInt(document.getElementById('p-amt').value);
-            let upi = document.getElementById('p-upi').value;
-            if(amt < 500 || !upi.includes('@')) return alert("सही जानकारी भरें!");
-            db.collection("withdrawals").add({
-                partnerId: pID, partnerName: document.getElementById('u-name').innerText,
-                amount: amt, upi: upi, status: "Pending", requestedAt: new Date().toISOString()
-            }).then(() => { alert("रिक्वेस्ट भेज दी गयी!"); document.getElementById('modal-pay').style.display='none'; });
-        }
-    </script>
+    function logout() { if(confirm("Logout?")) auth.signOut(); }
+</script>
 </body>
 </html>
