@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
@@ -13,6 +13,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
     <style>
         :root { --p: #FF6B00; --s: #0F172A; --bg: #F8FAFC; --green: #22C55E; --blue: #3B82F6; }
@@ -148,6 +150,10 @@
                 <div class="doc-row"><span>पुलिस वेरिफिकेशन</span><div id="st-Police"><button class="btn-p" style="padding:5px 10px; width:auto;" onclick="chooseMethod('Police')">Upload</button></div></div>
             </div>
 
+            <div id="admin-controls" style="display:none; margin-top:15px;">
+                <button class="btn-p" style="background:var(--green);" onclick="adminVerifyExpert()">Verify This Expert (Admin)</button>
+            </div>
+
             <button class="btn-p" style="margin-top:20px; background:#FEE2E2; color:#EF4444;" onclick="logout()">Logout</button>
         </div>
     </div>
@@ -172,6 +178,10 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
     const storage = firebase.storage();
+
+    // Admin Details
+    const ADMIN_EMAIL = "soorshyamvishwakarma37@gmail.com";
+    const ADMIN_WHATSAPP = "91XXXXXXXXXX"; // अपना नंबर यहाँ डालें
 
     let pID = "", mySkill = "", map, partnerMarker, currentLang = "hi";
 
@@ -209,6 +219,12 @@
         if(user) {
             pID = user.uid;
             document.getElementById('scr-login').style.display = 'none';
+            
+            // Show Admin Controls if Admin logs in
+            if(user.email === ADMIN_EMAIL) {
+                document.getElementById('admin-controls').style.display = 'block';
+            }
+            
             checkUserStatus();
         } else {
             document.getElementById('scr-login').style.display = 'flex';
@@ -229,9 +245,16 @@
             document.getElementById('qrcode').innerHTML = "";
             new QRCode(document.getElementById("qrcode"), { text: d.expertId, width: 50, height: 50 });
 
+            // Status Check from Firestore
+            if(d.isVerified) {
+                document.getElementById('blue-tik').style.display = 'inline-block';
+                document.getElementById('lock-msg').style.display = 'none';
+                document.getElementById('duty-status').innerText = "● एक्टिव";
+                document.getElementById('duty-status').style.color = "var(--green)";
+            }
+
             db.collection("partners").doc(pID).collection("verification").doc("docs").onSnapshot(v => checkVerification(v.data()));
             initMap();
-            loadJobs();
             showScr('scr-home');
         });
     }
@@ -242,7 +265,7 @@
         const inp = document.createElement('input');
         inp.type = 'file';
         inp.accept = 'image/*';
-        if(choice) inp.capture = 'environment'; // Direct Camera
+        if(choice) inp.capture = 'environment'; 
         inp.onchange = (e) => uploadDoc(e.target.files[0], type);
         inp.click();
     }
@@ -254,22 +277,28 @@
         await ref.put(file);
         const url = await ref.getDownloadURL();
         await db.collection("partners").doc(pID).collection("verification").doc("docs").set({[type]: url}, {merge:true});
+        
+        // Notify Admin via WhatsApp
+        const msg = `नया डॉक्यूमेंट अपलोड!%0Aनाम: ${auth.currentUser.displayName}%0Aटाइप: ${type}%0Aलिंक: ${url}`;
+        window.open(`https://wa.me/${ADMIN_WHATSAPP}?text=${msg}`, '_blank');
+        
         document.getElementById('loading').style.display = 'none';
-        alert("Uploaded!");
+        alert("अपलोड सफल!");
     }
 
-    // --- Verification ---
+    // --- Verification Display ---
     function checkVerification(docs) {
         const req = ['AadharFront', 'AadharBack', 'PAN', 'Police'];
-        let count = 0;
         req.forEach(t => { if(docs && docs[t]) {
             document.getElementById(`st-${t}`).innerHTML = '<b style="color:green">✔</b>';
-            count++;
         }});
-        if(count === 4) {
-            document.getElementById('blue-tik').style.display = 'inline-block';
-            document.getElementById('lock-msg').style.display = 'none';
-            document.getElementById('job-feed').style.display = 'block';
+    }
+
+    // --- Admin Action ---
+    async function adminVerifyExpert() {
+        if(confirm("क्या आप इस एक्सपर्ट को वेरीफाई करना चाहते हैं?")) {
+            await db.collection("partners").doc(pID).update({ isVerified: true });
+            alert("Expert Verified!");
         }
     }
 
@@ -294,6 +323,25 @@
             document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
         }
+    }
+
+    // --- Setup Logic ---
+    let tempSkill = "";
+    function selSkill(code, btn) {
+        tempSkill = code;
+        document.querySelectorAll('.skill-btn').forEach(b => b.style.border = "1px solid #ddd");
+        btn.style.border = "2px solid var(--p)";
+    }
+
+    async function saveSetup() {
+        if(!tempSkill) return alert("Select Service");
+        const expId = "SA-" + Math.floor(100000 + Math.random() * 900000);
+        await db.collection("partners").doc(pID).set({
+            skill: tempSkill,
+            expertId: expId,
+            setupDone: true,
+            isVerified: false
+        });
     }
 
     function logout() { if(confirm("Logout?")) auth.signOut(); }
