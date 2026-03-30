@@ -3,462 +3,203 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Partner Pro | Enterprise Expert Console</title>
+    <title>SewaAstra Official Partner App</title>
     
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
     <style>
-        :root {
-            --p: #FF6B00; --s: #0F172A; --bg: #F1F5F9; --white: #ffffff;
-            --green: #10B981; --blue: #3B82F6; --red: #EF4444; --gray: #64748B;
-            --glass: rgba(255, 255, 255, 0.9);
-        }
+        :root { --p: #00c853; --s: #121212; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg); overflow: hidden; height: 100vh; color: #1e293b; }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-        
-        /* Auto Adjustment for all mobiles */
-        html, body { overflow-x: hidden; width: 100%; height: 100%; }
-        body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); margin: 0; padding-bottom: 100px; color: var(--s); }
+        /* Navigation Logic */
+        .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); z-index: 10; }
+        .screen.active { display: flex; animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Multi-Layered Header - Mobile Optimized */
-        .header-main { background: var(--s); color: white; padding: 30px 20px 70px; border-radius: 0 0 40px 40px; position: relative; width: 100%; }
-        .user-profile-header { display: flex; align-items: center; gap: 15px; }
-        .avatar-circle { width: 55px; height: 55px; border-radius: 18px; border: 2px solid var(--p); object-fit: cover; }
-        
-        /* Navigation System */
-        .bottom-bar { position: fixed; bottom: 15px; left: 10px; right: 10px; background: var(--s); border-radius: 20px; display: flex; padding: 12px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .nav-btn { flex: 1; text-align: center; color: #94A3B8; cursor: pointer; border: none; background: none; transition: 0.3s; font-size: 11px; }
-        .nav-btn.active { color: var(--p); transform: translateY(-3px); }
-        .nav-btn i { font-size: 22px; display: block; margin-bottom: 4px; }
+        /* UI Components */
+        header { background: var(--white); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 100; }
+        .btn-p { background: var(--p); color: white; border: none; padding: 18px; border-radius: 16px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,200,83,0.2); }
+        .card { background: var(--white); margin: 15px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); }
 
-        /* Screen Management */
-        .screen { display: none; padding: 0 15px; margin-top: -45px; animation: slideFade 0.4s ease; width: 100%; }
-        .active-screen { display: block; }
-        @keyframes slideFade { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
+        /* Map */
+        #main-map { flex: 1; width: 100%; z-index: 1; }
 
-        /* Advanced Cards */
-        .glass-card { background: var(--glass); backdrop-filter: blur(10px); border-radius: 25px; padding: 20px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.4); box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 100%; }
-        .stat-box { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .mini-stat { background: white; padding: 15px; border-radius: 20px; text-align: center; }
+        /* KYC Styles */
+        .up-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .up-card { border: 2px dashed var(--border); padding: 12px; border-radius: 12px; text-align: center; position: relative; }
+        .up-card i { color: var(--p); font-size: 20px; }
+        .up-card input { position: absolute; inset: 0; opacity: 0; }
+        canvas { border: 1px solid #ddd; background: #fafafa; border-radius: 10px; width: 100%; height: 120px; }
 
-        /* Map UI */
-        #radar-map { height: 280px; width: 100%; border-radius: 25px; margin-bottom: 20px; border: 4px solid white; box-shadow: 0 10px 20px rgba(0,0,0,0.1); position: relative; }
-        .online-status { position: absolute; top: 15px; right: 15px; z-index: 500; background: white; padding: 6px 12px; border-radius: 50px; display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 12px; }
-
-        /* ID Card Luxury Style */
-        .luxury-id { background: linear-gradient(145deg, #1e293b, #0f172a); color: white; border-radius: 25px; position: relative; overflow: hidden; padding: 25px; }
-
-        /* Job Card */
-        .job-card { border-left: 6px solid var(--p); animation: pulse-border 2s infinite; }
-        @keyframes pulse-border { 0% { border-left-color: var(--p); } 50% { border-left-color: #ff9d5c; } 100% { border-left-color: var(--p); } }
-
-        /* Forms */
-        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 12px; font-size: 15px; }
-        .btn-p { background: var(--p); color: white; border: none; padding: 16px; border-radius: 15px; width: 100%; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-p:active { transform: scale(0.98); }
-
-        /* Lock Screen for Verification */
-        #lock-screen { position: fixed; inset: 0; background: white; z-index: 4000; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
-        
-        .pulse-orange { animation: pulse-orange 2s infinite; }
-        @keyframes pulse-orange { 0% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0.5); } 70% { box-shadow: 0 0 0 15px rgba(255, 107, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 107, 0, 0); } }
+        /* Bottom Nav */
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 75px; display: none; border-top: 1px solid var(--border); z-index: 1000; padding-bottom: 10px; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
+        .nav-item.active { color: var(--p); font-weight: 800; }
     </style>
 </head>
 <body>
 
-    <div id="app-loader" style="position:fixed; inset:0; background:var(--s); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white;">
-        <div class="pulse-orange" style="width:70px; height:70px; background:var(--p); border-radius:50%; margin-bottom:20px;"></div>
-        <h2 style="letter-spacing:1px;">SEWAASTRA</h2>
+    <div id="scr-auth" class="screen active" style="justify-content: center; padding: 30px; background: white;">
+        <div style="text-align: center; margin-bottom: 40px;">
+            <h1 style="font-size: 38px;">Sewa<span style="color:var(--p)">Astra</span></h1>
+            <p style="color:#64748b;">Partner Enterprise Portal</p>
+        </div>
+        <input type="tel" id="uPhone" placeholder="मोबाइल नंबर" style="width:100%; padding:18px; border-radius:15px; border:1px solid #ddd; margin-bottom:15px; font-size:16px;">
+        <input type="password" id="uPass" placeholder="पासवर्ड" style="width:100%; padding:18px; border-radius:15px; border:1px solid #ddd; margin-bottom:20px; font-size:16px;">
+        <button class="btn-p" onclick="app.handleAuth()">प्रवेश करें <i class="fa fa-arrow-right"></i></button>
     </div>
 
-    <div id="scr-login" style="position:fixed; inset:0; background:white; z-index:5000; display:none; flex-direction:column; padding:30px; justify-content:center; text-align:center;">
-        <img src="https://cdn-icons-png.flaticon.com/512/1063/1063376.png" style="width:100px; margin:0 auto 20px;">
-        <h1 style="font-size:28px;">Expert Console</h1>
-        <p style="color:var(--gray); margin-bottom:40px;">Professional Service Network</p>
-        <button onclick="login()" class="btn-p" style="background:white; color:var(--s); border:1px solid #ddd; display:flex; align-items:center; justify-content:center; gap:10px;">
-            <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" width="20">
-            Sign in with Google
-        </button>
+    <div id="scr-lock" class="screen" style="justify-content: center; text-align: center; padding: 40px;">
+        <div style="font-size: 70px; margin-bottom: 20px;">⏳</div>
+        <h2>Verification Pending</h2>
+        <p style="color:#64748b; margin: 15px 0;">आपकी ID अभी रिव्यू में है। एडमिन द्वारा अप्रूव होने पर आपको सूचित किया जाएगा।</p>
+        <button class="btn-p" style="background:#25D366" onclick="app.contactWA()">WhatsApp Admin</button>
+        <button onclick="location.reload()" style="margin-top:20px; border:none; background:none; color:var(--p); font-weight:700;">Refresh Status</button>
     </div>
 
-    <div id="scr-setup" class="screen">
-        <div class="header-main"><h1>Registration</h1></div>
-        <div class="glass-card">
-            <h3 style="margin-top:0;">प्रोफेशनल जानकारी</h3>
-            <select id="setup-skill">
-                <option value="">सर्विस चुनें</option>
-                <option value="Electrician">Electrician</option>
-                <option value="Plumber">Plumber</option>
-                <option value="AC Expert">AC & Fridge Repair</option>
-                <option value="Cleaner">Deep Cleaning</option>
-            </select>
-            <input type="tel" id="setup-phone" placeholder="WhatsApp Number">
-            <input type="text" id="setup-city" placeholder="आपका शहर">
-            <button onclick="saveSetup()" class="btn-p">Start Journey</button>
-        </div>
+    <div id="scr-dash" class="screen">
+        <header>
+            <b>SewaAstra Live</b>
+            <div style="color:var(--p); font-weight:800; font-size:12px;">● ONLINE</div>
+        </header>
+        <div id="main-map"></div>
     </div>
 
-    <div id="lock-screen">
-        <i class="fa fa-user-clock fa-4x" style="color:var(--p); margin-bottom:20px;"></i>
-        <h2>वेरिफिकेशन पेंडिंग</h2>
-        <p style="color:var(--gray);">आपके दस्तावेजों की जांच एडमिन द्वारा की जा रही है। वेरिफिकेशन के बाद ही आप काम शुरू कर पाएंगे।</p>
-        <div id="kyc-status-list" style="margin:20px 0; text-align:left; width:100%;"></div>
-        <button class="btn-p" onclick="showScr('scr-profile')">डॉक्यूमेंट चेक करें</button>
-    </div>
-
-    <div id="scr-home" class="screen active-screen">
-        <div class="header-main">
-            <div class="user-profile-header">
-                <img id="u-photo" src="" class="avatar-circle">
-                <div>
-                    <h2 id="u-name" style="margin:0; font-size:18px;">Expert</h2>
-                    <span id="expert-id-tag" style="background:rgba(255,255,255,0.15); padding:2px 8px; border-radius:5px; font-size:11px;">ID: SA-000000</span>
-                </div>
-            </div>
-        </div>
-
-        <div id="radar-map">
-            <div class="online-status">
-                <div id="status-dot" style="width:8px; height:8px; background:gray; border-radius:50%;"></div>
-                <span id="status-label">Offline</span>
-                <input type="checkbox" id="duty-toggle" onchange="toggleDuty()" style="width:35px; margin:0; cursor:pointer;">
-            </div>
-        </div>
-
-        <div class="stat-box">
-            <div class="mini-stat">
-                <i class="fa fa-wallet" style="color:var(--p)"></i>
-                <h3 style="margin:5px 0;">₹<span id="stat-wallet">0</span></h3>
-                <small>वॉलेट</small>
-            </div>
-            <div class="mini-stat">
-                <i class="fa fa-star" style="color:var(--warning)"></i>
-                <h3 style="margin:5px 0;">4.8</h3>
-                <small>रेटिंग</small>
-            </div>
-        </div>
-
-        <h3 style="margin:20px 0 10px; display:flex; justify-content:space-between; font-size:16px;">
-            Active Jobs <span class="pulse-orange" style="background:var(--p); color:white; font-size:9px; padding:3px 8px; border-radius:50px;">RADAR ON</span>
-        </h3>
-        <div id="job-feed"></div>
-    </div>
-
-    <div id="scr-wallet" class="screen">
-        <div class="header-main"><h1>Earnings</h1></div>
-        <div class="glass-card luxury-id" style="text-align:center;">
-            <p style="color:#94A3B8; font-size:11px; letter-spacing:1px;">AVAILABLE BALANCE</p>
-            <h1 style="font-size:40px; margin:10px 0;">₹<span id="w-amt">0.00</span></h1>
-            <div style="display:flex; gap:10px;">
-                <button onclick="requestWithdrawal()" class="btn-p" style="background:white; color:var(--s); height:45px; padding:0; font-size:14px;">Withdrawal Request</button>
-            </div>
-        </div>
+    <div id="scr-set" class="screen" style="overflow-y: auto;">
+        <header><b>Profile & KYC</b></header>
         
-        <div class="glass-card">
-            <canvas id="earningChart" height="180"></canvas>
+        <div class="card">
+            <h3 style="margin-bottom:15px;">KYC Documents</h3>
+            <div class="up-grid">
+                <div class="up-card"><i class="fa fa-id-card"></i><br><small>Aadhar F</small><input type="file" onchange="app.upOk(this)"></div>
+                <div class="up-card"><i class="fa fa-id-card"></i><br><small>Aadhar B</small><input type="file" onchange="app.upOk(this)"></div>
+                <div class="up-card"><i class="fa fa-file-invoice"></i><br><small>PAN Card</small><input type="file" onchange="app.upOk(this)"></div>
+                <div class="up-card"><i class="fa fa-user-shield"></i><br><small>Police Ver</small><input type="file" onchange="app.upOk(this)"></div>
+            </div>
+
+            <div style="margin-top:20px;">
+                <p style="font-size:12px; font-weight:800; margin-bottom:5px;">डिजिटल सिग्नेचर:</p>
+                <canvas id="sig-pad"></canvas>
+                <button onclick="app.clearSig()" style="font-size:10px; color:red; border:none; background:none;">Clear</button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:20px; background:#f1f5f9; padding:10px; border-radius:10px;">
+                <input type="checkbox" id="agree">
+                <label for="agree" style="font-size:11px;">मैं SewaAstra के सभी नियमों और एग्रीमेंट को स्वीकार करता हूँ।</label>
+            </div>
+
+            <button class="btn-p" style="margin-top:20px;" onclick="app.submitKYC()">Update & Notify Admin</button>
         </div>
 
-        <h3 style="font-size:16px;">निकासी हिस्ट्री</h3>
-        <div id="withdrawal-history"></div>
+        <button onclick="app.logout()" style="margin:0 15px 30px; color:red; border:none; background:none; font-weight:700;">Logout Account</button>
     </div>
 
-    <div id="scr-profile" class="screen">
-        <div class="header-main"><h1>Account</h1></div>
-        
-        <div class="luxury-id">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <b style="font-size:12px;">SEWAASTRA VERIFIED</b>
-                <i id="verify-tick" class="fa fa-check-circle" style="color:var(--p); font-size:20px;"></i>
-            </div>
-            <div style="display:flex; gap:15px; margin-top:15px;">
-                <img id="id-photo" src="" style="width:80px; height:80px; border-radius:15px; border:2px solid var(--p); object-fit:cover;">
-                <div>
-                    <h3 id="id-name" style="margin:0; font-size:16px;">Partner Name</h3>
-                    <p id="id-skill" style="color:var(--p); margin:2px 0; font-size:13px;">Specialist</p>
-                    <div id="id-qr" style="background:white; padding:4px; display:inline-block; border-radius:5px; margin-top:8px;"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="glass-card" style="margin-top:15px;">
-            <h3 style="font-size:15px; margin-top:0;">KYC Documents (Mandatory)</h3>
-            <div id="kyc-buttons" style="display:flex; flex-direction:column; gap:10px;">
-                <div onclick="uploadDoc('Aadhar_Front')" class="mini-stat" style="display:flex; justify-content:space-between; align-items:center; padding:12px; cursor:pointer; font-size:14px;">
-                    <span>Aadhar Card Front</span><i class="fa fa-cloud-upload" id="icon-Aadhar_Front"></i>
-                </div>
-                <div onclick="uploadDoc('Aadhar_Back')" class="mini-stat" style="display:flex; justify-content:space-between; align-items:center; padding:12px; cursor:pointer; font-size:14px;">
-                    <span>Aadhar Card Back</span><i class="fa fa-cloud-upload" id="icon-Aadhar_Back"></i>
-                </div>
-            </div>
-        </div>
-
-        <button onclick="logout()" class="btn-p" style="background:#fee2e2; color:var(--red); margin-bottom:20px;">Sign Out</button>
-    </div>
-
-    <nav class="bottom-bar">
-        <button class="nav-btn active" onclick="showScr('scr-home', this)"><i class="fa fa-home-alt"></i><span>Home</span></button>
-        <button class="nav-btn" onclick="showScr('scr-wallet', this)"><i class="fa fa-wallet"></i><span>Earnings</span></button>
-        <button class="nav-btn" onclick="showScr('scr-profile', this)"><i class="fa fa-user-cog"></i><span>Profile</span></button>
+    <nav id="bot-nav">
+        <div class="nav-item active" id="n-dash" onclick="app.nav('scr-dash', 'n-dash')"><i class="fa fa-compass"></i><span>Jobs</span></div>
+        <div class="nav-item" id="n-set" onclick="app.nav('scr-set', 'n-set')"><i class="fa fa-user-circle"></i><span>Account</span></div>
     </nav>
 
-<script>
-// --- CONFIGURATION ---
-const firebaseConfig = {
-    apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
-    authDomain: "sewaastra.firebaseapp.com",
-    projectId: "sewaastra",
-    storageBucket: "sewaastra.appspot.com",
-    messagingSenderId: "211091351218",
-    appId: "1:211091351218:web:47fe25d6db3e8dd0464bab"
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const auth = firebase.auth();
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = { databaseURL: "https://sewaastra-default-rtdb.firebaseio.com" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-emailjs.init("yD3nW_GSHoPHH0XY3");
+        // App Object Logic
+        const app = {
+            user: null,
+            map: null,
+            sig: null,
 
-let expertData = null;
+            init() {
+                const saved = localStorage.getItem('sa_user');
+                if(saved) {
+                    this.user = saved;
+                    this.checkStatus();
+                }
+                // Init Signature Pad
+                const canvas = document.getElementById('sig-pad');
+                this.sig = new SignaturePad(canvas);
+            },
 
-// --- AUTH SYSTEM ---
-auth.onAuthStateChanged(user => {
-    document.getElementById('app-loader').style.display = 'none';
-    if(user) {
-        document.getElementById('scr-login').style.display = 'none';
-        loadExpertSystem(user);
-    } else {
-        document.getElementById('scr-login').style.display = 'flex';
-    }
-});
+            handleAuth() {
+                const phone = document.getElementById('uPhone').value;
+                const pass = document.getElementById('uPass').value;
+                if(phone.length < 10) return alert("Valid number डालें");
 
-function login() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-function logout() { if(confirm("Log Out?")) auth.signOut(); }
+                db.ref('partners/' + phone).once('value').then(s => {
+                    const p = s.val();
+                    if(!p) {
+                        db.ref('partners/' + phone).set({ phone, pass, isApproved: false });
+                        this.user = phone;
+                        localStorage.setItem('sa_user', phone);
+                        this.show('scr-lock');
+                    } else if(p.pass === pass) {
+                        this.user = phone;
+                        localStorage.setItem('sa_user', phone);
+                        this.checkStatus();
+                    } else { alert("Wrong Password"); }
+                });
+            },
 
-// --- EXPERT SYSTEM CORE ---
-function loadExpertSystem(user) {
-    db.collection("partners").doc(user.uid).onSnapshot(doc => {
-        if(!doc.exists) {
-            showScr('scr-setup');
-            return;
-        }
-        
-        expertData = doc.data();
-        updateUI(user);
-        
-        // Verification Check
-        if(!expertData.isVerified) {
-            document.getElementById('lock-screen').style.display = 'flex';
-            checkKYCStatus();
-        } else {
-            document.getElementById('lock-screen').style.display = 'none';
-            initMap();
-        }
-    });
-}
+            checkStatus() {
+                db.ref('partners/' + this.user).on('value', s => {
+                    const p = s.val();
+                    if(p.isApproved) {
+                        this.show('scr-dash');
+                        document.getElementById('bot-nav').style.display = 'flex';
+                        this.initMap();
+                    } else {
+                        this.show('scr-lock');
+                    }
+                });
+            },
 
-function updateUI(user) {
-    document.getElementById('u-name').innerText = expertData.name;
-    document.getElementById('u-photo').src = user.photoURL;
-    document.getElementById('expert-id-tag').innerText = "ID: " + expertData.expertId;
-    document.getElementById('stat-wallet').innerText = expertData.wallet.toFixed(2);
-    document.getElementById('w-amt').innerText = expertData.wallet.toFixed(2);
-    
-    document.getElementById('id-name').innerText = expertData.name;
-    document.getElementById('id-photo').src = user.photoURL;
-    document.getElementById('id-skill').innerText = expertData.skill;
-    
-    document.getElementById('id-qr').innerHTML = "";
-    new QRCode(document.getElementById("id-qr"), { text: expertData.expertId, width: 50, height: 50 });
-}
+            initMap() {
+                if(!this.map) {
+                    this.map = L.map('main-map', { zoomControl: false }).setView([23.2333, 77.4333], 14);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
+                    L.marker([23.2333, 77.4333]).addTo(this.map);
+                }
+                setTimeout(() => this.map.invalidateSize(), 300);
+            },
 
-// --- WITHDRAWAL LOGIC ---
-async function requestWithdrawal() {
-    const balance = expertData.wallet;
-    if(balance < 100) {
-        alert("न्यूनतम ₹100 होना अनिवार्य है।");
-        return;
-    }
-    
-    const amount = prompt("कितनी राशि निकालना चाहते हैं?", balance);
-    if(!amount || isNaN(amount) || amount > balance || amount < 100) {
-        alert("अमान्य राशि!");
-        return;
-    }
+            show(id) {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+                document.getElementById(id).classList.add('active');
+            },
 
-    try {
-        await db.collection("payout_requests").add({
-            partnerId: auth.currentUser.uid,
-            partnerName: expertData.name,
-            amount: parseFloat(amount),
-            status: "Pending",
-            requestedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        
-        // Wallet से पैसे काटना (Pending State)
-        await db.collection("partners").doc(auth.currentUser.uid).update({
-            wallet: balance - amount
-        });
+            nav(scr, navId) {
+                this.show(scr);
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                document.getElementById(navId).classList.add('active');
+                if(scr === 'scr-dash') this.initMap();
+            },
 
-        alert("अनुरोध एडमिन को भेज दिया गया है। 24 घंटे में भुगतान कर दिया जाएगा।");
-        loadWithdrawalHistory();
-    } catch(e) {
-        alert("Error: " + e.message);
-    }
-}
+            upOk(el) { el.parentElement.style.borderColor = "#00c853"; },
+            clearSig() { this.sig.clear(); },
 
-function loadWithdrawalHistory() {
-    db.collection("payout_requests")
-    .where("partnerId", "==", auth.currentUser.uid)
-    .orderBy("requestedAt", "desc")
-    .limit(5)
-    .get().then(snap => {
-        let html = "";
-        snap.forEach(doc => {
-            const data = doc.data();
-            const color = data.status === 'Pending' ? 'orange' : 'green';
-            html += `<div class="mini-stat" style="display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px;">
-                <span>₹${data.amount}</span>
-                <b style="color:${color}">${data.status}</b>
-            </div>`;
-        });
-        document.getElementById('withdrawal-history').innerHTML = html || "<small>कोई हिस्ट्री नहीं है</small>";
-    });
-}
+            submitKYC() {
+                if(!document.getElementById('agree').checked) return alert("Agreement स्वीकार करें");
+                if(this.sig.isEmpty()) return alert("साइन करना अनिवार्य है");
 
-// --- KYC & DOCUMENT SYSTEM ---
-function uploadDoc(type) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if(!file) return;
+                const msg = `SewaAstra KYC ALERT:\nPartner: ${this.user}\nDocuments: Uploaded\nAgreement: Signed ✅\nAction: Please Approve.`;
+                window.location.href = `https://wa.me/917869969190?text=${encodeURIComponent(msg)}`;
+            },
 
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = async () => {
-            const base64 = reader.result;
-            
-            // 1. Admin Email using EmailJS
-            emailjs.send("service_tl1mu9g", "template_n5kzv5o", {
-                sewaastra: expertData.name,
-                email: expertData.email,
-                title: type,
-                image_data: base64
-            }).then(() => {
-                alert(type + " एडमिन को भेज दिया गया है।");
-            });
+            contactWA() {
+                window.open(`https://wa.me/917869969190?text=Hi, Approve my ID: ${this.user}`);
+            },
 
-            // 2. Database Update
-            const updateObj = {};
-            updateObj[`kyc_${type}`] = "Uploaded";
-            await db.collection("partners").doc(auth.currentUser.uid).update(updateObj);
-            
-            document.getElementById(`icon-${type}`).className = "fa fa-check-circle";
-            document.getElementById(`icon-${type}`).style.color = "var(--green)";
+            logout() { localStorage.clear(); location.reload(); }
         };
-    };
-    input.click();
-}
 
-function checkKYCStatus() {
-    const box = document.getElementById('kyc-status-list');
-    let html = "<b>Document Progress:</b><br>";
-    const docs = ['Aadhar_Front', 'Aadhar_Back'];
-    
-    docs.forEach(d => {
-        const status = expertData[`kyc_${d}`] || "Not Uploaded";
-        const icon = status === 'Uploaded' ? 'check-circle' : 'circle';
-        const color = status === 'Uploaded' ? 'var(--green)' : '#ddd';
-        html += `<div style="margin:5px 0; font-size:13px; color:var(--gray);"><i class="fa fa-${icon}" style="color:${color}"></i> ${d.replace('_',' ')}: ${status}</div>`;
-    });
-    box.innerHTML = html;
-}
-
-// --- SETUP ---
-async function saveSetup() {
-    const skill = document.getElementById('setup-skill').value;
-    const phone = document.getElementById('setup-phone').value;
-    const city = document.getElementById('setup-city').value;
-
-    if(!skill || phone.length < 10) return alert("कृपया पूरी जानकारी भरें");
-
-    await db.collection("partners").doc(auth.currentUser.uid).set({
-        name: auth.currentUser.displayName,
-        email: auth.currentUser.email,
-        phone: phone,
-        skill: skill,
-        city: city,
-        wallet: 0,
-        totalJobs: 0,
-        expertId: "SA-" + Math.floor(100000 + Math.random() * 900000),
-        isVerified: false,
-        onDuty: false,
-        setupDone: true,
-        joinedAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-}
-
-// --- MAP & RADAR ---
-function initMap() {
-    if(map) return;
-    map = L.map('radar-map', { zoomControl: false }).setView([22.7196, 75.8577], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-    
-    navigator.geolocation.getCurrentPosition(pos => {
-        const {latitude, longitude} = pos.coords;
-        map.setView([latitude, longitude], 15);
-        L.marker([latitude, longitude]).addTo(map);
-    });
-}
-
-function toggleDuty() {
-    const isOn = document.getElementById('duty-toggle').checked;
-    document.getElementById('status-dot').style.background = isOn ? 'var(--green)' : 'gray';
-    document.getElementById('status-label').innerText = isOn ? 'Online' : 'Offline';
-    
-    db.collection("partners").doc(auth.currentUser.uid).update({ onDuty: isOn });
-    if(isOn) loadJobs();
-}
-
-function loadJobs() {
-    db.collection("bookings").where("status","==","Pending").onSnapshot(snap => {
-        const feed = document.getElementById('job-feed');
-        feed.innerHTML = "";
-        snap.forEach(doc => {
-            const job = doc.data();
-            feed.innerHTML += `
-                <div class="glass-card job-card">
-                    <div style="display:flex; justify-content:space-between;">
-                        <b>${job.service}</b>
-                        <span style="color:var(--green); font-weight:800;">₹${job.price}</span>
-                    </div>
-                    <p style="font-size:12px; color:var(--gray); margin:8px 0;"><i class="fa fa-map-marker-alt"></i> ${job.address}</p>
-                    <button onclick="acceptJob('${doc.id}')" class="btn-p" style="padding:8px; font-size:13px;">Accept Job</button>
-                </div>`;
-        });
-    });
-}
-
-// --- UI NAVIGATION ---
-function showScr(id, btn) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
-    document.getElementById(id).classList.add('active-screen');
-    if(btn) {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    }
-    if(id === 'scr-wallet') loadWithdrawalHistory();
-}
-
-let map;
-</script>
+        window.onload = () => app.init();
+    </script>
 </body>
 </html>
