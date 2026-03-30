@@ -3,202 +3,224 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Official Partner App</title>
+    <title>SewaAstra | Live Firebase Engine</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
     <style>
-        :root { --p: #00c853; --s: #121212; --bg: #f8fafc; --border: #e2e8f0; --white: #ffffff; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--bg); overflow: hidden; height: 100vh; color: #1e293b; }
+        :root { --p: #00c853; --bg: #f8fafc; --white: #ffffff; --border: #e2e8f0; --text: #1e293b; }
+        .dark-theme { --bg: #0f172a; --white: #1e293b; --border: #334155; --text: #f8fafc; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s; }
+        body { background: var(--bg); overflow: hidden; height: 100vh; color: var(--text); }
 
-        /* Navigation Logic */
+        /* Screen Flow */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); z-index: 10; }
-        .screen.active { display: flex; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .screen.active { display: flex; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
 
-        /* UI Components */
-        header { background: var(--white); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); z-index: 100; }
-        .btn-p { background: var(--p); color: white; border: none; padding: 18px; border-radius: 16px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,200,83,0.2); }
-        .card { background: var(--white); margin: 15px; padding: 20px; border-radius: 20px; border: 1px solid var(--border); }
+        /* Elements */
+        header { background: var(--white); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-weight: 800; }
+        .btn-p { background: var(--p); color: white; border: none; padding: 18px; border-radius: 20px; width: 100%; font-weight: 800; cursor: pointer; }
+        .card { background: var(--white); margin: 15px; padding: 20px; border-radius: 26px; border: 1px solid var(--border); }
+        
+        /* Duty Switch */
+        .duty-box { display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 6px 14px; border-radius: 50px; cursor: pointer; border: 1px solid transparent; }
+        .duty-box.online { background: #dcfce7; border-color: var(--p); color: #166534; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+        .online .dot { background: var(--p); box-shadow: 0 0 8px var(--p); }
 
-        /* Map */
-        #main-map { flex: 1; width: 100%; z-index: 1; }
-
-        /* KYC Styles */
-        .up-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-        .up-card { border: 2px dashed var(--border); padding: 12px; border-radius: 12px; text-align: center; position: relative; }
-        .up-card i { color: var(--p); font-size: 20px; }
-        .up-card input { position: absolute; inset: 0; opacity: 0; }
-        canvas { border: 1px solid #ddd; background: #fafafa; border-radius: 10px; width: 100%; height: 120px; }
-
-        /* Bottom Nav */
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 75px; display: none; border-top: 1px solid var(--border); z-index: 1000; padding-bottom: 10px; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; }
-        .nav-item.active { color: var(--p); font-weight: 800; }
+        #main-map { flex: 1; width: 100%; border-radius: 30px 30px 0 0; }
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 80px; display: none; border-top: 1px solid var(--border); z-index: 1000; padding-bottom: 15px; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 700; }
+        .nav-item.active { color: var(--p); }
     </style>
 </head>
 <body>
 
-    <div id="scr-auth" class="screen active" style="justify-content: center; padding: 30px; background: white;">
-        <div style="text-align: center; margin-bottom: 40px;">
-            <h1 style="font-size: 38px;">Sewa<span style="color:var(--p)">Astra</span></h1>
-            <p style="color:#64748b;">Partner Enterprise Portal</p>
+    <div id="scr-auth" class="screen active" style="justify-content: center; padding: 45px; text-align: center; background: white;">
+        <div style="margin-bottom: 40px;">
+            <div style="width:70px; height:70px; background:var(--p); border-radius:22px; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:white; font-size:35px; font-weight:900;">S</div>
+            <h1 style="font-size: 34px;">Sewa<span style="color:var(--p)">Astra</span></h1>
+            <p style="color:#64748b;">Enterprise Partner Portal</p>
         </div>
-        <input type="tel" id="uPhone" placeholder="मोबाइल नंबर" style="width:100%; padding:18px; border-radius:15px; border:1px solid #ddd; margin-bottom:15px; font-size:16px;">
-        <input type="password" id="uPass" placeholder="पासवर्ड" style="width:100%; padding:18px; border-radius:15px; border:1px solid #ddd; margin-bottom:20px; font-size:16px;">
-        <button class="btn-p" onclick="app.handleAuth()">प्रवेश करें <i class="fa fa-arrow-right"></i></button>
+
+        <div id="g_id_onload" 
+             data-client_id="211091351218-s08jo336t0dieb050q02r4bqvdod891m.apps.googleusercontent.com" 
+             data-callback="handleGoogleLogin">
+        </div>
+        <div class="g_id_signin" data-type="standard" data-theme="filled_blue" data-size="large" data-shape="pill"></div>
+        
+        <p style="margin-top: 30px; font-size: 11px; color: #94a3b8;">Bhopal's Leading Service Network</p>
     </div>
 
-    <div id="scr-lock" class="screen" style="justify-content: center; text-align: center; padding: 40px;">
-        <div style="font-size: 70px; margin-bottom: 20px;">⏳</div>
-        <h2>Verification Pending</h2>
-        <p style="color:#64748b; margin: 15px 0;">आपकी ID अभी रिव्यू में है। एडमिन द्वारा अप्रूव होने पर आपको सूचित किया जाएगा।</p>
-        <button class="btn-p" style="background:#25D366" onclick="app.contactWA()">WhatsApp Admin</button>
-        <button onclick="location.reload()" style="margin-top:20px; border:none; background:none; color:var(--p); font-weight:700;">Refresh Status</button>
+    <div id="scr-lock" class="screen" style="justify-content: center; text-align: center; padding: 45px;">
+        <h1 style="font-size: 60px;">🔐</h1>
+        <h2 style="margin: 15px 0;">Verification Pending</h2>
+        <p style="color:#64748b; margin-bottom: 30px;">Shoorshyam, आपकी प्रोफाइल अभी एडमिन के पास रिव्यू में है।</p>
+        <button class="btn-p" onclick="app.contactWA()" style="background:#25D366"><i class="fab fa-whatsapp"></i> WhatsApp Support</button>
     </div>
 
     <div id="scr-dash" class="screen">
         <header>
-            <b>SewaAstra Live</b>
-            <div style="color:var(--p); font-weight:800; font-size:12px;">● ONLINE</div>
+            <span>SewaAstra Live</span>
+            <div class="duty-box" id="duty-box" onclick="app.toggleDuty()">
+                <div class="dot"></div>
+                <span id="duty-txt" style="font-size: 11px; font-weight: 800;">OFFLINE</span>
+            </div>
         </header>
+
+        <div class="card" style="background: linear-gradient(135deg, #00c853, #009624); color: white; border: none;">
+            <p style="font-size: 11px; opacity: 0.9;">Total Earnings</p>
+            <h2 id="earn-disp" style="font-size: 32px; margin: 5px 0;">₹0.00</h2>
+            <div style="display:flex; justify-content: space-between; font-size: 10px; margin-top: 10px;">
+                <span>Active Jobs: 0</span>
+                <span>Rating: 5.0 ★</span>
+            </div>
+        </div>
+
         <div id="main-map"></div>
     </div>
 
-    <div id="scr-set" class="screen" style="overflow-y: auto;">
-        <header><b>Profile & KYC</b></header>
-        
-        <div class="card">
-            <h3 style="margin-bottom:15px;">KYC Documents</h3>
-            <div class="up-grid">
-                <div class="up-card"><i class="fa fa-id-card"></i><br><small>Aadhar F</small><input type="file" onchange="app.upOk(this)"></div>
-                <div class="up-card"><i class="fa fa-id-card"></i><br><small>Aadhar B</small><input type="file" onchange="app.upOk(this)"></div>
-                <div class="up-card"><i class="fa fa-file-invoice"></i><br><small>PAN Card</small><input type="file" onchange="app.upOk(this)"></div>
-                <div class="up-card"><i class="fa fa-user-shield"></i><br><small>Police Ver</small><input type="file" onchange="app.upOk(this)"></div>
-            </div>
-
-            <div style="margin-top:20px;">
-                <p style="font-size:12px; font-weight:800; margin-bottom:5px;">डिजिटल सिग्नेचर:</p>
-                <canvas id="sig-pad"></canvas>
-                <button onclick="app.clearSig()" style="font-size:10px; color:red; border:none; background:none;">Clear</button>
-            </div>
-
-            <div style="display:flex; gap:10px; margin-top:20px; background:#f1f5f9; padding:10px; border-radius:10px;">
-                <input type="checkbox" id="agree">
-                <label for="agree" style="font-size:11px;">मैं SewaAstra के सभी नियमों और एग्रीमेंट को स्वीकार करता हूँ।</label>
-            </div>
-
-            <button class="btn-p" style="margin-top:20px;" onclick="app.submitKYC()">Update & Notify Admin</button>
+    <div id="scr-set" class="screen" style="overflow-y: auto; padding-bottom: 90px;">
+        <header>Profile & KY <i class="fa fa-moon" onclick="app.toggleDark()"></i></header>
+        <div class="card" style="text-align: center;">
+            <div id="p-img" style="width:70px; height:70px; border-radius:50%; background:#f1f5f9; margin: 0 auto 10px; border: 2px solid var(--p);"></div>
+            <h3 id="p-name">Partner Name</h3>
+            <p id="p-email" style="font-size: 12px; color: #64748b;"></p>
         </div>
 
-        <button onclick="app.logout()" style="margin:0 15px 30px; color:red; border:none; background:none; font-weight:700;">Logout Account</button>
+        <div class="card">
+            <p style="font-weight: 800; font-size: 13px; margin-bottom: 10px;">Digital Signature</p>
+            <canvas id="sig-pad"></canvas>
+            <button onclick="app.clearSig()" style="font-size:10px; color:red; border:none; background:none; font-weight:700;">RESET SIGN</button>
+        </div>
+
+        <button onclick="app.logout()" style="margin:20px; color:red; border:none; background:none; font-weight:800;"><i class="fa fa-sign-out-alt"></i> LOGOUT SESSION</button>
     </div>
 
     <nav id="bot-nav">
-        <div class="nav-item active" id="n-dash" onclick="app.nav('scr-dash', 'n-dash')"><i class="fa fa-compass"></i><span>Jobs</span></div>
-        <div class="nav-item" id="n-set" onclick="app.nav('scr-set', 'n-set')"><i class="fa fa-user-circle"></i><span>Account</span></div>
+        <div class="nav-item active" id="n-dash" onclick="app.nav('scr-dash', 'n-dash')"><i class="fa fa-th-large"></i><span>HOME</span></div>
+        <div class="nav-item" id="n-set" onclick="app.nav('scr-set', 'n-set')"><i class="fa fa-user-circle"></i><span>ACCOUNT</span></div>
     </nav>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Firebase Configuration
-        const firebaseConfig = { databaseURL: "https://sewaastra-default-rtdb.firebaseio.com" };
+        // --- YOUR FIREBASE CONFIG INTEGRATED ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
+            authDomain: "sewaastra.firebaseapp.com",
+            databaseURL: "https://sewaastra-default-rtdb.firebaseio.com",
+            projectId: "sewaastra",
+            storageBucket: "sewaastra.firebasestorage.app",
+            messagingSenderId: "211091351218",
+            appId: "1:211091351218:web:bb555f4cae275b4f464bab",
+            measurementId: "G-Z08CQVRVQG"
+        };
+
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        const analytics = firebase.analytics();
 
-        // App Object Logic
+        function handleGoogleLogin(response) {
+            const payload = JSON.parse(atob(response.credential.split('.')[1]));
+            const userId = payload.email.replace(/[^a-zA-Z0-9]/g, "");
+            
+            db.ref('partners/' + userId).once('value').then(s => {
+                if(!s.exists()) {
+                    db.ref('partners/' + userId).set({ 
+                        name: payload.name, 
+                        email: payload.email, 
+                        isApproved: false, 
+                        wallet: 0,
+                        joined: new Date().getTime()
+                    });
+                }
+                localStorage.setItem('sa_user', userId);
+                localStorage.setItem('sa_name', payload.name);
+                localStorage.setItem('sa_email', payload.email);
+                app.user = userId;
+                app.checkStatus();
+            });
+        }
+
         const app = {
-            user: null,
-            map: null,
-            sig: null,
-
+            user: null, map: null, isOnline: false, sig: null,
             init() {
                 const saved = localStorage.getItem('sa_user');
-                if(saved) {
-                    this.user = saved;
-                    this.checkStatus();
-                }
-                // Init Signature Pad
-                const canvas = document.getElementById('sig-pad');
-                this.sig = new SignaturePad(canvas);
+                if(saved) { this.user = saved; this.checkStatus(); }
+                this.sig = new SignaturePad(document.getElementById('sig-pad'));
             },
-
-            handleAuth() {
-                const phone = document.getElementById('uPhone').value;
-                const pass = document.getElementById('uPass').value;
-                if(phone.length < 10) return alert("Valid number डालें");
-
-                db.ref('partners/' + phone).once('value').then(s => {
-                    const p = s.val();
-                    if(!p) {
-                        db.ref('partners/' + phone).set({ phone, pass, isApproved: false });
-                        this.user = phone;
-                        localStorage.setItem('sa_user', phone);
-                        this.show('scr-lock');
-                    } else if(p.pass === pass) {
-                        this.user = phone;
-                        localStorage.setItem('sa_user', phone);
-                        this.checkStatus();
-                    } else { alert("Wrong Password"); }
-                });
-            },
-
             checkStatus() {
                 db.ref('partners/' + this.user).on('value', s => {
                     const p = s.val();
-                    if(p.isApproved) {
+                    if(p && p.isApproved) {
                         this.show('scr-dash');
                         document.getElementById('bot-nav').style.display = 'flex';
                         this.initMap();
-                    } else {
+                        document.getElementById('p-name').innerText = p.name;
+                        document.getElementById('p-email').innerText = p.email;
+                        document.getElementById('earn-disp').innerText = "₹" + (p.wallet || 0).toFixed(2);
+                    } else if(p) {
                         this.show('scr-lock');
                     }
                 });
             },
-
+            toggleDuty() {
+                this.isOnline = !this.isOnline;
+                const box = document.getElementById('duty-box');
+                const txt = document.getElementById('duty-txt');
+                if(this.isOnline) {
+                    box.classList.add('online');
+                    txt.innerText = "ONLINE";
+                    db.ref('partners/' + this.user).update({ duty: 'Online' });
+                    this.trackLoc();
+                } else {
+                    box.classList.remove('online');
+                    txt.innerText = "OFFLINE";
+                    db.ref('partners/' + this.user).update({ duty: 'Offline' });
+                }
+            },
+            trackLoc() {
+                if(navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(pos => {
+                        db.ref('live_location/' + this.user).set({
+                            lat: pos.coords.latitude,
+                            lng: pos.coords.longitude,
+                            lastSeen: new Date().getTime()
+                        });
+                    });
+                }
+            },
             initMap() {
                 if(!this.map) {
                     this.map = L.map('main-map', { zoomControl: false }).setView([23.2333, 77.4333], 14);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
-                    L.marker([23.2333, 77.4333]).addTo(this.map);
                 }
-                setTimeout(() => this.map.invalidateSize(), 300);
+                setTimeout(() => this.map.invalidateSize(), 400);
             },
-
             show(id) {
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 document.getElementById(id).classList.add('active');
             },
-
-            nav(scr, navId) {
+            nav(scr, nId) {
                 this.show(scr);
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-                document.getElementById(navId).classList.add('active');
+                document.getElementById(nId).classList.add('active');
                 if(scr === 'scr-dash') this.initMap();
             },
-
-            upOk(el) { el.parentElement.style.borderColor = "#00c853"; },
+            toggleDark() { document.body.classList.toggle('dark-theme'); },
             clearSig() { this.sig.clear(); },
-
-            submitKYC() {
-                if(!document.getElementById('agree').checked) return alert("Agreement स्वीकार करें");
-                if(this.sig.isEmpty()) return alert("साइन करना अनिवार्य है");
-
-                const msg = `SewaAstra KYC ALERT:\nPartner: ${this.user}\nDocuments: Uploaded\nAgreement: Signed ✅\nAction: Please Approve.`;
-                window.location.href = `https://wa.me/917869969190?text=${encodeURIComponent(msg)}`;
-            },
-
-            contactWA() {
-                window.open(`https://wa.me/917869969190?text=Hi, Approve my ID: ${this.user}`);
-            },
-
+            contactWA() { window.open("https://wa.me/917869969190?text=Approve My SewaAstra ID"); },
             logout() { localStorage.clear(); location.reload(); }
         };
-
         window.onload = () => app.init();
     </script>
 </body>
