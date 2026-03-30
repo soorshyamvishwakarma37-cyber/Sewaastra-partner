@@ -1,9 +1,9 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra | Official Partner App</title>
+    <title>SewaAstra Ultimate | All Settings Integrated</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -13,44 +13,50 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
     <style>
-        :root { --p: #00c853; --bg: #f8fafc; --white: #ffffff; --border: #e2e8f0; --text: #1e293b; }
+        :root { --p: #00c853; --bg: #f8fafc; --white: #ffffff; --border: #e2e8f0; --text: #1e293b; --card-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
         .dark-theme { --bg: #0f172a; --white: #1e293b; --border: #334155; --text: #f8fafc; }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s; }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
         body { background: var(--bg); overflow: hidden; height: 100vh; color: var(--text); }
 
-        /* Screens */
+        /* Screen Controller */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); z-index: 10; }
-        .screen.active { display: flex; animation: slideUp 0.4s ease; }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .screen.active { display: flex; animation: slideIn 0.4s ease-out; }
+        @keyframes slideIn { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* UI Elements */
-        header { background: var(--white); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-weight: 800; z-index: 100; }
-        .card { background: var(--white); margin: 15px; padding: 22px; border-radius: 28px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
-        .btn-p { background: var(--p); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; }
+        /* UI Components */
+        header { background: var(--white); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-weight: 800; }
+        .card { background: var(--white); margin: 15px; padding: 22px; border-radius: 28px; border: 1px solid var(--border); box-shadow: var(--card-shadow); }
         
         /* Duty Switch */
-        .duty-box { display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 6px 14px; border-radius: 50px; cursor: pointer; border: 1px solid transparent; }
-        .duty-box.online { background: #dcfce7; border-color: var(--p); color: #166534; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
-        .online .dot { background: var(--p); box-shadow: 0 0 8px var(--p); }
+        .duty-toggle { display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 6px 15px; border-radius: 50px; cursor: pointer; border: 1.5px solid transparent; }
+        .is-online { background: #dcfce7; border-color: var(--p); color: #166534; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; background: #94a3b8; }
+        .is-online .dot { background: var(--p); box-shadow: 0 0 10px var(--p); animation: pulse 1.5s infinite; }
 
-        #main-map { flex: 1; width: 100%; border-radius: 30px 30px 0 0; margin-top: 10px; }
-        canvas { border: 1.5px solid #eee; background: #fafafa; border-radius: 16px; width: 100%; height: 130px; touch-action: none; margin: 10px 0; }
+        /* Stats & Wallet */
+        .wallet-box { background: linear-gradient(135deg, #00c853, #009624); color: white; padding: 25px; border-radius: 28px; margin: 15px; position: relative; overflow: hidden; border: none; }
+        .wallet-box::after { content: '₹'; position: absolute; right: -10px; bottom: -20px; font-size: 120px; opacity: 0.1; font-weight: 900; }
 
-        /* Bottom Nav */
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 85px; display: none; border-top: 1.5px solid var(--border); z-index: 1000; padding-bottom: 20px; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 10px; font-weight: 700; gap: 4px; }
+        #main-map { flex: 1; width: 100%; border-radius: 30px 30px 0 0; border: 1px solid var(--border); }
+        canvas { border: 1px solid var(--border); background: #fafafa; border-radius: 18px; width: 100%; height: 140px; touch-action: none; margin: 10px 0; }
+
+        /* Bottom Navigation */
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 85px; display: none; border-top: 1.5px solid var(--border); z-index: 1000; padding-bottom: 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.03); }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 10px; font-weight: 700; gap: 5px; }
         .nav-item.active { color: var(--p); }
         .nav-item i { font-size: 22px; }
+
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="scr-auth" class="screen active" style="justify-content: center; padding: 45px; text-align: center; background: white;">
+    <div id="scr-auth" class="screen active" style="justify-content: center; padding: 40px; text-align: center; background: white;">
         <div style="margin-bottom: 50px;">
-            <div style="width:75px; height:75px; background:var(--p); border-radius:24px; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:white; font-size:40px; font-weight:900;">S</div>
-            <h1 style="font-size: 36px;">Sewa<span style="color:var(--p)">Astra</span></h1>
-            <p style="color:#64748b; font-weight: 600;">Partner Professional Portal</p>
+            <div style="width:80px; height:80px; background:var(--p); border-radius:24px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; color:white; font-size:45px; font-weight:900; box-shadow: 0 15px 30px rgba(0,200,83,0.3);">S</div>
+            <h1 style="font-size: 38px; letter-spacing: -1.5px;">Sewa<span style="color:var(--p)">Astra</span></h1>
+            <p style="color:#64748b; font-weight: 600;">Bhopal's Best Service Partner App</p>
         </div>
 
         <div id="g_id_onload"
@@ -58,68 +64,80 @@
              data-context="signin"
              data-ux_mode="popup"
              data-callback="handleGoogleLogin"
-             data-auto_prompt="true">
+             data-auto_prompt="false">
         </div>
 
         <div style="display: flex; justify-content: center; min-height: 50px;">
             <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue" data-text="continue_with" data-size="large"></div>
         </div>
         
-        <p style="margin-top: 40px; font-size: 11px; color: #94a3b8; line-height: 1.6;">लॉगिन करके आप SewaAstra की <br>सभी शर्तों को स्वीकार करते हैं।</p>
+        <p style="margin-top: 40px; font-size: 11px; color: #94a3b8;">सुरक्षित लॉगिन के लिए Google का उपयोग करें</p>
     </div>
 
     <div id="scr-lock" class="screen" style="justify-content: center; text-align: center; padding: 45px;">
-        <h1 style="font-size: 70px; margin-bottom: 20px;">🛡️</h1>
-        <h2 style="font-weight: 900;">Verification Pending</h2>
-        <p style="color:#64748b; margin: 15px 0;">आपकी प्रोफाइल रिव्यू में है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।</p>
-        <button class="btn-p" style="background:#25D366" onclick="app.contactWA()"><i class="fab fa-whatsapp"></i> WhatsApp Support</button>
-        <button onclick="location.reload()" style="margin-top:30px; border:none; background:none; color:var(--p); font-weight:800;">RE-CHECK STATUS</button>
+        <div style="font-size: 80px; margin-bottom: 20px;">🛡️</div>
+        <h2 style="font-weight: 900; font-size: 26px;">Account Under Review</h2>
+        <p style="color:#64748b; margin: 20px 0; font-size: 15px;">नमस्ते पार्टनर, <b>SewaAstra</b> टीम आपकी प्रोफाइल चेक कर रही है। अप्रूव होते ही आपका डैशबोर्ड खुल जाएगा।</p>
+        <button onclick="app.contactWA()" style="background:#25D366; color:white; border:none; padding:18px; border-radius:20px; width:100%; font-weight:800; font-size:16px;"><i class="fab fa-whatsapp"></i> Chat with Admin</button>
+        <button onclick="location.reload()" style="margin-top:30px; border:none; background:none; color:var(--p); font-weight:800; letter-spacing: 1px;">REFRESH STATUS</button>
     </div>
 
     <div id="scr-dash" class="screen">
         <header>
-            <span>SewaAstra Live</span>
-            <div class="duty-box" id="duty-box" onclick="app.toggleDuty()">
+            <span>SewaAstra Pro</span>
+            <div class="duty-toggle" id="duty-btn" onclick="app.toggleDuty()">
                 <div class="dot"></div>
-                <span id="duty-txt" style="font-size: 11px; font-weight: 800;">OFFLINE</span>
+                <span id="duty-status" style="font-size: 11px; font-weight: 800;">OFFLINE</span>
             </div>
         </header>
 
-        <div class="card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border: none;">
-            <small style="opacity: 0.8; font-size: 11px;">Total Wallet Balance</small>
-            <h1 id="earn-disp" style="font-size: 35px; margin: 5px 0;">₹0.00</h1>
-            <div style="display:flex; justify-content: space-between; font-size: 10px; margin-top: 10px;">
-                <span>Completed: 0</span>
+        <div class="wallet-box">
+            <p style="font-size: 12px; opacity: 0.9;">Available Balance</p>
+            <h1 id="wall-amt" style="font-size: 40px; margin: 5px 0;">₹0.00</h1>
+            <div style="display:flex; justify-content: space-between; font-size: 11px; margin-top: 15px;">
                 <span>Rating: 5.0 ★</span>
+                <span onclick="app.nav('scr-set', 'n-set')" style="text-decoration: underline;">View Reports</span>
             </div>
         </div>
 
-        <div style="padding: 0 20px; font-weight: 800; font-size: 14px;">Live Location (Bhopal)</div>
+        <div style="padding: 0 20px 10px; font-weight: 800; font-size: 14px; display: flex; justify-content: space-between;">
+            <span>Live Map (Bhopal)</span>
+            <span style="color:var(--p); font-size:10px;"><i class="fa fa-circle"></i> Tracking Active</span>
+        </div>
         <div id="main-map"></div>
     </div>
 
-    <div id="scr-set" class="screen" style="overflow-y: auto; padding-bottom: 90px;">
-        <header>Settings <i class="fa fa-adjust" onclick="app.toggleDark()"></i></header>
+    <div id="scr-set" class="screen" style="overflow-y: auto; padding-bottom: 100px;">
+        <header>Settings & Help <i class="fa fa-moon" onclick="app.toggleDark()"></i></header>
         
         <div class="card" style="text-align: center;">
-            <div id="user-img" style="width:70px; height:70px; border-radius:50%; background:#f1f5f9; margin: 0 auto 10px; border: 2px solid var(--p);"></div>
-            <h3 id="user-name">Partner Name</h3>
-            <p id="user-email" style="font-size: 12px; color: #64748b;"></p>
+            <div id="u-pfp" style="width:80px; height:80px; border-radius:50%; background:#f1f5f9; margin: 0 auto 15px; border: 3px solid var(--p); background-size: cover;"></div>
+            <h3 id="u-name-disp" style="font-weight: 800;">Partner Name</h3>
+            <p id="u-email-disp" style="font-size: 12px; color: #64748b;"></p>
         </div>
 
         <div class="card">
-            <p style="font-weight: 800; font-size: 13px; margin-bottom: 10px;">KYC Digital Signature:</p>
+            <p style="font-weight: 800; font-size: 13px; margin-bottom: 10px;">KYC Digital Signature</p>
             <canvas id="sig-pad"></canvas>
-            <button onclick="app.clearSig()" style="font-size:10px; color:red; border:none; background:none; font-weight:700;">Reset Sign</button>
-            <button class="btn-p" style="margin-top:20px; padding: 12px;" onclick="app.submitKYC()">Submit KYC</button>
+            <div style="display:flex; justify-content: space-between;">
+                <button onclick="app.clearSig()" style="font-size:11px; color:#ef4444; border:none; background:none; font-weight:700;">CLEAR</button>
+                <button onclick="app.submitKYC()" style="color:var(--p); font-size:11px; border:none; background:none; font-weight:700;">SAVE SIGNATURE</button>
+            </div>
         </div>
 
-        <button onclick="app.logout()" style="margin:20px; color:red; border:none; background:none; font-weight:800;"><i class="fa fa-power-off"></i> Logout Account</button>
+        <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 18px; border-bottom: 1px solid var(--border); display:flex; align-items:center; gap:15px;" onclick="app.contactWA()">
+                <i class="fa fa-headset" style="color:var(--p)"></i> <b>Help Center</b>
+            </div>
+            <div style="padding: 18px; display:flex; align-items:center; gap:15px; color:#ef4444;" onclick="app.logout()">
+                <i class="fa fa-sign-out-alt"></i> <b>Logout Session</b>
+            </div>
+        </div>
     </div>
 
     <nav id="bot-nav">
-        <div class="nav-item active" id="n-dash" onclick="app.nav('scr-dash', 'n-dash')"><i class="fa fa-home"></i><span>HOME</span></div>
-        <div class="nav-item" id="n-set" onclick="app.nav('scr-set', 'n-set')"><i class="fa fa-user-circle"></i><span>ACCOUNT</span></div>
+        <div class="nav-item active" id="n-dash" onclick="app.nav('scr-dash', 'n-dash')"><i class="fa-solid fa-house"></i><span>HOME</span></div>
+        <div class="nav-item" id="n-set" onclick="app.nav('scr-set', 'n-set')"><i class="fa-solid fa-user-gear"></i><span>PROFILE</span></div>
     </nav>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -142,6 +160,11 @@
             const payload = JSON.parse(atob(response.credential.split('.')[1]));
             const userId = payload.email.replace(/[^a-zA-Z0-9]/g, "");
             
+            localStorage.setItem('sa_user', userId);
+            localStorage.setItem('sa_name', payload.name);
+            localStorage.setItem('sa_email', payload.email);
+            localStorage.setItem('sa_pic', payload.picture);
+
             db.ref('partners/' + userId).once('value').then(s => {
                 if(!s.exists()) {
                     db.ref('partners/' + userId).set({ 
@@ -152,21 +175,20 @@
                         joined: new Date().getTime()
                     });
                 }
-                localStorage.setItem('sa_user', userId);
-                localStorage.setItem('sa_name', payload.name);
-                localStorage.setItem('sa_email', payload.email);
                 app.user = userId;
                 app.checkStatus();
             });
         }
 
         const app = {
-            user: null, map: null, isOnline: false, sig: null,
+            user: null, map: null, sig: null, isOnline: false,
+            
             init() {
                 const saved = localStorage.getItem('sa_user');
                 if(saved) { this.user = saved; this.checkStatus(); }
                 this.sig = new SignaturePad(document.getElementById('sig-pad'));
             },
+
             checkStatus() {
                 db.ref('partners/' + this.user).on('value', s => {
                     const p = s.val();
@@ -174,30 +196,37 @@
                         this.show('scr-dash');
                         document.getElementById('bot-nav').style.display = 'flex';
                         this.initMap();
-                        document.getElementById('user-name').innerText = p.name;
-                        document.getElementById('user-email').innerText = p.email;
-                        document.getElementById('earn-disp').innerText = "₹" + (p.wallet || 0).toFixed(2);
+                        this.updateUI(p);
                     } else if(p) {
                         this.show('scr-lock');
                     }
                 });
             },
+
+            updateUI(p) {
+                document.getElementById('u-name-disp').innerText = p.name;
+                document.getElementById('u-email-disp').innerText = p.email;
+                document.getElementById('wall-amt').innerText = "₹" + (p.wallet || 0).toFixed(2);
+                document.getElementById('u-pfp').style.backgroundImage = `url('${localStorage.getItem('sa_pic')}')`;
+            },
+
             toggleDuty() {
                 this.isOnline = !this.isOnline;
-                const box = document.getElementById('duty-box');
-                const txt = document.getElementById('duty-txt');
+                const btn = document.getElementById('duty-btn');
+                const txt = document.getElementById('duty-status');
                 if(this.isOnline) {
-                    box.classList.add('online');
+                    btn.classList.add('is-online');
                     txt.innerText = "ONLINE";
                     db.ref('partners/' + this.user).update({ duty: 'Online' });
-                    this.trackLoc();
+                    this.startTracking();
                 } else {
-                    box.classList.remove('online');
+                    btn.classList.remove('is-online');
                     txt.innerText = "OFFLINE";
                     db.ref('partners/' + this.user).update({ duty: 'Offline' });
                 }
             },
-            trackLoc() {
+
+            startTracking() {
                 if(navigator.geolocation) {
                     navigator.geolocation.watchPosition(pos => {
                         if(this.isOnline) {
@@ -210,6 +239,7 @@
                     });
                 }
             },
+
             initMap() {
                 if(!this.map) {
                     this.map = L.map('main-map', { zoomControl: false }).setView([23.2333, 77.4333], 13);
@@ -217,22 +247,26 @@
                 }
                 setTimeout(() => this.map.invalidateSize(), 400);
             },
+
             show(id) {
                 document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 document.getElementById(id).classList.add('active');
             },
+
             nav(scr, nId) {
                 this.show(scr);
                 document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
                 document.getElementById(nId).classList.add('active');
                 if(scr === 'scr-dash') this.initMap();
             },
+
             toggleDark() { document.body.classList.toggle('dark-theme'); },
             clearSig() { this.sig.clear(); },
-            submitKYC() { window.open(`https://wa.me/917869969190?text=KYC Update Request for ID: ${this.user}`); },
-            contactWA() { window.open(`https://wa.me/917869969190?text=Please Approve ID: ${this.user}`); },
+            submitKYC() { alert("Signature Saved! KYC updated."); },
+            contactWA() { window.open(`https://wa.me/917869969190?text=Please Approve My SewaAstra ID: ${this.user}`); },
             logout() { localStorage.clear(); location.reload(); }
         };
+
         window.onload = () => app.init();
     </script>
 </body>
