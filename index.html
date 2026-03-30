@@ -1,17 +1,15 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra | Live Firebase Engine</title>
+    <title>SewaAstra | Official Partner App</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
 
     <style>
@@ -20,15 +18,15 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; transition: 0.3s; }
         body { background: var(--bg); overflow: hidden; height: 100vh; color: var(--text); }
 
-        /* Screen Flow */
+        /* Screens */
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--bg); z-index: 10; }
-        .screen.active { display: flex; animation: fadeIn 0.4s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .screen.active { display: flex; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        /* Elements */
-        header { background: var(--white); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-weight: 800; }
-        .btn-p { background: var(--p); color: white; border: none; padding: 18px; border-radius: 20px; width: 100%; font-weight: 800; cursor: pointer; }
-        .card { background: var(--white); margin: 15px; padding: 20px; border-radius: 26px; border: 1px solid var(--border); }
+        /* UI Elements */
+        header { background: var(--white); padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); font-weight: 800; z-index: 100; }
+        .card { background: var(--white); margin: 15px; padding: 22px; border-radius: 28px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.02); }
+        .btn-p { background: var(--p); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 800; font-size: 16px; cursor: pointer; }
         
         /* Duty Switch */
         .duty-box { display: flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 6px 14px; border-radius: 50px; cursor: pointer; border: 1px solid transparent; }
@@ -36,35 +34,46 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
         .online .dot { background: var(--p); box-shadow: 0 0 8px var(--p); }
 
-        #main-map { flex: 1; width: 100%; border-radius: 30px 30px 0 0; }
-        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 80px; display: none; border-top: 1px solid var(--border); z-index: 1000; padding-bottom: 15px; }
-        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 11px; font-weight: 700; }
+        #main-map { flex: 1; width: 100%; border-radius: 30px 30px 0 0; margin-top: 10px; }
+        canvas { border: 1.5px solid #eee; background: #fafafa; border-radius: 16px; width: 100%; height: 130px; touch-action: none; margin: 10px 0; }
+
+        /* Bottom Nav */
+        nav { position: fixed; bottom: 0; width: 100%; background: var(--white); height: 85px; display: none; border-top: 1.5px solid var(--border); z-index: 1000; padding-bottom: 20px; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #94a3b8; font-size: 10px; font-weight: 700; gap: 4px; }
         .nav-item.active { color: var(--p); }
+        .nav-item i { font-size: 22px; }
     </style>
 </head>
 <body>
 
     <div id="scr-auth" class="screen active" style="justify-content: center; padding: 45px; text-align: center; background: white;">
-        <div style="margin-bottom: 40px;">
-            <div style="width:70px; height:70px; background:var(--p); border-radius:22px; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:white; font-size:35px; font-weight:900;">S</div>
-            <h1 style="font-size: 34px;">Sewa<span style="color:var(--p)">Astra</span></h1>
-            <p style="color:#64748b;">Enterprise Partner Portal</p>
+        <div style="margin-bottom: 50px;">
+            <div style="width:75px; height:75px; background:var(--p); border-radius:24px; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:white; font-size:40px; font-weight:900;">S</div>
+            <h1 style="font-size: 36px;">Sewa<span style="color:var(--p)">Astra</span></h1>
+            <p style="color:#64748b; font-weight: 600;">Partner Professional Portal</p>
         </div>
 
-        <div id="g_id_onload" 
-             data-client_id="211091351218-s08jo336t0dieb050q02r4bqvdod891m.apps.googleusercontent.com" 
-             data-callback="handleGoogleLogin">
+        <div id="g_id_onload"
+             data-client_id="211091351218-s08jo336t0dieb050q02r4bqvdod891m.apps.googleusercontent.com"
+             data-context="signin"
+             data-ux_mode="popup"
+             data-callback="handleGoogleLogin"
+             data-auto_prompt="true">
         </div>
-        <div class="g_id_signin" data-type="standard" data-theme="filled_blue" data-size="large" data-shape="pill"></div>
+
+        <div style="display: flex; justify-content: center; min-height: 50px;">
+            <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="filled_blue" data-text="continue_with" data-size="large"></div>
+        </div>
         
-        <p style="margin-top: 30px; font-size: 11px; color: #94a3b8;">Bhopal's Leading Service Network</p>
+        <p style="margin-top: 40px; font-size: 11px; color: #94a3b8; line-height: 1.6;">लॉगिन करके आप SewaAstra की <br>सभी शर्तों को स्वीकार करते हैं।</p>
     </div>
 
     <div id="scr-lock" class="screen" style="justify-content: center; text-align: center; padding: 45px;">
-        <h1 style="font-size: 60px;">🔐</h1>
-        <h2 style="margin: 15px 0;">Verification Pending</h2>
-        <p style="color:#64748b; margin-bottom: 30px;">Shoorshyam, आपकी प्रोफाइल अभी एडमिन के पास रिव्यू में है।</p>
-        <button class="btn-p" onclick="app.contactWA()" style="background:#25D366"><i class="fab fa-whatsapp"></i> WhatsApp Support</button>
+        <h1 style="font-size: 70px; margin-bottom: 20px;">🛡️</h1>
+        <h2 style="font-weight: 900;">Verification Pending</h2>
+        <p style="color:#64748b; margin: 15px 0;">आपकी प्रोफाइल रिव्यू में है। कृपया एडमिन द्वारा अप्रूव होने का इंतज़ार करें।</p>
+        <button class="btn-p" style="background:#25D366" onclick="app.contactWA()"><i class="fab fa-whatsapp"></i> WhatsApp Support</button>
+        <button onclick="location.reload()" style="margin-top:30px; border:none; background:none; color:var(--p); font-weight:800;">RE-CHECK STATUS</button>
     </div>
 
     <div id="scr-dash" class="screen">
@@ -76,43 +85,46 @@
             </div>
         </header>
 
-        <div class="card" style="background: linear-gradient(135deg, #00c853, #009624); color: white; border: none;">
-            <p style="font-size: 11px; opacity: 0.9;">Total Earnings</p>
-            <h2 id="earn-disp" style="font-size: 32px; margin: 5px 0;">₹0.00</h2>
+        <div class="card" style="background: linear-gradient(135deg, #1e293b, #0f172a); color: white; border: none;">
+            <small style="opacity: 0.8; font-size: 11px;">Total Wallet Balance</small>
+            <h1 id="earn-disp" style="font-size: 35px; margin: 5px 0;">₹0.00</h1>
             <div style="display:flex; justify-content: space-between; font-size: 10px; margin-top: 10px;">
-                <span>Active Jobs: 0</span>
+                <span>Completed: 0</span>
                 <span>Rating: 5.0 ★</span>
             </div>
         </div>
 
+        <div style="padding: 0 20px; font-weight: 800; font-size: 14px;">Live Location (Bhopal)</div>
         <div id="main-map"></div>
     </div>
 
     <div id="scr-set" class="screen" style="overflow-y: auto; padding-bottom: 90px;">
-        <header>Profile & KY <i class="fa fa-moon" onclick="app.toggleDark()"></i></header>
+        <header>Settings <i class="fa fa-adjust" onclick="app.toggleDark()"></i></header>
+        
         <div class="card" style="text-align: center;">
-            <div id="p-img" style="width:70px; height:70px; border-radius:50%; background:#f1f5f9; margin: 0 auto 10px; border: 2px solid var(--p);"></div>
-            <h3 id="p-name">Partner Name</h3>
-            <p id="p-email" style="font-size: 12px; color: #64748b;"></p>
+            <div id="user-img" style="width:70px; height:70px; border-radius:50%; background:#f1f5f9; margin: 0 auto 10px; border: 2px solid var(--p);"></div>
+            <h3 id="user-name">Partner Name</h3>
+            <p id="user-email" style="font-size: 12px; color: #64748b;"></p>
         </div>
 
         <div class="card">
-            <p style="font-weight: 800; font-size: 13px; margin-bottom: 10px;">Digital Signature</p>
+            <p style="font-weight: 800; font-size: 13px; margin-bottom: 10px;">KYC Digital Signature:</p>
             <canvas id="sig-pad"></canvas>
-            <button onclick="app.clearSig()" style="font-size:10px; color:red; border:none; background:none; font-weight:700;">RESET SIGN</button>
+            <button onclick="app.clearSig()" style="font-size:10px; color:red; border:none; background:none; font-weight:700;">Reset Sign</button>
+            <button class="btn-p" style="margin-top:20px; padding: 12px;" onclick="app.submitKYC()">Submit KYC</button>
         </div>
 
-        <button onclick="app.logout()" style="margin:20px; color:red; border:none; background:none; font-weight:800;"><i class="fa fa-sign-out-alt"></i> LOGOUT SESSION</button>
+        <button onclick="app.logout()" style="margin:20px; color:red; border:none; background:none; font-weight:800;"><i class="fa fa-power-off"></i> Logout Account</button>
     </div>
 
     <nav id="bot-nav">
-        <div class="nav-item active" id="n-dash" onclick="app.nav('scr-dash', 'n-dash')"><i class="fa fa-th-large"></i><span>HOME</span></div>
+        <div class="nav-item active" id="n-dash" onclick="app.nav('scr-dash', 'n-dash')"><i class="fa fa-home"></i><span>HOME</span></div>
         <div class="nav-item" id="n-set" onclick="app.nav('scr-set', 'n-set')"><i class="fa fa-user-circle"></i><span>ACCOUNT</span></div>
     </nav>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // --- YOUR FIREBASE CONFIG INTEGRATED ---
+        // --- YOUR FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
             authDomain: "sewaastra.firebaseapp.com",
@@ -120,14 +132,11 @@
             projectId: "sewaastra",
             storageBucket: "sewaastra.firebasestorage.app",
             messagingSenderId: "211091351218",
-            appId: "1:211091351218:web:bb555f4cae275b4f464bab",
-            measurementId: "G-Z08CQVRVQG"
+            appId: "1:211091351218:web:bb555f4cae275b4f464bab"
         };
 
-        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        const analytics = firebase.analytics();
 
         function handleGoogleLogin(response) {
             const payload = JSON.parse(atob(response.credential.split('.')[1]));
@@ -165,8 +174,8 @@
                         this.show('scr-dash');
                         document.getElementById('bot-nav').style.display = 'flex';
                         this.initMap();
-                        document.getElementById('p-name').innerText = p.name;
-                        document.getElementById('p-email').innerText = p.email;
+                        document.getElementById('user-name').innerText = p.name;
+                        document.getElementById('user-email').innerText = p.email;
                         document.getElementById('earn-disp').innerText = "₹" + (p.wallet || 0).toFixed(2);
                     } else if(p) {
                         this.show('scr-lock');
@@ -190,18 +199,20 @@
             },
             trackLoc() {
                 if(navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(pos => {
-                        db.ref('live_location/' + this.user).set({
-                            lat: pos.coords.latitude,
-                            lng: pos.coords.longitude,
-                            lastSeen: new Date().getTime()
-                        });
+                    navigator.geolocation.watchPosition(pos => {
+                        if(this.isOnline) {
+                            db.ref('live_location/' + this.user).set({
+                                lat: pos.coords.latitude,
+                                lng: pos.coords.longitude,
+                                time: new Date().getTime()
+                            });
+                        }
                     });
                 }
             },
             initMap() {
                 if(!this.map) {
-                    this.map = L.map('main-map', { zoomControl: false }).setView([23.2333, 77.4333], 14);
+                    this.map = L.map('main-map', { zoomControl: false }).setView([23.2333, 77.4333], 13);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
                 }
                 setTimeout(() => this.map.invalidateSize(), 400);
@@ -218,7 +229,8 @@
             },
             toggleDark() { document.body.classList.toggle('dark-theme'); },
             clearSig() { this.sig.clear(); },
-            contactWA() { window.open("https://wa.me/917869969190?text=Approve My SewaAstra ID"); },
+            submitKYC() { window.open(`https://wa.me/917869969190?text=KYC Update Request for ID: ${this.user}`); },
+            contactWA() { window.open(`https://wa.me/917869969190?text=Please Approve ID: ${this.user}`); },
             logout() { localStorage.clear(); location.reload(); }
         };
         window.onload = () => app.init();
