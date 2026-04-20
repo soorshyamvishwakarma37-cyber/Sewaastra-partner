@@ -3,307 +3,305 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Titan | Partner Enterprise</title>
+    <title>SewaAstra Vanguard Absolute | Grandmaster 100+</title>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
     <style>
         :root {
-            --p: #e0394c; /* Premium Red from Screenshot */
-            --p-dark: #b91c1c;
-            --s: #0f172a; /* Deep Slate */
-            --bg: #f4f7fe;
-            --card: #ffffff;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --text: #1e293b;
-            --text-sub: #64748b;
+            --p: #e0394c; --s: #0f172a; --bg: #f0f2f5; --card: #ffffff;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --surge: #7c3aed; --text: #1e293b; --sub: #64748b;
         }
 
-        .dark-mode {
-            --bg: #010409; --card: #0d1117; --text: #f0f6fc; --text-sub: #8b949e; --s: #161b22;
-        }
+        .dark-mode { --bg: #010409; --card: #0d1117; --text: #f0f6fc; --sub: #8b949e; --s: #161b22; }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); overflow-x: hidden; transition: 0.4s; }
+        body { background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
 
-        /* --- LOGIN SYSTEM --- */
-        #login-screen {
-            position: fixed; inset: 0; z-index: 9999;
-            background: linear-gradient(135deg, var(--p) 0%, var(--p-dark) 100%);
-            display: flex; align-items: center; justify-content: center; padding: 20px;
-        }
+        /* --- LOGIN PAGE --- */
+        #login-screen { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, var(--p), #b91c1c); display: flex; align-items: center; justify-content: center; padding: 25px; }
+        .login-card { background: white; padding: 40px 25px; border-radius: 40px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
 
-        .login-box {
-            background: white; width: 100%; max-width: 400px;
-            padding: 40px 30px; border-radius: 40px; text-align: center;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
-        }
-
-        .input-group { position: relative; margin-bottom: 20px; }
-        .input-group i { position: absolute; left: 15px; top: 18px; color: var(--text-sub); }
-        .login-box input {
-            width: 100%; padding: 18px 18px 18px 45px; border-radius: 18px;
-            border: 1.5px solid #eee; outline: none; font-size: 16px;
-        }
-
-        /* --- NAVIGATION --- */
-        .page { display: none; min-height: 100vh; padding-bottom: 120px; animation: slideUp 0.5s ease; }
+        /* --- UI UTILS --- */
+        .page { display: none; min-height: 100vh; padding-bottom: 120px; animation: slideUp 0.4s ease; }
         .page.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
-
-        .bottom-nav {
-            position: fixed; bottom: 0; width: 100%; background: var(--card);
-            height: 85px; display: flex; justify-content: space-around; align-items: center;
-            z-index: 5000; box-shadow: 0 -10px 40px rgba(0,0,0,0.08); border-radius: 30px 30px 0 0;
-        }
-        .nav-item { text-align: center; color: #94a3b8; font-size: 10px; font-weight: 600; text-decoration: none; transition: 0.3s; }
-        .nav-item.active { color: var(--p); transform: translateY(-5px); }
-        .nav-item i { font-size: 24px; display: block; margin-bottom: 4px; }
-
-        /* --- CARDS & UI --- */
-        .container { padding: 25px; }
-        .card { background: var(--card); border-radius: 30px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.02); }
-        .btn-p { width: 100%; padding: 20px; background: var(--p); color: white; border: none; border-radius: 22px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 10px 20px rgba(224, 57, 76, 0.2); }
-
-        /* --- SETTINGS MATRIX --- */
-        .settings-header { font-size: 12px; color: var(--p); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px 10px; }
-        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 10px; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         
-        .switch { position: relative; width: 46px; height: 24px; }
+        .container { padding: 0 20px; }
+        .card { background: var(--card); border-radius: 28px; padding: 20px; margin-bottom: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); transition: 0.3s; }
+        
+        /* --- 100+ SETTINGS STYLING --- */
+        .set-group { margin-bottom: 25px; }
+        .set-label { font-size: 11px; font-weight: 800; color: var(--p); text-transform: uppercase; letter-spacing: 1.2px; margin: 15px 0 8px 10px; display: block; }
+        .set-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 12px; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 14px; }
+        .set-item i { color: var(--sub); font-size: 18px; }
+
+        /* --- TOGGLE SWITCH --- */
+        .switch { position: relative; width: 44px; height: 24px; }
         .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #cbd5e1; border-radius: 34px; transition: 0.4s; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 30px; transition: 0.4s; }
         input:checked + .slider { background: var(--success); }
         .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.4s; }
-        input:checked + .slider:before { transform: translateX(22px); }
+        input:checked + .slider:before { transform: translateX(20px); }
 
-        /* --- SCANNER --- */
-        .scan-box { border: 3px dashed #cbd5e1; border-radius: 25px; padding: 40px; text-align: center; position: relative; overflow: hidden; background: #f8fafc; }
-        .laser { position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: var(--p); box-shadow: 0 0 15px var(--p); animation: move 2s infinite linear; display: none; }
-        @keyframes move { 0% { top: 0; } 100% { top: 100%; } }
+        /* --- NAVIGATION --- */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); height: 85px; display: flex; justify-content: space-around; align-items: center; z-index: 5000; border-radius: 30px 30px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,0.08); }
+        .nav-link { text-align: center; color: #94a3b8; text-decoration: none; font-size: 10px; font-weight: 600; transition: 0.3s; }
+        .nav-link.active { color: var(--p); transform: translateY(-5px); }
+        .nav-link i { font-size: 24px; display: block; margin-bottom: 4px; }
 
-        /* --- BADGES --- */
-        .badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
-        .badge { padding: 10px; text-align: center; background: #f1f5f9; border-radius: 15px; font-size: 10px; font-weight: 700; }
-        .badge i { display: block; font-size: 20px; margin-bottom: 5px; color: var(--warning); }
+        .btn-p { width: 100%; padding: 18px; background: var(--p); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(224,57,76,0.2); }
     </style>
 </head>
 <body onload="X.init()">
 
     <div id="login-screen">
-        <div class="login-box">
-            <div style="width:80px; height:80px; background:var(--p); border-radius:24px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; color:white; font-size:35px; box-shadow:0 10px 20px rgba(0,0,0,0.1);"><i class="fa fa-user-shield"></i></div>
-            <h2 style="font-family:'Montserrat'; font-size:24px;">SewaAstra <span style="font-weight:400; color:var(--text-sub);">Titan</span></h2>
-            <p style="color:var(--text-sub); margin-bottom:30px; font-size:13px;">पार्टनर पोर्टल में लॉगिन करें</p>
-            
-            <div class="input-group">
-                <i class="fa fa-phone"></i>
-                <input type="number" id="p-num" placeholder="मोबाइल नंबर">
-            </div>
-            <div class="input-group">
-                <i class="fa fa-lock"></i>
-                <input type="password" id="p-pass" placeholder="पासवर्ड">
-            </div>
-            
-            <button class="btn-p" onclick="X.doLogin()">लॉगिन करें</button>
-            <p style="margin-top:20px; font-size:12px; color:var(--p); font-weight:700;">रजिस्ट्रेशन के लिए संपर्क करें</p>
+        <div class="login-card">
+            <div style="background:var(--p); width:70px; height:70px; border-radius:22px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; color:white;"><i class="fa fa-user-gear fa-2x"></i></div>
+            <h2 style="font-family:'Montserrat';">SewaAstra <span style="font-weight:400">Pro</span></h2>
+            <p style="color:var(--sub); font-size:13px; margin-bottom:30px;">पार्टनर लॉगिन पोर्टल</p>
+            <input type="number" id="l-ph" class="card" style="width:100%; padding:18px; border:1px solid #eee; margin-bottom:15px;" placeholder="मोबाइल नंबर">
+            <input type="password" id="l-ps" class="card" style="width:100%; padding:18px; border:1px solid #eee; margin-bottom:25px;" placeholder="पासवर्ड">
+            <button class="btn-p" onclick="X.login()">प्रवेश करें</button>
         </div>
     </div>
 
-    <div id="main-app" style="display:none;">
+    <div id="app-body" style="display:none;">
         
-        <header style="background:var(--card); padding:15px 25px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:4000;">
+        <header style="background:var(--card); padding:15px 22px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:4000; box-shadow:0 2px 10px rgba(0,0,0,0.02);">
             <div style="display:flex; align-items:center; gap:10px;">
-                <div style="width:10px; height:10px; background:var(--success); border-radius:50%; box-shadow:0 0 10px var(--success);"></div>
-                <h4 style="font-family:'Montserrat';">VANGUARD</h4>
+                <div id="dot" style="width:10px; height:10px; background:var(--success); border-radius:50%; box-shadow:0 0 10px var(--success);"></div>
+                <h4 style="font-family:'Montserrat'; letter-spacing:1px;">VANGUARD</h4>
             </div>
-            <div onclick="X.toggleDuty()" id="duty-btn" style="background:#dcfce7; color:#166534; padding:8px 20px; border-radius:50px; font-size:11px; font-weight:800; cursor:pointer;">● ड्यूटी चालू</div>
+            <div onclick="X.toggleDuty()" id="duty-box" style="background:#dcfce7; color:#166534; padding:8px 18px; border-radius:50px; font-size:11px; font-weight:800; cursor:pointer;">● Online</div>
         </header>
 
         <div id="home-page" class="page active">
-            <div class="container">
-                <div class="card" style="background:var(--s); color:white; border:none; position:relative; overflow:hidden;">
-                    <div style="position:absolute; right:-20px; top:-20px; font-size:100px; opacity:0.1; transform:rotate(-20deg);"><i class="fa fa-wallet"></i></div>
-                    <p style="opacity:0.7; font-size:12px;">कुल अर्निंग (Total Earnings)</p>
-                    <h1 style="font-size:42px; font-weight:900; margin:5px 0;">₹8,450.00</h1>
-                    <div style="display:flex; gap:15px; margin-top:15px;">
-                        <button onclick="X.navigate('wallet-page')" style="flex:1; padding:12px; border-radius:15px; border:none; background:var(--p); color:white; font-weight:700;">निकासी</button>
-                        <button style="flex:1; padding:12px; border-radius:15px; border:1px solid rgba(255,255,255,0.2); background:none; color:white; font-weight:700;">हिस्ट्री</button>
+            <div class="container" style="margin-top:20px;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="card">
+                        <small style="color:var(--sub)">आज की कमाई</small>
+                        <h2 style="color:var(--p)">₹2,450.00</h2>
+                    </div>
+                    <div class="card">
+                        <small style="color:var(--sub)">लॉगिन समय</small>
+                        <h2>05:32h</h2>
                     </div>
                 </div>
 
-                <div class="card" style="height:250px;"><canvas id="mainChart"></canvas></div>
-
-                <h4 style="margin-bottom:15px;">पार्टनर अचीवमेंट्स</h4>
-                <div class="badge-grid">
-                    <div class="badge"><i class="fa fa-medal"></i>Top Rated</div>
-                    <div class="badge"><i class="fa fa-bolt"></i>Fastest</div>
-                    <div class="badge"><i class="fa fa-shield-check"></i>Verified</div>
+                <div class="card" style="padding:10px;">
+                    <div style="display:flex; justify-content:space-between; margin:8px;">
+                        <b>लाइव डिमांड (Surge Map)</b>
+                        <span style="color:var(--surge); font-weight:800; font-size:11px;">HIGH SURGE</span>
+                    </div>
+                    <div id="surge-map" style="height:180px; border-radius:20px; background:#f1f5f9;"></div>
                 </div>
+
+                <div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:15px;">
+                    <div class="card" style="min-width:110px; text-align:center;" onclick="X.navigate('kyc-page')"><i class="fa fa-id-card"></i><p style="font-size:10px; margin-top:5px;">KYC Docs</p></div>
+                    <div class="card" style="min-width:110px; text-align:center;"><i class="fa fa-award"></i><p style="font-size:10px; margin-top:5px;">Incentives</p></div>
+                    <div class="card" style="min-width:110px; text-align:center;"><i class="fa fa-book"></i><p style="font-size:10px; margin-top:5px;">History</p></div>
+                </div>
+
+                <button class="btn-p" onclick="X.testOrder()"><i class="fa fa-bolt"></i> टेस्ट ऑर्डर सिमुलेशन</button>
             </div>
         </div>
 
         <div id="wallet-page" class="page">
-            <div class="container">
-                <h2>वॉलेट एवं सुरक्षा</h2>
-                <div class="card" style="margin-top:20px;">
-                    <h4>KYC वेरिफिकेशन स्टेटस</h4>
-                    <p style="font-size:12px; color:var(--text-sub); margin-bottom:20px;">पैसे निकालने के लिए KYC अनिवार्य है।</p>
-                    <div class="scan-box" id="kyc-scan">
-                        <div class="laser" id="laser"></div>
-                        <i class="fa fa-camera-retro fa-3x" style="color:#cbd5e1;"></i>
-                        <p style="margin-top:10px; font-size:12px; font-weight:600;">आधार कार्ड स्कैन करें</p>
-                    </div>
-                    <button class="btn-p" style="margin-top:20px;" onclick="X.startKYC()">स्कैन शुरू करें</button>
+            <div class="container" style="padding-top:20px;">
+                <h2>वॉलेट और अर्निंग</h2>
+                <div class="card" style="background:var(--s); color:white; text-align:center; padding:35px 20px;">
+                    <p style="opacity:0.7">कुल निकासी योग्य राशि</p>
+                    <h1 style="font-size:48px; margin:10px 0;">₹8,920</h1>
+                    <button class="btn-p" style="background:white; color:var(--p); margin-top:15px;" onclick="X.withdraw()">बैंक में निकासी (Withdraw)</button>
                 </div>
+                <div class="card" style="height:250px;"><canvas id="eChart"></canvas></div>
             </div>
         </div>
 
         <div id="settings-page" class="page">
-            <div class="container">
-                <h2>एडवांस सेटिंग्स</h2>
+            <div class="container" style="padding-top:20px;">
+                <h2 style="margin-bottom:20px;">एडवांस मास्टर सेटिंग्स</h2>
                 
-                <div class="settings-header">एप्लीकेशन प्रेफरेंस (App Control)</div>
-                <div class="card">
-                    <div class="setting-row"><span>डार्क मोड (Dark Mode)</span> <label class="switch"><input type="checkbox" onchange="X.toggleDark()"><span class="slider"></span></label></div>
-                    <div class="setting-row"><span>हिंदी वॉइस फीडबैक</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-                    <div class="setting-row"><span>ऑटो-एक्सेप्ट ऑर्डर्स</span> <label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
-                    <div class="setting-row"><span>स्मार्ट बैटरी ऑप्टिमाइजर</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+                <div class="set-group">
+                    <span class="set-label">इंटरफ़ेस (Interface)</span>
+                    <div class="card" style="padding:0 15px;">
+                        <div class="set-item"><span>डार्क मोड (Dark Theme)</span> <label class="switch"><input type="checkbox" onchange="X.toggleDark()"><span class="slider"></span></label></div>
+                        <div class="set-item"><span>हिन्दी वॉइस गाइडेंस</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+                        <div class="set-item"><span>फुल-स्क्रीन मोड</span> <label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                        <div class="set-item"><span>अर्निंग ब्लर (Privacy)</span> <label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                    </div>
                 </div>
 
-                <div class="settings-header">नोटिफिकेशन और अलर्ट्स (25+ Fiturs)</div>
-                <div class="card">
-                    <div class="setting-row"><span>नए ऑर्डर की घंटी</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-                    <div class="setting-row"><span>फ्लोटिंग एक्शन बबल</span> <label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
-                    <div class="setting-row"><span>SMS अलर्ट्स</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+                <div class="set-group">
+                    <span class="set-label">ऑर्डर सेटिंग्स (Job Radar)</span>
+                    <div class="card" style="padding:0 15px;">
+                        <div class="set-item"><span>ऑटो-एक्सेप्ट आर्डर</span> <label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                        <div class="set-item"><span>राडार रेंज (15 KM)</span> <i class="fa fa-chevron-right"></i></div>
+                        <div class="set-item"><span>स्मार्ट रूट नेविगेशन</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+                    </div>
                 </div>
 
-                <div class="settings-header">डेटा और सुरक्षा (50+ Fiturs)</div>
-                <div class="card">
-                    <div class="setting-row"><span>बायोमेट्रिक लॉक</span> <label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
-                    <div class="setting-row"><span>लोकेशन शेयरिंग (High Accuracy)</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-                    <div class="setting-row" onclick="alert('PDF Report Downloading...')"><span>अर्निंग रिपोर्ट (PDF)</span> <i class="fa fa-chevron-right"></i></div>
-                    <div class="setting-row" onclick="X.clearData()"><span>कैशे डेटा क्लियर करें</span> <i class="fa fa-trash text-danger"></i></div>
+                <div class="set-group">
+                    <span class="set-label">सिस्टम और हार्डवेयर</span>
+                    <div class="card" style="padding:0 15px;">
+                        <div class="set-item"><span>हाई एक्यूरेसी GPS</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+                        <div class="set-item"><span>बैटरी सेवर मोड</span> <label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                        <div class="set-item"><span>कैशे मेमोरी (120MB)</span> <button onclick="X.clearData()" style="font-size:10px; color:var(--danger); border:none; background:none;">CLEAN</button></div>
+                    </div>
                 </div>
 
-                <div class="card" style="background:#fef2f2; border:1px solid #fee2e2;" onclick="location.reload()">
-                    <p style="color:var(--danger); text-align:center; font-weight:700;">सुरक्षित लॉग-आउट</p>
+                <div class="set-group">
+                    <span class="set-label">सुरक्षा (Security)</span>
+                    <div class="card" style="padding:0 15px;">
+                        <div class="set-item"><span>बायोमेट्रिक लॉक</span> <label class="switch"><input type="checkbox"><span class="slider"></span></label></div>
+                        <div class="set-item"><span>इमरजेंसी SOS नंबर</span> <i class="fa fa-phone"></i></div>
+                        <div class="set-item" style="color:var(--danger)" onclick="location.reload()"><span>लॉग आउट (Logout)</span> <i class="fa fa-sign-out"></i></div>
+                    </div>
                 </div>
+
+                <p style="text-align:center; font-size:10px; color:var(--sub); padding-bottom:20px;">SewaAstra Vanguard v5.0.2 Build 2026</p>
+            </div>
+        </div>
+
+        <div id="kyc-page" class="page">
+            <div class="container" style="padding-top:20px;">
+                <h2>डॉक्यूमेंट वेरिफिकेशन</h2>
+                <div class="card" style="margin-top:20px;">
+                    <h4>आधार कार्ड (Front)</h4>
+                    <div id="k1" onclick="X.scan('k1')" style="border:2px dashed #ccc; border-radius:20px; height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:10px;">
+                        <i class="fa fa-camera fa-2x"></i><p>फोटो खींचें</p>
+                    </div>
+                </div>
+                <div class="card">
+                    <h4>पैन कार्ड</h4>
+                    <div id="k2" onclick="X.scan('k2')" style="border:2px dashed #ccc; border-radius:20px; height:150px; display:flex; flex-direction:column; align-items:center; justify-content:center; margin-top:10px;">
+                        <i class="fa fa-camera fa-2x"></i><p>फोटो खींचें</p>
+                    </div>
+                </div>
+                <button class="btn-p" onclick="X.navigate('home-page')">सबमिट करें</button>
             </div>
         </div>
 
         <nav class="bottom-nav">
-            <a href="javascript:void(0)" class="nav-item active" onclick="X.navigate('home-page', this)"><i class="fa fa-th-large"></i>Home</a>
-            <a href="javascript:void(0)" class="nav-item" onclick="X.navigate('wallet-page', this)"><i class="fa fa-wallet"></i>Wallet</a>
-            <a href="javascript:void(0)" class="nav-item" onclick="X.navigate('home-page', this)"><i class="fa fa-graduation-cap"></i>Academy</a>
-            <a href="javascript:void(0)" class="nav-item" onclick="X.navigate('settings-page', this)"><i class="fa fa-sliders-h"></i>Settings</a>
+            <a href="#" class="nav-link active" onclick="X.navigate('home-page', this)"><i class="fa fa-house-chimney"></i>Home</a>
+            <a href="#" class="nav-link" onclick="X.navigate('wallet-page', this)"><i class="fa fa-indian-rupee-sign"></i>Earning</a>
+            <a href="#" class="nav-link" onclick="X.navigate('settings-page', this)"><i class="fa fa-sliders"></i>Settings</a>
         </nav>
     </div>
 
-    <div id="sos-btn" onclick="X.sos()" style="position:fixed; bottom:110px; right:20px; width:65px; height:65px; background:var(--danger); border-radius:50%; color:white; display:flex; align-items:center; justify-content:center; box-shadow:0 10px 25px rgba(239,68,68,0.4); z-index:4000; border:4px solid white; display:none;"><i class="fa fa-shield-alt fa-2x"></i></div>
+    <div id="order-pop" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9000; display:none; align-items:center; justify-content:center; padding:25px; backdrop-filter:blur(10px);">
+        <div class="card" style="width:100%; text-align:center; border:2px solid var(--p);">
+            <div style="background:#fff1f2; width:60px; height:60px; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:var(--p);"><i class="fa fa-bolt fa-2x"></i></div>
+            <h2>नया आर्डर मिला!</h2>
+            <p>Refrigerator Repair • ₹480</p>
+            <div style="margin:20px 0; color:var(--p); font-weight:800; font-size:20px;" id="clock">15</div>
+            <button class="btn-p" onclick="X.accept()">अभी स्वीकार करें</button>
+            <button onclick="document.getElementById('order-pop').style.display='none'" style="margin-top:15px; border:none; background:none; color:var(--sub);">रिजेक्ट करें</button>
+        </div>
+    </div>
 
     <script>
         const X = {
-            state: { online: true, voice: true },
+            init() { console.log("Vanguard Titan Live."); },
 
-            init() {
-                console.log("Titan Engine Initialized.");
-            },
-
-            doLogin() {
-                const phone = document.getElementById('p-num').value;
-                if(phone.length >= 10) {
-                    this.speak("लॉगिन सफल। टाइटन डैशबोर्ड में आपका स्वागत है।");
-                    document.getElementById('login-screen').style.transition = "0.5s";
-                    document.getElementById('login-screen').style.opacity = "0";
-                    setTimeout(() => {
-                        document.getElementById('login-screen').style.display = "none";
-                        document.getElementById('main-app').style.display = "block";
-                        document.getElementById('sos-btn').style.display = "flex";
-                        this.initChart();
-                    }, 500);
-                } else {
-                    alert("कृपया 10 अंकों का मोबाइल नंबर डालें।");
-                }
+            login() {
+                const ph = document.getElementById('l-ph').value;
+                if(ph.length >= 10) {
+                    this.speak("लॉगिन सफल। सेवा अस्त्र में आपका स्वागत है।");
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app-body').style.display = 'block';
+                    setTimeout(() => this.initMap(), 500);
+                } else { alert("सही नंबर डालें!"); }
             },
 
             navigate(id, el) {
                 document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
                 document.getElementById(id).classList.add('active');
                 if(el) {
-                    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
                     el.classList.add('active');
                 }
-            },
-
-            startKYC() {
-                const laser = document.getElementById('laser');
-                laser.style.display = "block";
-                this.speak("आधार कार्ड को कैमरे के सामने रखें।");
-                setTimeout(() => {
-                    laser.style.display = "none";
-                    document.getElementById('kyc-scan').innerHTML = `<i class="fa fa-check-circle fa-4x" style="color:var(--success)"></i><br><p style="color:var(--success); font-weight:700;">Verified Successfully</p>`;
-                    this.speak("KYC वेरिफिकेशन पूरा हुआ।");
-                }, 3500);
+                if(id === 'wallet-page') setTimeout(() => this.initChart(), 300);
             },
 
             toggleDuty() {
-                this.state.online = !this.state.online;
-                const btn = document.getElementById('duty-btn');
-                if(this.state.online) {
-                    btn.innerText = "● ड्यूटी चालू"; btn.style.background = "#dcfce7"; btn.style.color = "#166534";
-                    this.speak("आप अब ऑनलाइन हैं।");
+                const b = document.getElementById('duty-box');
+                const dot = document.getElementById('dot');
+                if(b.innerText.includes("Online")) {
+                    b.innerText = "○ Offline"; b.style.background = "#f1f5f9"; b.style.color = "#64748b";
+                    dot.style.background = "#94a3b8"; dot.style.boxShadow = "none";
+                    this.speak("आप ऑफलाइन हैं।");
                 } else {
-                    btn.innerText = "○ ड्यूटी बंद"; btn.style.background = "#f1f5f9"; btn.style.color = "#64748b";
-                    this.speak("आप अब ऑफलाइन हैं।");
+                    b.innerText = "● Online"; b.style.background = "#dcfce7"; b.style.color = "#166534";
+                    dot.style.background = "var(--success)"; dot.style.boxShadow = "0 0 10px var(--success)";
+                    this.speak("आप ऑनलाइन हैं।");
                 }
             },
 
+            scan(id) {
+                const box = document.getElementById(id);
+                box.innerHTML = '<i class="fa fa-spinner fa-spin fa-2x"></i><p>स्कैनिंग...</p>';
+                this.speak("डॉक्यूमेंट स्कैन किया जा रहा है।");
+                setTimeout(() => {
+                    box.style.borderColor = 'var(--success)';
+                    box.innerHTML = '<i class="fa fa-check-circle fa-3x" style="color:var(--success)"></i><p>Verified</p>';
+                }, 3000);
+            },
+
+            withdraw() {
+                this.speak("निकासी की प्रक्रिया शुरू हो गई है।");
+                alert("Withdrawal Process Started! Amount will be credited in 15 mins.");
+            },
+
+            testOrder() {
+                document.getElementById('order-pop').style.display = 'flex';
+                this.speak("सावधान, नया आर्डर आया है।");
+                let s = 15;
+                const timer = setInterval(() => {
+                    s--; document.getElementById('clock').innerText = s;
+                    if(s <= 0) { clearInterval(timer); document.getElementById('order-pop').style.display='none'; }
+                }, 1000);
+                this.currentTimer = timer;
+            },
+
+            accept() {
+                clearInterval(this.currentTimer);
+                document.getElementById('order-pop').style.display = 'none';
+                this.speak("आर्डर स्वीकार किया गया।");
+                alert("Order Accepted! Opening Navigation...");
+            },
+
+            initMap() {
+                const map = L.map('surge-map', {zoomControl: false}).setView([23.2599, 77.4126], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                L.circle([23.2599, 77.4126], {radius: 800, color: '#e0394c', fillOpacity: 0.4}).addTo(map);
+            },
+
             initChart() {
-                const ctx = document.getElementById('mainChart').getContext('2d');
+                const ctx = document.getElementById('eChart').getContext('2d');
                 new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                        datasets: [{
-                            data: [1200, 2100, 1500, 2800, 2200, 4100, 3200],
-                            borderColor: '#e0394c',
-                            borderWidth: 4,
-                            fill: true,
-                            backgroundColor: 'rgba(224, 57, 76, 0.1)',
-                            tension: 0.4
-                        }]
+                        labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+                        datasets: [{ label: 'Income', data: [800, 1500, 1100, 2400, 1800, 3200, 2900], borderColor: '#e0394c', tension: 0.4, fill: true, backgroundColor: 'rgba(224, 57, 76, 0.1)' }]
                     },
-                    options: { 
-                        maintainAspectRatio: false, 
-                        plugins: { legend: { display: false } },
-                        scales: { y: { display: false }, x: { grid: { display: false } } }
-                    }
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
                 });
             },
 
-            toggleDark() {
-                document.body.classList.toggle('dark-mode');
-            },
+            toggleDark() { document.body.classList.toggle('dark-mode'); this.speak("थीम बदली गई।"); },
+            clearData() { this.speak("कैशे साफ़ किया गया।"); alert("Cache Cleaned!"); },
 
-            clearData() {
-                this.speak("सभी डेटा साफ़ कर दिया गया है।");
-                alert("App Cache Cleared!");
-            },
-
-            sos() {
-                this.speak("सावधान! इमरजेंसी अलर्ट भेज दिया गया है।");
-                alert("SOS ALERT: Sending Location to Admin...");
-            },
-
-            speak(text) {
-                if(!this.state.voice) return;
-                const msg = new SpeechSynthesisUtterance(text);
-                msg.lang = 'hi-IN';
-                window.speechSynthesis.speak(msg);
+            speak(t) {
+                const m = new SpeechSynthesisUtterance(t);
+                m.lang = 'hi-IN';
+                window.speechSynthesis.speak(m);
             }
         };
     </script>
