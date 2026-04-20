@@ -1,166 +1,592 @@
  <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Pro | Verification & Consent</title>
+    <title>SewaAstra Ultimate Enterprise - Partner Edition</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
     <style>
+        /* ========================================
+           1. ROOT & GLOBAL STYLES
+           ========================================
+        */
         :root {
-            --primary: #2563eb; --success: #10b981; --dark: #0f172a; 
-            --bg: #f8fafc; --danger: #ef4444; --gray: #94a3b8;
+            --p: #e0394c; /* Zomato Red */
+            --s: #0f172a; /* Deep Navy */
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text-main: #1e293b;
+            --text-sub: #64748b;
+            --surge-color: #7c3aed; /* Purple Surge */
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: var(--bg); padding: 20px; color: var(--dark); }
-
-        .gate-card {
-            background: white; border-radius: 24px; padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: center;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        /* UPLOAD SLOTS */
-        .upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
-        .upload-btn {
-            border: 2px dashed #e2e8f0; border-radius: 12px; padding: 15px;
-            font-size: 11px; color: var(--gray); cursor: pointer; position: relative;
-        }
-        .upload-btn.active { border-color: var(--success); background: #f0fdf4; color: var(--success); }
-        .upload-btn input { position: absolute; opacity: 0; width: 100%; height: 100%; top: 0; left: 0; }
-
-        /* SIGNATURE BOX */
-        #sig-canvas {
-            border: 1px solid #e2e8f0; border-radius: 12px; background: #fff;
-            width: 100%; height: 120px; touch-action: none; margin: 10px 0;
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: background 0.3s ease;
         }
 
-        /* CHECKBOX */
-        .consent-row {
-            display: flex; align-items: flex-start; gap: 10px;
-            text-align: left; font-size: 12px; margin: 15px 0; line-height: 1.5;
+        body.dark-mode {
+            --bg: #020617;
+            --card: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
         }
-        input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--primary); }
 
-        /* FINAL BUTTON (DISABLED BY DEFAULT) */
-        #whatsapp-btn {
-            background: #cbd5e1; color: white; padding: 18px; border-radius: 12px;
-            text-decoration: none; display: flex; align-items: center; justify-content: center;
-            gap: 10px; font-weight: bold; pointer-events: none; transition: 0.3s;
+        /* ========================================
+           2. ANIMATIONS
+           ========================================
+        */
+        @keyframes slideInUp {
+            from { transform: translateY(100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
-        #whatsapp-btn.enabled { background: #25D366; pointer-events: auto; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
 
-        .id-badge { background: var(--dark); color: white; padding: 5px 12px; border-radius: 6px; font-family: monospace; display: inline-block; margin: 10px 0; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes pulseRed {
+            0% { box-shadow: 0 0 0 0 rgba(224, 57, 76, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(224, 57, 76, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(224, 57, 76, 0); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -468px 0; }
+            100% { background-position: 468px 0; }
+        }
+
+        /* ========================================
+           3. LAYOUT COMPONENTS
+           ========================================
+        */
+        .page {
+            display: none;
+            min-height: 100vh;
+            padding-bottom: 110px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .active-page { display: block; }
+
+        .container { padding: 20px; }
+
+        /* ========================================
+           4. ZOMATO STYLE COMPONENTS
+           ========================================
+        */
+        .z-header {
+            background: var(--card);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .surge-banner {
+            background: linear-gradient(90deg, var(--surge-color), #a855f7);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .online-status-card {
+            background: var(--success);
+            color: white;
+            padding: 6px 15px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .offline-status-card {
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        /* ========================================
+           5. CARDS & WIDGETS
+           ========================================
+        */
+        .card {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0,0,0,0.02);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 18px;
+            text-align: center;
+        }
+        
+        body.dark-mode .stat-item { background: #334155; }
+
+        /* ========================================
+           6. ORDER ALERT (WHATSAPP STYLE)
+           ========================================
+        */
+        #master-alert {
+            position: fixed;
+            top: -200px;
+            left: 15px;
+            right: 15px;
+            background: #25d366;
+            color: white;
+            padding: 20px;
+            border-radius: 25px;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 15px 35px rgba(37, 211, 102, 0.4);
+        }
+
+        #master-alert.active { top: 20px; }
+
+        .accept-btn {
+            background: white;
+            color: #25d366;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        /* ========================================
+           7. GIGS & SHIFTS
+           ========================================
+        */
+        .gig-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 15px;
+            margin-top: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .gig-booked { border-left: 5px solid var(--success); }
+
+        /* ========================================
+           8. NAVIGATION
+           ========================================
+        */
+        .bottom-nav {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            right: 15px;
+            background: var(--s);
+            height: 75px;
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 2000;
+            box-shadow: 0 15px 30px rgba(15, 23, 42, 0.3);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #94a3b8;
+            font-size: 10px;
+            font-weight: 500;
+            transition: 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--p);
+            transform: translateY(-5px);
+        }
+
+        .nav-item i { font-size: 20px; margin-bottom: 4px; }
+
+        /* ========================================
+           9. UTILITIES
+           ========================================
+        */
+        .btn-p {
+            width: 100%;
+            padding: 18px;
+            background: var(--p);
+            color: white;
+            border: none;
+            border-radius: 18px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 8px 20px rgba(224, 57, 76, 0.3);
+        }
+
+        .sos-float {
+            position: fixed;
+            bottom: 110px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: var(--danger);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            z-index: 1500;
+            border: 4px solid white;
+            animation: pulseRed 2s infinite;
+        }
+
     </style>
 </head>
 <body>
 
-    <div class="gate-card">
-        <h2 style="font-weight: 800;">Verify Identity</h2>
-        <p style="font-size: 13px; color: var(--gray); margin-top: 5px;">Step 1: Provide Documents & Signature</p>
+    <audio id="orderAudio" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
-        <div class="id-badge" id="p-id">SA-PRO-9901</div>
-
-        <div class="upload-grid">
-            <div class="upload-btn" id="slot1">
-                📸 Aadhaar Front
-                <input type="file" onchange="validateUpload('slot1')">
-            </div>
-            <div class="upload-btn" id="slot2">
-                📸 Aadhaar Back
-                <input type="file" onchange="validateUpload('slot2')">
-            </div>
-            <div class="upload-btn" id="slot3">
-                📄 PAN Card
-                <input type="file" onchange="validateUpload('slot3')">
-            </div>
-            <div class="upload-btn" id="slot4">
-                🛂 Police Cert.
-                <input type="file" onchange="validateUpload('slot4')">
-            </div>
+    <div id="master-alert">
+        <i class="fab fa-whatsapp fa-3x"></i>
+        <div style="flex:1">
+            <h4 style="font-size:16px;">नया आर्डर: AC Repair</h4>
+            <p style="font-size:11px; opacity:0.9;">M.P. Nagar • ₹550 + ₹60 Surge</p>
         </div>
-
-        <p style="text-align: left; font-size: 12px; font-weight: bold;">Digital Signature:</p>
-        <canvas id="sig-canvas"></canvas>
-        <button onclick="clearSig()" style="background:none; border:none; color:var(--danger); font-size:11px; cursor:pointer;">Clear Signature ↺</button>
-
-        <div class="consent-row">
-            <input type="checkbox" id="consent-check" onchange="checkCompletion()">
-            <label for="consent-check">
-                I hereby declare that all uploaded documents are original and I agree to the SewaAstra Partner Terms of Service.
-            </label>
-        </div>
-
-        <a href="#" id="whatsapp-btn">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" width="20">
-            Request Admin Approval
-        </a>
-        <p id="error-msg" style="font-size: 10px; color: var(--danger); margin-top: 10px;">Please complete all fields to enable button.</p>
+        <button class="accept-btn" onclick="app.acceptJob()">एक्सेप्ट</button>
     </div>
 
+    <div class="sos-float" onclick="app.triggerSOS()"><i class="fa fa-shield-alt"></i></div>
+
+    <div id="auth-page" class="page active-page">
+        <div class="container" style="padding-top: 80px; text-align: center;">
+            <div style="width: 100px; height: 100px; background: var(--p); border-radius: 30px; margin: 0 auto; display: flex; align-items: center; justify-content: center; transform: rotate(-10deg);">
+                <i class="fa fa-tools fa-3x" style="color: white; transform: rotate(10deg);"></i>
+            </div>
+            <h1 style="font-family:'Montserrat'; font-size:40px; margin-top:20px;">Sewa<span style="color:var(--p)">Astra</span></h1>
+            <p style="color:var(--text-sub);">पार्टनर एंटरप्राइज पोर्टल</p>
+
+            <div style="margin-top: 50px;">
+                <input type="tel" id="login-phone" placeholder="WhatsApp नंबर दर्ज करें" style="width:100%; padding:20px; border-radius:18px; border:1px solid #ddd; font-size:16px; margin-bottom:15px;">
+                <button class="btn-p" onclick="app.startKYC()">प्रवेश करें</button>
+                <p style="margin: 20px; color: #cbd5e1;">— अथवा —</p>
+                <button class="btn-p" style="background: white; color: #444; border: 1px solid #ddd; box-shadow: none;" onclick="app.googleLogin()">
+                    <img src="https://img.icons8.com/color/24/google-logo.png" style="vertical-align: middle; margin-right: 10px;"> Google से जुड़ें
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="home-page" class="page">
+        <div class="surge-banner">⚡ हाई डिमांड! हर काम पर ₹60 तक एक्स्ट्रा बोनस</div>
+        <div class="z-header">
+            <div>
+                <p style="font-size: 10px; color: var(--text-sub);">नमस्ते,</p>
+                <h3 id="p-name-display">पार्टनर</h3>
+            </div>
+            <div id="duty-toggle" class="online-status-card" onclick="app.toggleDuty()">
+                <i class="fa fa-circle" id="duty-dot"></i> <span id="duty-text">ऑनलाइन</span>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="card" style="border-left: 6px solid var(--p);">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <p style="font-size: 12px; color: var(--text-sub);">आज की कुल कमाई</p>
+                        <h2 style="font-size: 32px;">₹<span id="daily-earning">840</span>.00</h2>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-size: 10px; color: var(--success); font-weight: 700;">+ ₹120 इंसेंटिव</p>
+                        <i class="fa fa-chart-line" style="color: var(--p); margin-top: 10px;"></i>
+                    </div>
+                </div>
+                <div style="background: #f1f5f9; height: 8px; border-radius: 10px; margin-top: 15px;">
+                    <div style="width: 70%; height: 100%; background: var(--p); border-radius: 10px;"></div>
+                </div>
+                <p style="font-size: 10px; color: var(--text-sub); margin-top: 8px;">अगले बोनस के लिए 2 काम और करें</p>
+            </div>
+
+            <h4 style="margin-bottom: 10px; font-size: 14px;">आर्डर हॉटस्पॉट (M.P. Nagar)</h4>
+            <div style="height: 150px; background: url('https://miro.medium.com/v2/resize:fit:1200/1*98hN66A7jC-3YgEAsE2YhA.png'); background-size: cover; border-radius: 20px; margin-bottom: 20px; border: 2px solid white; box-shadow: var(--shadow);">
+                <div style="inset:0; background: rgba(224, 57, 76, 0.1); display: flex; align-items: center; justify-content: center;">
+                    <span style="background: white; padding: 5px 12px; border-radius: 50px; font-size: 10px; font-weight: 700; color: var(--p);">80+ बुकिंग्स चालू हैं</span>
+                </div>
+            </div>
+
+            <div id="job-slot">
+                <div class="card" style="text-align: center; border: 1.5px dashed #cbd5e1; background: transparent;">
+                    <p style="font-size: 12px; color: var(--text-sub);">अभी कोई आर्डर नहीं है...</p>
+                    <button class="btn-p" style="padding: 10px; font-size: 12px; margin-top: 10px; background: var(--s);" onclick="app.simulateIncoming()">टेस्ट नोटिफिकेशन</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gigs-page" class="page">
+        <div class="container" style="padding-top: 30px;">
+            <h2 style="font-family:'Montserrat';">Gigs & Shifts</h2>
+            <p style="font-size: 12px; color: var(--text-sub);">अपनी पसंद का समय बुक करें</p>
+
+            <div class="card" style="margin-top: 20px;">
+                <h4>आज की शिफ्ट</h4>
+                <div class="gig-box gig-booked">
+                    <div>
+                        <b>दोपहर (12:00 - 04:00)</b><br>
+                        <small style="color: var(--success);">₹200 गारंटीड बेस</small>
+                    </div>
+                    <i class="fa fa-check-circle" style="color: var(--success);"></i>
+                </div>
+                <div class="gig-box">
+                    <div>
+                        <b>रात (07:00 - 11:00)</b><br>
+                        <small>₹150 गारंटीड बेस</small>
+                    </div>
+                    <button style="padding: 5px 15px; border-radius: 10px; border: none; background: var(--p); color: white; font-size: 10px;">बुक करें</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <h4>साप्ताहिक रिपोर्ट</h4>
+                <div style="height: 180px;"><canvas id="statsChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="profile-page" class="page">
+        <div style="background: var(--s); color: white; padding: 40px 20px; text-align: center; border-radius: 0 0 40px 40px;">
+            <img id="p-photo" src="https://via.placeholder.com/100" style="width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--p); object-fit: cover;">
+            <h2 id="p-name-id" style="margin-top: 10px;">पार्टनर नाम</h2>
+            <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+                <span style="background: var(--p); font-size: 10px; padding: 4px 12px; border-radius: 50px;">गोल्ड स्टार</span>
+                <span style="background: var(--success); font-size: 10px; padding: 4px 12px; border-radius: 50px;">वेरिफाइड</span>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="card" style="padding: 0;">
+                <div style="padding: 18px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px;">
+                    <i class="fa fa-university" style="color: var(--p);"></i> बैंक विवरण (KYC)
+                </div>
+                <div style="padding: 18px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px;">
+                    <i class="fa fa-graduation-cap" style="color: var(--p);"></i> ट्रेनिंग और सेफ्टी वीडियो
+                </div>
+                <div style="padding: 18px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px;">
+                    <i class="fa fa-language" style="color: var(--p);"></i> भाषा चुनें (Language)
+                </div>
+                <div style="padding: 18px; color: var(--danger); display: flex; align-items: center; gap: 15px;" onclick="location.reload()">
+                    <i class="fa fa-sign-out-alt"></i> लॉगआउट
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" id="app-nav" style="display: none;">
+        <div class="nav-item active" onclick="app.navigate('home-page', this)">
+            <i class="fa fa-rocket"></i><span>होम</span>
+        </div>
+        <div class="nav-item" onclick="app.navigate('gigs-page', this)">
+            <i class="fa fa-calendar-alt"></i><span>शिफ्ट</span>
+        </div>
+        <div class="nav-item" onclick="app.navigate('profile-page', this)">
+            <i class="fa fa-user-circle"></i><span>प्रोफाइल</span>
+        </div>
+    </nav>
+
     <script>
-        const canvas = document.getElementById('sig-canvas');
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        let uploadsDone = { slot1: false, slot2: false, slot3: false, slot4: false };
+        const app = {
+            state: {
+                isOnline: true,
+                pName: "Partner",
+                pPhone: "",
+                wallet: 1250,
+                activeJob: null
+            },
 
-        // Handle File Upload State
-        function validateUpload(id) {
-            document.getElementById(id).classList.add('active');
-            document.getElementById(id).innerText = "✅ Attached";
-            uploadsDone[id] = true;
-            checkCompletion();
-        }
+            // Initialization
+            init() {
+                console.log("SewaAstra Engine Loaded...");
+                this.initChart();
+            },
 
-        // Signature Logic
-        function getPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            return { x: (e.clientX || e.touches[0].clientX) - rect.left, y: (e.clientY || e.touches[0].clientY) - rect.top };
-        }
-        canvas.addEventListener('mousedown', () => isDrawing = true);
-        canvas.addEventListener('touchstart', (e) => { isDrawing = true; e.preventDefault(); });
-        window.addEventListener('mouseup', () => { if(isDrawing) checkCompletion(); isDrawing = false; });
-        window.addEventListener('touchend', () => { if(isDrawing) checkCompletion(); isDrawing = false; });
-        
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('touchmove', (e) => { draw(e); e.preventDefault(); });
-
-        function draw(e) {
-            if (!isDrawing) return;
-            ctx.lineWidth = 2;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#0f172a';
-            const pos = getPos(e);
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-        }
-
-        function clearSig() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.beginPath();
-            checkCompletion();
-        }
-
-        // COMPLETION LOGIC
-        function checkCompletion() {
-            const allFiles = Object.values(uploadsDone).every(v => v === true);
-            const isChecked = document.getElementById('consent-check').checked;
-            const btn = document.getElementById('whatsapp-btn');
-            const error = document.getElementById('error-msg');
-            const partnerID = document.getElementById('p-id').innerText;
-
-            if (allFiles && isChecked) {
-                btn.classList.add('enabled');
-                error.style.display = 'none';
+            // Navigation System
+            navigate(pageId, el) {
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+                document.getElementById(pageId).classList.add('active-page');
                 
-                // Set WhatsApp Link
-                const msg = encodeURIComponent(`Hi Admin, I have uploaded my 4 documents and signed the agreement.\nPartner ID: ${partnerID}\nPlease approve my account.`);
-                btn.href = `https://wa.me/917869969190?text=${msg}`;
-            } else {
-                btn.classList.remove('enabled');
-                error.style.display = 'block';
+                document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+                if(el) el.classList.add('active');
+
+                // Special handling for chart reload
+                if(pageId === 'gigs-page') this.initChart();
+            },
+
+            // Auth Functions
+            startKYC() {
+                const phone = document.getElementById('login-phone').value;
+                if(phone.length < 10) {
+                    this.notify("कृपया मान्य नंबर डालें");
+                    return;
+                }
+                this.state.pPhone = phone;
+                this.pName = "Partner Pro";
+                document.getElementById('app-nav').style.display = 'flex';
+                this.navigate('home-page');
+                this.speak("SewaAstra में आपका स्वागत है।");
+            },
+
+            googleLogin() {
+                alert("Firebase Google Auth के लिए रेडी है...");
+                this.startKYC();
+            },
+
+            // Duty Toggle
+            toggleDuty() {
+                const btn = document.getElementById('duty-toggle');
+                const dot = document.getElementById('duty-dot');
+                const txt = document.getElementById('duty-text');
+
+                this.state.isOnline = !this.state.isOnline;
+
+                if(this.state.isOnline) {
+                    btn.classList.remove('offline-status-card');
+                    txt.innerText = "ऑनलाइन";
+                    this.speak("आप ऑनलाइन हैं।");
+                } else {
+                    btn.classList.add('offline-status-card');
+                    txt.innerText = "ऑफलाइन";
+                    this.speak("आप अब ऑफलाइन हैं।");
+                }
+            },
+
+            // Order Logic
+            simulateIncoming() {
+                if(!this.state.isOnline) {
+                    alert("आर्डर पाने के लिए ऑनलाइन आएँ!");
+                    return;
+                }
+                document.getElementById('orderAudio').play();
+                document.getElementById('master-alert').classList.add('active');
+                this.speak("नया आर्डर उपलब्ध है। ₹610 की कमाई।");
+
+                // Auto hide if not accepted in 15 sec
+                setTimeout(() => {
+                    document.getElementById('master-alert').classList.remove('active');
+                }, 15000);
+            },
+
+            acceptJob() {
+                document.getElementById('master-alert').classList.remove('active');
+                this.state.activeJob = { type: 'AC Repair', customer: 'Rajesh', loc: 'Arera Colony' };
+                
+                document.getElementById('job-slot').innerHTML = `
+                    <div class="card" style="border-left: 6px solid var(--success); animation: slideInUp 0.4s;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <b>AC Repair & Service</b>
+                            <span style="color:var(--success)">₹610.00</span>
+                        </div>
+                        <p style="font-size:11px; color:var(--text-sub); margin-top:5px;">Customer: Rajesh • 1.2 KM</p>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
+                            <button class="btn-p" style="padding:12px; font-size:12px; background:#25d366" onclick="window.open('https://wa.me/917869969190')"><i class="fab fa-whatsapp"></i> चैट करें</button>
+                            <button class="btn-p" style="padding:12px; font-size:12px; background:var(--s)" onclick="app.finishJob()">काम पूरा हुआ</button>
+                        </div>
+                    </div>
+                `;
+            },
+
+            finishJob() {
+                this.speak("बधाई हो! काम पूरा हुआ।");
+                alert("₹610 आपके वॉलेट में जोड़ दिए गए हैं।");
+                location.reload();
+            },
+
+            // Utilities
+            triggerSOS() {
+                this.speak("सावधान! इमरजेंसी अलर्ट एडमिन को भेज दिया गया है।");
+                alert("HELP!! आपकी लोकेशन SewaAstra मुख्यालय (7869969190) को भेज दी गई है।");
+            },
+
+            speak(text) {
+                const s = new SpeechSynthesisUtterance(text);
+                s.lang = 'hi-IN';
+                window.speechSynthesis.speak(s);
+            },
+
+            notify(m) { alert(m); },
+
+            initChart() {
+                const ctx = document.getElementById('statsChart');
+                if(!ctx) return;
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
+                        datasets: [{
+                            label: 'कमाई',
+                            data: [400, 1200, 850, 1500, 2100, 1800, 2500],
+                            borderColor: '#e0394c',
+                            tension: 0.4,
+                            fill: true,
+                            backgroundColor: 'rgba(224, 57, 76, 0.1)'
+                        }]
+                    },
+                    options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                });
             }
-        }
+        };
+
+        // Run App
+        app.init();
     </script>
 </body>
 </html>
