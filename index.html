@@ -3,311 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra Vanguard Absolute | Original Build</title>
+    <title>SewaAstra | Secure Google Login</title>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         :root {
-            --p: #e0394c; --s: #0f172a; --bg: #f0f2f5; --card: #ffffff;
-            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
-            --surge: #7c3aed; --text: #1e293b; --sub: #64748b;
+            --p: #e0394c;
+            --s: #0f172a;
+            --bg: #f8fafc;
         }
 
-        .dark-mode { --bg: #010409; --card: #0d1117; --text: #f0f6fc; --sub: #8b949e; --s: #161b22; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background: var(--bg); color: var(--text); transition: 0.3s; overflow-x: hidden; }
-
-        /* --- LOGIN PAGE --- */
-        #login-screen { position: fixed; inset: 0; z-index: 9999; background: linear-gradient(135deg, var(--p), #b91c1c); display: flex; align-items: center; justify-content: center; padding: 25px; }
-        .login-card { background: white; padding: 40px 25px; border-radius: 40px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-
-        .google-btn { 
-            background: #ffffff; border: 1px solid #dadce0; color: #3c4043; padding: 12px; 
-            border-radius: 12px; width: 100%; display: flex; align-items: center; 
-            justify-content: center; gap: 10px; font-weight: 600; cursor: pointer; margin-top: 15px;
+        body {
+            background: var(--bg);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
-        /* --- UI UTILS --- */
-        .page { display: none; min-height: 100vh; padding-bottom: 120px; animation: slideUp 0.4s ease; }
-        .page.active { display: block; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .container { padding: 0 20px; }
-        .card { background: var(--card); border-radius: 28px; padding: 20px; margin-bottom: 18px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); transition: 0.3s; }
-        
-        .set-group { margin-bottom: 25px; }
-        .set-label { font-size: 11px; font-weight: 800; color: var(--p); text-transform: uppercase; letter-spacing: 1.2px; margin: 15px 0 8px 10px; display: block; }
-        .set-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 12px; border-bottom: 1px solid rgba(0,0,0,0.04); font-size: 14px; }
+        /* Login Container */
+        .login-box {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            padding: 40px 30px;
+            border-radius: 40px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.05);
+            animation: fadeIn 0.6s ease-out;
+        }
 
-        /* --- TOGGLE SWITCH --- */
-        .switch { position: relative; width: 44px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; inset: 0; background: #cbd5e1; border-radius: 30px; transition: 0.4s; }
-        input:checked + .slider { background: var(--success); }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.4s; }
-        input:checked + .slider:before { transform: translateX(20px); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        /* --- NAVIGATION --- */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--card); height: 85px; display: flex; justify-content: space-around; align-items: center; z-index: 5000; border-radius: 30px 30px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,0.08); }
-        .nav-link { text-align: center; color: #94a3b8; text-decoration: none; font-size: 10px; font-weight: 600; transition: 0.3s; }
-        .nav-link.active { color: var(--p); transform: translateY(-5px); }
-        .nav-link i { font-size: 24px; display: block; margin-bottom: 4px; }
+        .logo-area {
+            background: var(--p);
+            width: 70px;
+            height: 70px;
+            border-radius: 22px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 30px;
+            box-shadow: 0 10px 20px rgba(224, 57, 76, 0.3);
+        }
 
-        .btn-p { width: 100%; padding: 18px; background: var(--p); color: white; border: none; border-radius: 20px; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(224,57,76,0.2); }
-        .input-f { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 10px; outline: none; }
+        h2 { font-family: 'Montserrat'; font-size: 24px; color: var(--s); margin-bottom: 8px; }
+        p { color: #64748b; font-size: 13px; margin-bottom: 35px; line-height: 1.5; }
+
+        /* Google Button Wrapper */
+        #google-btn-container {
+            display: flex;
+            justify-content: center;
+            min-height: 50px;
+        }
+
+        /* Success/Profile View */
+        #profile-view {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .user-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--p);
+            margin-bottom: 15px;
+        }
+
+        .btn-exit {
+            margin-top: 25px;
+            padding: 12px 25px;
+            background: var(--s);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .loader {
+            display: none;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--p);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body onload="X.init()">
+<body>
 
-    <div id="login-screen">
-        <div class="login-card">
-            <div style="background:var(--p); width:70px; height:70px; border-radius:22px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center; color:white;"><i class="fa fa-user-gear fa-2x"></i></div>
-            <h2 style="font-family:'Montserrat';">SewaAstra <span style="font-weight:400">Pro</span></h2>
-            <p style="color:var(--sub); font-size:13px; margin-bottom:20px;">पार्टनर पोर्टल</p>
+    <div class="login-box">
+        <div id="login-view">
+            <div class="logo-area"><i class="fa-solid fa-bolt-lightning"></i></div>
+            <h2>SewaAstra Login</h2>
+            <p>सुरक्षित लॉगिन के लिए अपने गूगल <br>अकाउंट का चयन करें</p>
+
+            <div id="loader" class="loader"></div>
             
-            <input type="number" id="l-ph" class="input-f" placeholder="मोबाइल नंबर">
-            <input type="password" id="l-ps" class="input-f" placeholder="पासवर्ड">
-            <button class="btn-p" onclick="X.login()">लॉगिन करें</button>
-
-            <div style="margin: 15px 0; color: #ccc; font-size: 12px;">अथवा</div>
-            
-            <div id="g_id_onload"
-                 data-client_id="YOUR_GOOGLE_CLIENT_ID"
-                 data-callback="handleCredentialResponse">
-            </div>
-            <button class="google-btn" onclick="X.googleLogin()">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" width="18"> Google से जुड़ें
-            </button>
-        </div>
-    </div>
-
-    <div id="app-body" style="display:none;">
-        <header style="background:var(--card); padding:15px 22px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; z-index:4000;">
-            <div style="display:flex; align-items:center; gap:10px;">
-                <div id="dot" style="width:10px; height:10px; background:var(--success); border-radius:50%;"></div>
-                <h4 style="font-family:'Montserrat';">VANGUARD</h4>
-            </div>
-            <div onclick="X.toggleDuty()" id="duty-box" style="background:#dcfce7; color:#166534; padding:8px 18px; border-radius:50px; font-size:11px; font-weight:800;">● Online</div>
-        </header>
-
-        <div id="home-page" class="page active">
-            <div class="container" style="margin-top:20px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div class="card">
-                        <small style="color:var(--sub)">आज की कमाई</small>
-                        <h2 style="color:var(--p)">₹2,450.00</h2>
-                    </div>
-                    <div class="card">
-                        <small style="color:var(--sub)">लॉगिन समय</small>
-                        <h2>05:32h</h2>
-                    </div>
+            <div id="google-btn-container">
+                <div id="g_id_onload"
+                    data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+                    data-context="signin"
+                    data-ux_mode="popup"
+                    data-callback="onGoogleSuccess"
+                    data-auto_prompt="false">
                 </div>
 
-                <div class="card" style="padding:10px;">
-                    <div id="surge-map" style="height:180px; border-radius:20px; background:#f1f5f9;"></div>
-                </div>
-
-                <div style="display:flex; gap:12px; overflow-x:auto; padding-bottom:15px;">
-                    <div class="card" style="min-width:110px; text-align:center;" onclick="X.navigate('kyc-page')"><i class="fa fa-id-card"></i><p style="font-size:10px; margin-top:5px;">KYC Docs</p></div>
-                    <div class="card" style="min-width:110px; text-align:center;" onclick="X.sendToWhatsApp()"><i class="fa-brands fa-whatsapp" style="color:#25d366"></i><p style="font-size:10px; margin-top:5px;">WhatsApp</p></div>
-                    <div class="card" style="min-width:110px; text-align:center;"><i class="fa fa-book"></i><p style="font-size:10px; margin-top:5px;">History</p></div>
-                </div>
-
-                <button class="btn-p" onclick="X.testOrder()"><i class="fa fa-bolt"></i> टेस्ट ऑर्डर सिमुलेशन</button>
-            </div>
-        </div>
-
-        <div id="kyc-page" class="page">
-            <div class="container" style="padding-top:20px;">
-                <h2>प्रोफेशनल KYC (SewaAstra)</h2>
-                <p style="color: var(--sub); font-size: 12px; margin-bottom: 20px;">सभी दस्तावेज़ अनिवार्य हैं।</p>
-                
-                <div class="card">
-                    <label style="font-size: 13px; font-weight: 600;">पैन कार्ड नंबर</label>
-                    <input type="text" id="pan-no" class="input-f" placeholder="ABCDE1234F" style="margin-top: 5px; text-transform: uppercase;">
-                    
-                    <div id="k1" onclick="X.capture('k1')" style="border:2px dashed #ccc; border-radius:20px; height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; background: #fafafa;">
-                        <i class="fa fa-camera"></i><p style="font-size: 11px;">पैन की फोटो अपलोड करें</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <label style="font-size: 13px; font-weight: 600;">आधार नंबर</label>
-                    <input type="number" id="aadhaar-no" class="input-f" placeholder="XXXX XXXX XXXX" style="margin-top: 5px;">
-                    
-                    <div id="k2" onclick="X.capture('k2')" style="border:2px dashed #ccc; border-radius:20px; height:120px; display:flex; flex-direction:column; align-items:center; justify-content:center; background: #fafafa;">
-                        <i class="fa fa-id-badge"></i><p style="font-size: 11px;">आधार (Front & Back)</p>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <label style="font-size: 13px; font-weight: 600;">बैंक अकाउंट डिटेल्स</label>
-                    <input type="text" placeholder="IFSC कोड" class="input-f" style="margin-top: 5px;">
-                    <input type="number" placeholder="अकाउंट नंबर" class="input-f">
-                </div>
-
-                <button class="btn-p" onclick="X.finalSubmit()">KYC सबमिट करें</button>
-                <div style="height: 30px;"></div>
-            </div>
-        </div>
-
-        <div id="wallet-page" class="page">
-            <div class="container" style="padding-top:20px;">
-                <div class="card" style="background:var(--s); color:white; text-align:center;">
-                    <p style="opacity:0.7">बैलेंस</p>
-                    <h1 style="font-size:48px;">₹8,920</h1>
-                    <button class="btn-p" style="background:white; color:var(--p); margin-top:15px;" onclick="X.withdraw()">Withdraw</button>
-                </div>
-                <div class="card" style="height:250px;"><canvas id="eChart"></canvas></div>
-            </div>
-        </div>
-
-        <div id="settings-page" class="page">
-            <div class="container" style="padding-top:20px;">
-                <h2 style="margin-bottom:20px;">सेटिंग्स</h2>
-                <div class="card" style="padding:0 15px;">
-                    <div class="set-item"><span>डार्क मोड</span> <label class="switch"><input type="checkbox" onchange="X.toggleDark()"><span class="slider"></span></label></div>
-                    <div class="set-item"><span>हिन्दी वॉइस</span> <label class="switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-                    <div class="set-item" style="color:var(--danger)" onclick="location.reload()"><span>लॉग आउट</span> <i class="fa fa-sign-out"></i></div>
+                <div class="g_id_signin"
+                    data-type="standard"
+                    data-shape="pill"
+                    data-theme="filled_blue"
+                    data-text="signin_with"
+                    data-size="large"
+                    data-logo_alignment="left">
                 </div>
             </div>
         </div>
 
-        <nav class="bottom-nav">
-            <a href="#" class="nav-link active" onclick="X.navigate('home-page', this)"><i class="fa fa-house-chimney"></i>Home</a>
-            <a href="#" class="nav-link" onclick="X.navigate('wallet-page', this)"><i class="fa fa-wallet"></i>Wallet</a>
-            <a href="#" class="nav-link" onclick="X.navigate('settings-page', this)"><i class="fa fa-gear"></i>Settings</a>
-        </nav>
-    </div>
-
-    <div id="order-pop" style="position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:9000; display:none; align-items:center; justify-content:center; padding:25px; backdrop-filter:blur(10px);">
-        <div class="card" style="width:100%; text-align:center; border:2px solid var(--p);">
-            <div style="background:#fff1f2; width:60px; height:60px; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; color:var(--p);"><i class="fa fa-bolt fa-2x"></i></div>
-            <h2>नया आर्डर मिला!</h2>
-            <p>Home Cleaning • ₹480</p>
-            <div style="margin:20px 0; color:var(--p); font-weight:800; font-size:20px;" id="clock">15</div>
-            <button class="btn-p" onclick="X.accept()">स्वीकार करें</button>
+        <div id="profile-view">
+            <img id="u-img" src="" class="user-img">
+            <h3 id="u-name">नमस्ते!</h3>
+            <p id="u-email" style="margin-bottom:10px;"></p>
+            <div style="color:var(--success); font-weight:700; font-size:14px;">
+                <i class="fa-solid fa-circle-check"></i> सफलतापूर्वक वेरिफाइड
+            </div>
+            <button class="btn-exit" onclick="location.reload()">लॉग आउट करें</button>
         </div>
     </div>
 
     <script>
-        const X = {
-            init() { 
-                console.log("SewaAstra Original v1.0.0"); 
-            },
+        // असली Google Response हैंडलर
+        function onGoogleSuccess(response) {
+            // लोडर दिखाएं
+            document.getElementById('google-btn-container').style.display = 'none';
+            document.getElementById('loader').style.display = 'block';
 
-            login() {
-                const ph = document.getElementById('l-ph').value;
-                if(ph.length >= 10) {
-                    this.speak("लॉगिन सफल।");
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('app-body').style.display = 'block';
-                    setTimeout(() => this.initMap(), 500);
-                } else { alert("मान्य मोबाइल नंबर डालें"); }
-            },
+            // JWT टोकन डिकोड करें (यह असली डेटा निकालता है)
+            const responsePayload = decodeJwtResponse(response.credential);
 
-            googleLogin() {
-                this.speak("गूगल से जुड़ रहे हैं।");
-                // Mock redirect to Google OAuth
-                setTimeout(() => {
-                    this.login();
-                    alert("Google Login Success!");
-                }, 1500);
-            },
+            console.log("ID: " + responsePayload.sub);
+            console.log('Full Name: ' + responsePayload.name);
+            console.log('Email: ' + responsePayload.email);
+            console.log('Image: ' + responsePayload.picture);
 
-            sendToWhatsApp() {
-                const msg = encodeURIComponent("नमस्ते SewaAstra! मैं अपने डॉक्यूमेंट्स यहाँ सबमिट करना चाहता हूँ। मोबाइल: " + document.getElementById('l-ph').value);
-                window.open(`https://wa.me/917869969190?text=${msg}`, '_blank');
-            },
+            // UI अपडेट करें
+            setTimeout(() => {
+                document.getElementById('login-view').style.display = 'none';
+                document.getElementById('profile-view').style.display = 'flex';
+                
+                document.getElementById('u-name').innerText = responsePayload.name;
+                document.getElementById('u-email').innerText = responsePayload.email;
+                document.getElementById('u-img').src = responsePayload.picture;
 
-            capture(id) {
-                const box = document.getElementById(id);
-                box.innerHTML = '<i class="fa fa-spinner fa-spin fa-2x"></i><p>अपलोड हो रहा है...</p>';
-                setTimeout(() => {
-                    box.style.borderColor = 'var(--success)';
-                    box.innerHTML = '<i class="fa fa-check-circle fa-2x" style="color:var(--success)"></i><p>Uploaded Successfully</p>';
-                }, 2000);
-            },
+                speak(`स्वागत है ${responsePayload.name}, आपका लॉगिन सफल रहा।`);
+            }, 1500);
+        }
 
-            finalSubmit() {
-                this.speak("आपका KYC डेटा SewaAstra सर्वर पर भेज दिया गया है।");
-                alert("KYC Submitted! Verification in progress (24-48 Hours)");
-                this.navigate('home-page');
-            },
+        // JWT टोकन डिकोडर फंक्शन
+        function decodeJwtResponse(token) {
+            let base64Url = token.split('.')[1];
+            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
 
-            navigate(id, el) {
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                document.getElementById(id).classList.add('active');
-                if(el) {
-                    document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
-                    el.classList.add('active');
-                }
-                if(id === 'wallet-page') setTimeout(() => this.initChart(), 300);
-            },
+            return JSON.parse(jsonPayload);
+        }
 
-            toggleDuty() {
-                const b = document.getElementById('duty-box');
-                const dot = document.getElementById('dot');
-                if(b.innerText.includes("Online")) {
-                    b.innerText = "○ Offline"; b.style.background = "#f1f5f9"; b.style.color = "#64748b";
-                    dot.style.background = "#94a3b8"; this.speak("आप ऑफलाइन हैं।");
-                } else {
-                    b.innerText = "● Online"; b.style.background = "#dcfce7"; b.style.color = "#166534";
-                    dot.style.background = "var(--success)"; this.speak("आप ऑनलाइन हैं।");
-                }
-            },
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'hi-IN';
+            window.speechSynthesis.speak(msg);
+        }
 
-            initMap() {
-                const map = L.map('surge-map', {zoomControl: false}).setView([23.2599, 77.4126], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                L.circle([23.2599, 77.4126], {radius: 800, color: '#e0394c', fillOpacity: 0.4}).addTo(map);
-            },
-
-            testOrder() {
-                document.getElementById('order-pop').style.display = 'flex';
-                this.speak("नया आर्डर आया है।");
-                let s = 15;
-                const timer = setInterval(() => {
-                    s--; document.getElementById('clock').innerText = s;
-                    if(s <= 0) { clearInterval(timer); document.getElementById('order-pop').style.display='none'; }
-                }, 1000);
-            },
-
-            accept() {
-                document.getElementById('order-pop').style.display = 'none';
-                this.speak("आर्डर स्वीकार हुआ।");
-            },
-
-            initChart() {
-                const ctx = document.getElementById('eChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
-                        datasets: [{ label: 'Income', data: [800, 1500, 1100, 2400, 1800, 3200, 2900], borderColor: '#e0394c', tension: 0.4 }]
-                    },
-                    options: { maintainAspectRatio: false }
-                });
-            },
-
-            toggleDark() { document.body.classList.toggle('dark-mode'); },
-            speak(t) {
-                const m = new SpeechSynthesisUtterance(t);
-                m.lang = 'hi-IN';
-                window.speechSynthesis.speak(m);
-            }
-        };
-
-        function handleCredentialResponse(response) {
-            console.log("Encoded JWT ID token: " + response.credential);
-            X.login();
+        window.onload = function () {
+            console.log("SewaAstra Auth System Ready.");
         }
     </script>
 </body>
