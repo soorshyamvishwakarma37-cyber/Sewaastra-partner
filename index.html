@@ -1,203 +1,1616 @@
- <!DOCTYPE html>
-<html lang="hi">
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra | Secure Google Login</title>
-
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <title>SewaAstra - Premium Cooler Ecosystem & Customer Requirements</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#4f46e5">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 
     <style>
         :root {
-            --p: #e0394c;
-            --s: #0f172a;
-            --bg: #f8fafc;
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --primary-light: #e0e7ff;
+            --accent-pink: #ec4899;
+            --accent-cyan: #06b6d4;
+            --accent-amber: #f59e0b;
+            --accent-emerald: #10b981;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --gray-lighter: #f1f5f9;
+            --white: #ffffff;
+            --shadow-sm: 0 2px 4px -1px rgb(0 0 0 / 0.05);
+            --shadow: 0 6px 15px -3px rgb(0 0 0 / 0.08);
+            --shadow-lg: 0 15px 30px -10px rgb(0 0 0 / 0.12);
+            --radius-sm: 8px;
+            --radius: 14px;
+            --radius-lg: 20px;
+            --transition: all 0.25s ease;
+            --base-font-size: 13.5px;
+            --banner-height: 140px;
+            --icon-size: 34px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        [data-theme="dark"] {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #312e81;
+            --dark: #f8fafc;
+            --light: #030712;
+            --gray: #94a3b8;
+            --gray-light: #1e293b;
+            --gray-lighter: #0f172a;
+            --white: #0f172a;
+            --shadow: 0 6px 15px -3px rgb(0 0 0 / 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            font-size: var(--base-font-size);
+        }
 
         body {
-            background: var(--bg);
-            height: 100vh;
+            background-color: var(--light);
+            color: var(--dark);
+            min-height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        /* Login Container */
-        .login-box {
-            background: white;
-            width: 90%;
-            max-width: 400px;
-            padding: 40px 30px;
-            border-radius: 40px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.05);
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .logo-area {
-            background: var(--p);
-            width: 70px;
-            height: 70px;
-            border-radius: 22px;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 30px;
-            box-shadow: 0 10px 20px rgba(224, 57, 76, 0.3);
-        }
-
-        h2 { font-family: 'Montserrat'; font-size: 24px; color: var(--s); margin-bottom: 8px; }
-        p { color: #64748b; font-size: 13px; margin-bottom: 35px; line-height: 1.5; }
-
-        /* Google Button Wrapper */
-        #google-btn-container {
-            display: flex;
-            justify-content: center;
-            min-height: 50px;
-        }
-
-        /* Success/Profile View */
-        #profile-view {
-            display: none;
             flex-direction: column;
+            transition: var(--transition);
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        @media (min-width: 1024px) {
+            body { padding-bottom: 25px; }
+        }
+
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button, input, select, textarea { outline: none; border: none; background: none; font-size: inherit; }
+
+        /* Compact Colorful Header */
+        header {
+            background: var(--white);
+            padding: 0.6rem 2.5%;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            border-bottom: 2px solid transparent;
+            border-image: linear-gradient(to right, var(--primary), var(--accent-pink), var(--accent-cyan)) 1;
         }
 
-        .user-img {
-            width: 100px;
-            height: 100px;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-toggle {
+            font-size: 1.1rem;
+            color: var(--dark);
+            cursor: pointer;
+            padding: 6px;
+            background: var(--gray-lighter);
             border-radius: 50%;
-            border: 4px solid var(--p);
-            margin-bottom: 15px;
+            transition: var(--transition);
+        }
+        .menu-toggle:hover { background: var(--primary-light); color: var(--primary); }
+
+        @media (min-width: 1024px) {
+            .menu-toggle { display: none; }
         }
 
-        .btn-exit {
-            margin-top: 25px;
-            padding: 12px 25px;
-            background: var(--s);
-            color: white;
-            border: none;
-            border-radius: 12px;
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .desktop-nav {
+            display: none;
+            gap: 15px;
+            align-items: center;
             font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        @media (min-width: 1024px) {
+            .desktop-nav { display: flex; }
+        }
+
+        .desktop-nav a { cursor: pointer; transition: var(--transition); }
+        .desktop-nav a:hover { color: var(--primary); }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            position: relative;
+            width: var(--icon-size);
+            height: var(--icon-size);
+            border-radius: 50%;
+            background: var(--gray-lighter);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.9rem;
+        }
+
+        .icon-btn:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .badge-count {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--accent-pink);
+            color: white;
+            font-size: 0.55rem;
+            font-weight: 800;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(236,72,153,0.4);
+        }
+
+        /* Location & Search Bar */
+        .location-search-wrapper {
+            background: var(--white);
+            padding: 0.5rem 2.5%;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        @media (min-width: 768px) {
+            .location-search-wrapper {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+        }
+
+        .location-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--gray);
+            min-width: 240px;
+        }
+
+        .location-current {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: var(--dark);
+            font-weight: 700;
             cursor: pointer;
         }
 
-        .loader {
-            display: none;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--p);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto;
+        .location-current i { color: var(--accent-cyan); font-size: 0.95rem; }
+
+        .search-box {
+            position: relative;
+            width: 100%;
         }
 
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (min-width: 768px) {
+            .search-box { max-width: 380px; }
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px 8px 34px;
+            background: var(--gray-lighter);
+            border-radius: var(--radius);
+            font-size: 0.82rem;
+            color: var(--dark);
+            transition: var(--transition);
+            border: 2px solid transparent;
+        }
+
+        .search-box input:focus {
+            background: var(--white);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 1rem 2.5%;
+            flex: 1;
+        }
+
+        /* Adjustable Small Banner Showcase */
+        .banner-slider-container {
+            margin-bottom: 1.8rem;
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            position: relative;
+            background: var(--dark);
+        }
+
+        .banner-track {
+            display: flex;
+            transition: transform 0.4s ease-in-out;
+        }
+
+        .banner-slide {
+            min-width: 100%;
+            padding: 1.5rem 1.5rem;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            min-height: var(--banner-height);
+            justify-content: center;
+        }
+
+        .banner-slide::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.6) 60%, rgba(15,23,42,0.2) 100%);
+            z-index: 1;
+        }
+
+        .banner-slide > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        @media (min-width: 768px) {
+            .banner-slide { padding: 2rem 2.5rem; }
+        }
+
+        .banner-slide h1 {
+            font-size: calc(var(--base-font-size) * 1.3);
+            font-weight: 800;
+            line-height: 1.2;
+            max-width: 500px;
+        }
+
+        .banner-slide p {
+            font-size: calc(var(--base-font-size) * 0.9);
+            opacity: 0.9;
+            max-width: 450px;
+            line-height: 1.4;
+        }
+
+        .banner-btn {
+            background: var(--white);
+            color: var(--primary);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-weight: 800;
+            font-size: calc(var(--base-font-size) * 0.9);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            width: fit-content;
+            cursor: pointer;
+        }
+
+        .banner-btn:hover {
+            background: var(--gray-lighter);
+            transform: translateY(-1px);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .section-title {
+            font-size: calc(var(--base-font-size) * 1.15);
+            font-weight: 800;
+            color: var(--dark);
+        }
+
+        .see-all {
+            font-size: calc(var(--base-font-size) * 0.9);
+            color: var(--primary);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        /* Adjustable Small Icons Categories Grid */
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 1.8rem;
+        }
+
+        @media (min-width: 576px) {
+            .categories-grid { grid-template-columns: repeat(6, 1fr); }
+        }
+
+        .category-card {
+            background: var(--white);
+            padding: 10px 8px;
+            border-radius: var(--radius-sm);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 1px solid var(--gray-light);
+        }
+
+        .category-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            box-shadow: var(--shadow);
+            background: linear-gradient(135deg, var(--white) 0%, var(--primary-light) 100%);
+        }
+
+        .category-icon {
+            width: var(--icon-size);
+            height: var(--icon-size);
+            margin: 0 auto 6px;
+            background: linear-gradient(135deg, var(--primary-light), var(--accent-cyan));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: calc(var(--base-font-size) * 0.95);
+            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.15);
+        }
+
+        .category-card span {
+            font-size: calc(var(--base-font-size) * 0.85);
+            font-weight: 700;
+            color: var(--dark);
+            display: block;
+        }
+
+        /* Services Grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 12px;
+            margin-bottom: 2.2rem;
+        }
+
+        @media (min-width: 640px) {
+            .services-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (min-width: 1024px) {
+            .services-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+
+        .service-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-light);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
+
+        .service-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow);
+            border-color: var(--accent-pink);
+        }
+
+        .service-img-wrap {
+            height: 120px;
+            background: linear-gradient(135deg, var(--gray-lighter), var(--primary-light));
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .service-img-wrap i {
+            font-size: 2rem;
+        }
+
+        .service-badge {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: linear-gradient(135deg, var(--accent-pink), var(--primary));
+            color: white;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: calc(var(--base-font-size) * 0.7);
+            font-weight: 800;
+            box-shadow: 0 2px 4px rgba(236,72,153,0.3);
+            z-index: 2;
+        }
+
+        .discount-tag {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--accent-emerald);
+            color: white;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: calc(var(--base-font-size) * 0.7);
+            font-weight: 800;
+            z-index: 2;
+        }
+
+        .service-content {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .service-title {
+            font-size: calc(var(--base-font-size) * 1.02);
+            font-weight: 800;
+            color: var(--dark);
+            line-height: 1.25;
+        }
+
+        .service-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: calc(var(--base-font-size) * 0.85);
+            color: var(--accent-amber);
+            font-weight: 800;
+        }
+
+        .service-rating span {
+            color: var(--gray);
+            font-weight: 600;
+        }
+
+        .service-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 8px;
+            border-top: 1px dashed var(--gray-light);
+        }
+
+        .service-price-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .service-price {
+            font-size: calc(var(--base-font-size) * 1.1);
+            font-weight: 900;
+            color: var(--dark);
+        }
+
+        .service-old-price {
+            font-size: calc(var(--base-font-size) * 0.8);
+            color: var(--gray);
+            text-decoration: line-through;
+        }
+
+        .add-btn {
+            background: var(--primary-light);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 5px 12px;
+            border-radius: var(--radius-sm);
+            font-weight: 800;
+            font-size: calc(var(--base-font-size) * 0.9);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .add-btn:hover {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 15px;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-container {
+            background: var(--white);
+            width: 100%;
+            max-width: 650px;
+            max-height: 90vh;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-light);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--gray-light);
+            padding-bottom: 0.8rem;
+        }
+
+        .modal-title {
+            font-size: calc(var(--base-font-size) * 1.25);
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .close-modal {
+            font-size: 1.1rem;
+            color: var(--gray);
+            cursor: pointer;
+            padding: 6px;
+            background: var(--gray-lighter);
+            border-radius: 50%;
+            transition: var(--transition);
+        }
+        .close-modal:hover { background: var(--danger); color: white; }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-label {
+            display: block;
+            font-size: calc(var(--base-font-size) * 0.9);
+            font-weight: 800;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 9px 12px;
+            background: var(--gray-lighter);
+            border: 1px solid var(--gray-light);
+            border-radius: var(--radius-sm);
+            font-size: calc(var(--base-font-size) * 0.95);
+            color: var(--dark);
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
+            color: white;
+            width: 100%;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-weight: 900;
+            font-size: calc(var(--base-font-size) * 0.98);
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+
+        #mapPreview {
+            width: 100%;
+            height: 160px;
+            border-radius: var(--radius-sm);
+            margin-top: 6px;
+            border: 1px solid var(--gray-light);
+            z-index: 10;
+        }
+
+        /* Cart Bar */
+        .cart-bar {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 94%;
+            max-width: 950px;
+            background: var(--dark);
+            color: white;
+            padding: 10px 18px;
+            border-radius: var(--radius);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+            z-index: 1005;
+            display: none;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        @media (min-width: 1024px) {
+            .cart-bar { bottom: 20px; }
+        }
+
+        .cart-bar.active { display: flex; }
+
+        .cart-info span {
+            font-size: calc(var(--base-font-size) * 0.75);
+            color: var(--gray);
+            display: block;
+            font-weight: 600;
+        }
+
+        .cart-info h4 {
+            font-size: calc(var(--base-font-size) * 1.15);
+            font-weight: 900;
+            color: var(--accent-cyan);
+        }
+
+        .view-cart-btn {
+            background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
+            color: white;
+            padding: 8px 16px;
+            border-radius: var(--radius-sm);
+            font-weight: 800;
+            font-size: calc(var(--base-font-size) * 0.9);
+            cursor: pointer;
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
+            transition: var(--transition);
+        }
+        .view-cart-btn:hover { transform: scale(1.03); }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: var(--white);
+            border-top: 1px solid var(--gray-light);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1000;
+            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.04);
+        }
+
+        @media (min-width: 1024px) {
+            .bottom-nav { display: none; }
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            color: var(--gray);
+            font-size: calc(var(--base-font-size) * 0.75);
+            font-weight: 800;
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1;
+        }
+
+        .nav-item i { font-size: 1.1rem; }
+        .nav-item.active, .nav-item:hover { color: var(--primary); transform: translateY(-1px); }
+
+        /* Side Drawer */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 3000;
+            display: none;
+            backdrop-filter: blur(2px);
+        }
+
+        .side-drawer {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: var(--white);
+            z-index: 3001;
+            transition: var(--transition);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .side-drawer.open { left: 0; }
+
+        .drawer-header {
+            padding: 1.8rem 1.2rem;
+            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
+            color: white;
+        }
+
+        .drawer-body {
+            padding: 0.5rem 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .drawer-item {
+            padding: 10px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: calc(var(--base-font-size) * 0.95);
+            font-weight: 800;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
+
+        .drawer-item:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-left-color: var(--primary);
+            padding-left: 22px;
+        }
+
+        .drawer-item i { font-size: 1rem; width: 20px; color: var(--primary); }
+
+        .pwa-banner {
+            position: fixed;
+            bottom: 70px;
+            left: 10px;
+            right: 10px;
+            max-width: 380px;
+            margin: 0 auto;
+            background: var(--white);
+            padding: 12px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--primary);
+            z-index: 1500;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .pwa-banner.show { display: flex; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="login-box">
-        <div id="login-view">
-            <div class="logo-area"><i class="fa-solid fa-bolt-lightning"></i></div>
-            <h2>SewaAstra Login</h2>
-            <p>सुरक्षित लॉगिन के लिए अपने गूगल <br>अकाउंट का चयन करें</p>
-
-            <div id="loader" class="loader"></div>
-            
-            <div id="google-btn-container">
-                <div id="g_id_onload"
-                    data-client_id="211091351218-s08jo336t0dieb050q02r4bqvdod891m.apps.googleusercontent.com"
-                    data-context="signin"
-                    data-ux_mode="popup"
-                    data-callback="onGoogleSuccess"
-                    data-auto_prompt="false">
-                </div>
-
-                <div class="g_id_signin"
-                    data-type="standard"
-                    data-shape="pill"
-                    data-theme="filled_blue"
-                    data-text="signin_with"
-                    data-size="large"
-                    data-logo_alignment="left">
-                </div>
-            </div>
+    <header>
+        <div class="header-left">
+            <div class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars-staggered"></i></div>
+            <a href="#" class="logo"><i class="fa-solid fa-wind"></i> SewaAstra<span>Pro</span></a>
+            <nav class="desktop-nav">
+                <a onclick="switchNavTab('home')">Home</a>
+                <a onclick="scrollToServices()">Cooler Services</a>
+                <a onclick="switchNavTab('bookings')">My Bookings</a>
+                <a onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i> App Settings & 50 Requirements</a>
+            </nav>
         </div>
+        <div class="header-right">
+            <div class="icon-btn" id="installAppBtn" title="Install App" style="display:none;"><i class="fa-solid fa-cloud-arrow-down"></i></div>
+            <div class="icon-btn" title="App Settings & 50 Requirements" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i></div>
+            <div class="icon-btn" id="headerCartBtn" title="Cart" onclick="openCartModal()"><i class="fa-solid fa-cart-shopping"></i><div class="badge-count" id="cartBadgeCount">0</div></div>
+        </div>
+    </header>
 
-        <div id="profile-view">
-            <img id="u-img" src="" class="user-img">
-            <h3 id="u-name">नमस्ते!</h3>
-            <p id="u-email" style="margin-bottom:10px;"></p>
-            <div style="color:var(--success); font-weight:700; font-size:14px;">
-                <i class="fa-solid fa-circle-check"></i> सफलतापूर्वक वेरिफाइड
+    <div class="location-search-wrapper">
+        <div class="location-bar">
+            <div class="location-current" id="detectLocationBtn" onclick="refreshGeolocation()">
+                <i class="fa-solid fa-location-crosshairs"></i>
+                <span id="locationText">Auto-Detecting GPS Location...</span>
             </div>
-            <button class="btn-exit" onclick="location.reload()">लॉग आउट करें</button>
+            <span style="font-size: calc(var(--base-font-size) * 0.8); color: var(--accent-emerald); font-weight: 800;"><i class="fa-solid fa-shield-check"></i> Verified Fast Technicians</span>
+        </div>
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="Search cooler repair, woodwool, pump, wiring...">
         </div>
     </div>
 
-    <script>
-        // असली Google Response हैंडलर
-        function onGoogleSuccess(response) {
-            // लोडर दिखाएं
-            document.getElementById('google-btn-container').style.display = 'none';
-            document.getElementById('loader').style.display = 'block';
+    <div class="main-container" id="mainAppContent">
+        
+        <div class="banner-slider-container" id="bannerSliderContainer">
+            <div class="banner-track" id="bannerTrack"></div>
+        </div>
 
-            // JWT टोकन डिकोड करें (यह असली डेटा निकालता है)
-            const responsePayload = decodeJwtResponse(response.credential);
+        <div class="section-header">
+            <h3 class="section-title"><i class="fa-solid fa-cubes"></i> Cooler Categories & Spare Parts</h3>
+            <span class="see-all" onclick="filterCategory('all')">View All</span>
+        </div>
+        <div class="categories-grid" id="categoriesGrid"></div>
 
-            console.log("ID: " + responsePayload.sub);
-            console.log('Full Name: ' + responsePayload.name);
-            console.log('Email: ' + responsePayload.email);
-            console.log('Image: ' + responsePayload.picture);
+        <div class="section-header" id="servicesSection">
+            <h3 class="section-title"><i class="fa-solid fa-screwdriver-wrench"></i> Popular Cooler Services & Packages</h3>
+        </div>
+        <div class="services-grid" id="servicesGrid"></div>
+    </div>
 
-            // UI अपडेट करें
-            setTimeout(() => {
-                document.getElementById('login-view').style.display = 'none';
-                document.getElementById('profile-view').style.display = 'flex';
+    <div class="cart-bar" id="floatingCartBar">
+        <div class="cart-info">
+            <span id="cartItemCountText">0 Items | Total Payable</span>
+            <h4 id="cartBarTotalAmount">₹0</h4>
+        </div>
+        <button class="view-cart-btn" onclick="openCartModal()">View Cart & Checkout</button>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchNavTab('home', this)">
+            <i class="fa-solid fa-house-chimney"></i>
+            <span>Home</span>
+        </div>
+        <div class="nav-item" onclick="switchNavTab('bookings', this)">
+            <i class="fa-solid fa-receipt"></i>
+            <span>Bookings</span>
+        </div>
+        <div class="nav-item" onclick="openSettingsModal()">
+            <i class="fa-solid fa-gear"></i>
+            <span>Settings</span>
+        </div>
+        <div class="nav-item" onclick="switchNavTab('support', this)">
+            <i class="fa-solid fa-headset"></i>
+            <span>Support</span>
+        </div>
+    </nav>
+
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+    <div class="side-drawer" id="sideDrawer">
+        <div class="drawer-header">
+            <h3>SewaAstra Pro</h3>
+            <p style="font-size: 0.75rem; opacity: 0.9;" id="drawerUserPhone">Guest User Account</p>
+        </div>
+        <div class="drawer-body">
+            <div class="drawer-item" onclick="openSettingsModal(); closeDrawer();"><i class="fa-solid fa-sliders"></i> App Settings & 50 Requirements</div>
+            <div class="drawer-item" onclick="switchNavTab('bookings'); closeDrawer();"><i class="fa-solid fa-clock-rotate-left"></i> Order History & Tracking</div>
+            <div class="drawer-item" onclick="toggleTheme();"><i class="fa-solid fa-palette"></i> Toggle Colorful Theme</div>
+            <div class="drawer-item" onclick="switchNavTab('support'); closeDrawer();"><i class="fa-solid fa-circle-question"></i> Help & FAQs</div>
+            <div class="drawer-item" onclick="triggerPwaInstall();"><i class="fa-solid fa-download"></i> Install Native App</div>
+        </div>
+    </div>
+
+    <!-- Settings Modal Containing App Settings AND the 50 Customer Requirements Checklist -->
+    <div class="modal-overlay" id="settingsModalOverlay">
+        <div class="modal-container" style="max-width: 650px;">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fa-solid fa-sliders"></i> Settings & 50 Customer Requirements</h3>
+                <div class="close-modal" onclick="closeSettingsModal()"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <!-- General Settings Section -->
+                <div style="background: var(--gray-lighter); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--gray-light);">
+                    <h4 style="font-size: calc(var(--base-font-size) * 0.98); font-weight: 800; margin-bottom: 8px; color: var(--primary);">App Display Settings</h4>
+                    <div style="display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">Font Size Adjust</label>
+                            <select class="form-control" id="settingFontSize" onchange="applyFontSizeSetting(this.value)">
+                                <option value="12px">Compact Small (12px)</option>
+                                <option value="13.5px" selected>Standard Balanced (13.5px)</option>
+                                <option value="15px">Large Readable (15px)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">Banner Size Adjust</label>
+                            <select class="form-control" id="settingBannerSize" onchange="applyBannerSizeSetting(this.value)">
+                                <option value="110px">Small Compact (110px)</option>
+                                <option value="140px" selected>Medium Standard (140px)</option>
+                                <option value="180px">Large Expanded (180px)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label class="form-label">Small Icon Size Adjust</label>
+                            <select class="form-control" id="settingIconSize" onchange="applyIconSizeSetting(this.value)">
+                                <option value="28px">Small (28px)</option>
+                                <option value="34px" selected>Standard (34px)</option>
+                                <option value="42px">Large (42px)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 50 Customer Requirements Checklist Section inside Settings Icon -->
+                <div style="border-top: 2px solid var(--gray-light); padding-top: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <h4 style="font-size: calc(var(--base-font-size) * 0.98); font-weight: 800; color: var(--primary);"><i class="fa-solid fa-list-check"></i> 50 Customer Requirements Checklist</h4>
+                        <div class="requirements-counter" id="selectedReqCount" style="font-size: 0.8rem; background: var(--primary-light); color: var(--primary); padding: 3px 8px; border-radius: 12px; font-weight: 800;">0 Selected</div>
+                    </div>
+                    <p style="font-size: calc(var(--base-font-size) * 0.82); color: var(--gray); margin-bottom: 8px;">Select your required cooler checkups or custom service parts to add them directly to your order summary.</p>
+                    <div class="requirements-grid" id="requirementsGrid" style="display: grid; grid-template-columns: repeat(1, 1fr); gap: 6px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
+                        <!-- Rendered via JS -->
+                    </div>
+                </div>
+
+                <button class="btn-primary" style="margin-top:6px;" onclick="closeSettingsModal()">Save & Apply Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="cartModalOverlay">
+        <div class="modal-container" style="max-width: 580px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Cooler Service Cart & Checkout</h3>
+                <div class="close-modal" onclick="closeCartModal()"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <div id="cartModalBody"></div>
+            <div style="margin-top: 1rem;" id="checkoutFormSection">
+                <h4 style="margin-bottom: 8px; font-size: calc(var(--base-font-size) * 1.05); font-weight: 800;">Live Location Pin & Schedule</h4>
                 
-                document.getElementById('u-name').innerText = responsePayload.name;
-                document.getElementById('u-email').innerText = responsePayload.email;
-                document.getElementById('u-img').src = responsePayload.picture;
+                <div class="form-group">
+                    <label class="form-label">Live GPS Map Pin (Drag to refine precise location)</label>
+                    <div id="mapPreview"></div>
+                    <input type="hidden" id="latitudeInput">
+                    <input type="hidden" id="longitudeInput">
+                </div>
 
-                speak(`स्वागत है ${responsePayload.name}, आपका लॉगिन सफल रहा।`);
-            }, 1500);
+                <div class="form-group">
+                    <label class="form-label">Service Date</label>
+                    <input type="date" class="form-control" id="bookingDateInput" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Preferred Time Slot</label>
+                    <select class="form-control" id="bookingTimeSlot">
+                        <option value="09:00 AM - 11:00 AM">09:00 AM - 11:00 AM</option>
+                        <option value="11:00 AM - 01:00 PM">11:00 AM - 01:00 PM</option>
+                        <option value="02:00 PM - 04:00 PM">02:00 PM - 04:00 PM</option>
+                        <option value="04:00 PM - 06:00 PM">04:00 PM - 06:00 PM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cooler Type / Special Instructions</label>
+                    <textarea class="form-control" id="bookingRemarks" rows="2" placeholder="Desert Cooler, Tower Cooler, plastic/iron body, water leaking..."></textarea>
+                </div>
+                
+                <button class="btn-primary" onclick="proceedToOrderWithPartnerAssignment()">
+                    <i class="fa-brands fa-whatsapp"></i> Send Order & Assign Nearest Tech
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="trackingModalOverlay">
+        <div class="modal-container" style="max-width: 480px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Live Technician Tracking & OTP</h3>
+                <div class="close-modal" onclick="closeTrackingModal()"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <div id="trackingModalBody" style="font-size: calc(var(--base-font-size) * 0.95); line-height: 1.5;"></div>
+        </div>
+    </div>
+
+    <div class="pwa-banner" id="pwaBanner">
+        <div>
+            <h4 style="font-size: calc(var(--base-font-size) * 0.95); font-weight: 800;">Install SewaAstra Pro App</h4>
+            <p style="font-size: calc(var(--base-font-size) * 0.8); color: var(--gray);">For instant cooler emergency support and offline alerts.</p>
+        </div>
+        <button class="add-btn" id="pwaInstallTrigger" style="padding: 4px 10px;">Install</button>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        window.cart = [];
+        window.currentLat = 23.2599; // Default Bhopal Coordinates
+        window.currentLon = 77.4126;
+        window.mapInstance = null;
+        window.markerInstance = null;
+        window.currentBannerIndex = 0;
+
+        // Expanded comprehensive 50 Customer Requirements List placed exclusively inside Settings Icon Modal
+        const customerRequirements = [
+            "Complete Deep Cleaning & Acid Wash", "Aspen Woodwool Pad Replacement", "HoneyComb Pad High-Efficiency Upgrade", 
+            "Submersible Water Pump Repair", "Submersible Water Pump Replacement", "Copper Winding Motor Rewinding", 
+            "Aluminum Winding Motor Repair", "Fan Blade Aerodynamic Alignment / Balancing", "Fan Blade Replacement", 
+            "Float Valve / Automatic Water Inlet Fix", "Drain Plug Leakage Sealing & Repair", "Main Power Switchboard Repair", 
+            "Speed Regulator Knob Replacement", "Wiring Insulation & Short Circuit Check", "Anti-Rust Body Spray Coating", 
+            "Cooler Iron Stand Assembly", "Cooler Stand Dismantling & Relocation", "Heavy Duty Castor Wheels Replacement", 
+            "Blower Wheel Debris Cleaning", "Blower Motor Bearing Greasing", "Inverter Power Compatibility Check", 
+            "Earthing / Ground Shock Prevention Fix", "Auto Water Filling Kit Installation", "Cooler Winter Cover Installation", 
+            "Odor / Algae Removal Chemical Treatment", "Water Tank Disinfection & Sterilization", "Side Grill Safety Mesh Fixing", 
+            "Exhaust Duct Connection Setup", "Voltage Stabilizer Wiring Connection", "Remote Control Kit Wireless Installation", 
+            "Automatic Timer Switch Installation", "LED Indicator Light Fix", "Main Fuse Replacement", "Capacitor / Condenser Replacement", 
+            "Nut, Bolt & Fastener Tightening", "Vibration Dampening Rubber Pad Setup", "Water Pipe / Hose Pipe Replacement", 
+            "Overflow Pipe Clearing & Cleaning", "Body Dent Removal & Pressing", "Fiber Body Crack Thermal Welding", 
+            "Plastic Body Epoxy Glue Patching", "Louvers / Air Deflector Blade Repair", "Auto Air Swing Motor Fix", 
+            "Pad Holding Wire Net Replacement", "Cooler Pre-Winter Servicing", "Pre-Summer Complete Health Checkup", 
+            "Emergency Midnight Service Dispatch", "Commercial Heavy Duty Cooler Maintenance", "Duct Cooler Complete Servicing", 
+            "Portable Personal Plastic Cooler Repair"
+        ];
+
+        const defaultBanners = [
+            { id: 1, title: 'Advanced Air Cooler Repair & Maintenance', subtitle: 'Instant automated GPS booking, live nearest technician matching via WhatsApp, & Fast OTP.', bg: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 50%, #ec4899 100%)', buttonText: 'Book Service Now' },
+            { id: 2, title: 'Honeycomb & Woodwool Pad Replacement', subtitle: 'Upgrade cooling efficiency instantly with 100% genuine pads and expert technician fitting.', bg: 'linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #4f46e5 100%)', buttonText: 'Explore Pads' },
+            { id: 3, title: 'Emergency Copper Winding & Water Pump Fix', subtitle: 'Quick doorstep service for all desert and tower cooler electrical failures.', bg: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 100%)', buttonText: 'Emergency Dispatch' }
+        ];
+
+        const defaultCategories = [
+            { id: 'all', name: 'All Services', icon: 'fa-layer-group' },
+            { id: 'general', name: 'General', icon: 'fa-wind' },
+            { id: 'pad', name: 'Woodwool', icon: 'fa-square-full' },
+            { id: 'motor', name: 'Motor/Pump', icon: 'fa-gears' },
+            { id: 'wiring', name: 'Wiring', icon: 'fa-bolt' },
+            { id: 'install', name: 'Install', icon: 'fa-screwdriver-wrench' }
+        ];
+
+        const defaultServices = [
+            { id: 1, cat: 'general', name: 'Cooler Full Deep Cleaning & Wash', rating: '4.9', reviews: '1.4k', price: 399, oldPrice: 599, discount: '33% OFF', badge: 'Bestseller', icon: 'fa-bucket' },
+            { id: 2, cat: 'pad', name: 'Aspen Woodwool Pad Replacement', rating: '4.8', reviews: '920', price: 499, oldPrice: 699, discount: '28% OFF', badge: 'Popular', icon: 'fa-square' },
+            { id: 3, cat: 'pad', name: 'HoneyComb Cooling Pad Upgrade', rating: '4.9', reviews: '1.8k', price: 899, oldPrice: 1299, discount: '30% OFF', badge: 'Cooling', icon: 'fa-chess-board' },
+            { id: 4, cat: 'motor', name: 'Cooler Water Pump Repair / Replace', rating: '4.7', reviews: '750', price: 299, oldPrice: 449, discount: '33% OFF', badge: 'Quick', icon: 'fa-water' },
+            { id: 5, cat: 'motor', name: 'Cooler Copper Winding Motor Repair', rating: '4.8', reviews: '1.1k', price: 799, oldPrice: 1099, discount: '27% OFF', badge: 'Warranty', icon: 'fa-gears' },
+            { id: 6, cat: 'wiring', name: 'Switchboard, Regulator & Wiring Fix', rating: '4.8', reviews: '410', price: 249, oldPrice: 399, discount: '37% OFF', badge: 'Safe', icon: 'fa-plug' },
+            { id: 7, cat: 'install', name: 'Cooler Stand Assembly & Installation', rating: '4.7', reviews: '310', price: 349, oldPrice: 499, discount: '30% OFF', badge: 'Heavy', icon: 'fa-arrows-up-down' },
+            { id: 8, cat: 'general', name: 'Seasonal Maintenance & Oil Check', rating: '4.9', reviews: '640', price: 449, oldPrice: 599, discount: '25% OFF', badge: 'Essential', icon: 'fa-oil-can' }
+        ];
+
+        const defaultPartners = [
+            { id: 'CP-301', name: 'Manoj Sharma', phone: '+919876543210', lat: 23.2620, lon: 77.4100, rating: '4.9', status: 'Active' },
+            { id: 'CP-302', name: 'Rajesh Sen', phone: '+919123456789', lat: 23.2500, lon: 77.4200, rating: '4.8', status: 'Active' },
+            { id: 'CP-303', name: 'Deepak Verma', phone: '+919988776655', lat: 23.2700, lon: 77.3900, rating: '4.7', status: 'On Duty' }
+        ];
+
+        window.getStoreData = function(key, fallback) {
+            const data = localStorage.getItem(`sw_${key}`);
+            return data ? JSON.parse(data) : fallback;
+        };
+
+        window.setStoreData = function(key, value) {
+            localStorage.setItem(`sw_${key}`, JSON.stringify(value));
+        };
+
+        function initializeAppUi() {
+            renderBannersSlider();
+            renderCategoriesGrid();
+            renderServicesList(getStoreData('services', defaultServices));
+            renderRequirementsGrid();
+            refreshGeolocation();
+            setInterval(autoSlideBanners, 4000);
+            
+            const savedFont = localStorage.getItem('sw_font_size');
+            if(savedFont) { applyFontSizeSetting(savedFont, false); document.getElementById('settingFontSize').value = savedFont; }
+
+            const savedBanner = localStorage.getItem('sw_banner_size');
+            if(savedBanner) { applyBannerSizeSetting(savedBanner, false); document.getElementById('settingBannerSize').value = savedBanner; }
+
+            const savedIcon = localStorage.getItem('sw_icon_size');
+            if(savedIcon) { applyIconSizeSetting(savedIcon, false); document.getElementById('settingIconSize').value = savedIcon; }
         }
 
-        // JWT टोकन डिकोडर फंक्शन
-        function decodeJwtResponse(token) {
-            let base64Url = token.split('.')[1];
-            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-            }).join(''));
+        window.renderBannersSlider = function() {
+            const banners = getStoreData('banners', defaultBanners);
+            const track = document.getElementById('bannerTrack');
+            track.innerHTML = banners.map(b => `
+                <div class="banner-slide" style="background: ${b.bg};">
+                    <h1>${b.title}</h1>
+                    <p>${b.subtitle}</p>
+                    <button class="banner-btn" onclick="scrollToServices()">${b.buttonText} <i class="fa-solid fa-arrow-right"></i></button>
+                </div>
+            `).join('');
+        };
 
-            return JSON.parse(jsonPayload);
+        function autoSlideBanners() {
+            const banners = getStoreData('banners', defaultBanners);
+            const track = document.getElementById('bannerTrack');
+            if(!track || banners.length <= 1) return;
+            window.currentBannerIndex = (window.currentBannerIndex + 1) % banners.length;
+            track.style.transform = `translateX(-${window.currentBannerIndex * 100}%)`;
         }
 
-        function speak(text) {
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'hi-IN';
-            window.speechSynthesis.speak(msg);
+        window.renderCategoriesGrid = function() {
+            const cats = getStoreData('categories', defaultCategories);
+            document.getElementById('categoriesGrid').innerHTML = cats.map(c => `
+                <div class="category-card" onclick="filterCategory('${c.id}')">
+                    <div class="category-icon"><i class="fa-solid ${c.icon}"></i></div>
+                    <span>${c.name}</span>
+                </div>
+            `).join('');
+        };
+
+        window.renderRequirementsGrid = function() {
+            const grid = document.getElementById('requirementsGrid');
+            grid.innerHTML = customerRequirements.map((req, index) => `
+                <label style="display: flex; align-items: center; gap: 10px; background: var(--gray-lighter); padding: 8px 12px; border-radius: var(--radius-sm); font-size: calc(var(--base-font-size) * 0.9); font-weight: 600; border: 1px solid var(--gray-light); cursor: pointer;">
+                    <input type="checkbox" value="${req}" onchange="updateSelectedRequirementsCount()" style="width: 16px; height: 16px; accent-color: var(--primary);">
+                    <span>${index + 1}. ${req}</span>
+                </label>
+            `).join('');
+        };
+
+        window.updateSelectedRequirementsCount = function() {
+            const checkedBoxes = document.querySelectorAll('#requirementsGrid input[type="checkbox"]:checked');
+            document.getElementById('selectedReqCount').innerText = `${checkedBoxes.length} Selected`;
+        };
+
+        window.renderServicesList = function(list) {
+            const grid = document.getElementById('servicesGrid');
+            if (list.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; padding: 2rem; color: var(--gray);">No cooler services found matching your search.</p>`;
+                return;
+            }
+            grid.innerHTML = list.map(s => `
+                <div class="service-card">
+                    <div class="service-img-wrap">
+                        <span class="service-badge">${s.badge}</span>
+                        <span class="discount-tag">${s.discount}</span>
+                        <i class="fa-solid ${s.icon}"></i>
+                    </div>
+                    <div class="service-content">
+                        <div class="service-title">${s.name}</div>
+                        <div class="service-rating">
+                            <i class="fa-solid fa-star"></i> ${s.rating} <span>(${s.reviews})</span>
+                        </div>
+                        <div class="service-footer">
+                            <div class="service-price-box">
+                                <span class="service-price">₹${s.price}</span>
+                                <span class="service-old-price">₹${s.oldPrice}</span>
+                            </div>
+                            <button class="add-btn" onclick="addServiceToCart(${s.id})">Add +</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        };
+
+        window.filterCategory = function(catId) {
+            const services = getStoreData('services', defaultServices);
+            if(catId === 'all') {
+                renderServicesList(services);
+            } else {
+                renderServicesList(services.filter(s => s.cat === catId));
+            }
+        };
+
+        window.addServiceToCart = function(serviceId) {
+            const services = getStoreData('services', defaultServices);
+            const service = services.find(s => s.id === serviceId);
+            if(!service) return;
+            const existing = window.cart.find(item => item.id === serviceId);
+            if(existing) { existing.qty += 1; } 
+            else { window.cart.push({ ...service, qty: 1 }); }
+            updateCartUi();
+        };
+
+        window.updateCartUi = function() {
+            const count = window.cart.reduce((sum, item) => sum + item.qty, 0);
+            document.getElementById('cartBadgeCount').innerText = count;
+            const totalAmt = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            document.getElementById('cartBarTotalAmount').innerText = `₹${totalAmt}`;
+            const cartBar = document.getElementById('floatingCartBar');
+            if(count > 0) { cartBar.classList.add('active'); } else { cartBar.classList.remove('active'); }
+        };
+
+        window.refreshGeolocation = function() {
+            const locText = document.getElementById('locationText');
+            locText.innerText = "Acquiring precise GPS...";
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        window.currentLat = position.coords.latitude;
+                        window.currentLon = position.coords.longitude;
+                        locText.innerText = `GPS: ${window.currentLat.toFixed(2)}, ${window.currentLon.toFixed(2)}`;
+                        document.getElementById('latitudeInput').value = window.currentLat;
+                        document.getElementById('longitudeInput').value = window.currentLon;
+                    },
+                    error => {
+                        locText.innerText = "Bhopal, MP (Default GPS)";
+                    },
+                    { enableHighAccuracy: true, timeout: 15000 }
+                );
+            } else {
+                locText.innerText = "Geolocation not supported.";
+            }
+        };
+
+        window.openCartModal = function() {
+            const modalBody = document.getElementById('cartModalBody');
+            const checkedReqs = Array.from(document.querySelectorAll('#requirementsGrid input[type="checkbox"]:checked')).map(cb => cb.value);
+
+            if(window.cart.length === 0 && checkedReqs.length === 0) {
+                modalBody.innerHTML = `<p style="text-align:center; padding: 1.5rem; color: var(--gray);">Your cart & requirements list are empty. Select services or open the Settings icon to choose from the 50 requirements checklist.</p>`;
+                document.getElementById('checkoutFormSection').style.display = 'none';
+            } else {
+                document.getElementById('checkoutFormSection').style.display = 'block';
+                let html = '';
+                if(window.cart.length > 0) {
+                    html += `<h4 style="font-size:0.9rem; font-weight:800; margin-bottom:6px; color:var(--primary);">Cart Services:</h4>` + window.cart.map(item => `
+                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 6px 0; border-bottom: 1px solid var(--gray-light);">
+                            <div>
+                                <h5 style="font-size: calc(var(--base-font-size) * 0.9); font-weight: 800;">${item.name}</h5>
+                                <span style="font-size: calc(var(--base-font-size) * 0.78); color: var(--gray);">₹${item.price} x ${item.qty}</span>
+                            </div>
+                            <div style="font-weight: 900; font-size: calc(var(--base-font-size) * 0.98);">₹${item.price * item.qty}</div>
+                        </div>
+                    `).join('');
+                }
+
+                if(checkedReqs.length > 0) {
+                    html += `<h4 style="font-size:0.9rem; font-weight:800; margin:10px 0 6px 0; color:var(--primary);">Selected Custom Requirements (${checkedReqs.length}):</h4>` + 
+                            `<ul style="list-style:disc; padding-left:18px; font-size:0.85rem; color:var(--dark); margin-bottom:10px;">` +
+                            checkedReqs.map(r => `<li>${r}</li>`).join('') + `</ul>`;
+                }
+
+                const total = window.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+                html += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding-top: 10px; font-weight: 900; font-size: calc(var(--base-font-size) * 1.1); border-top: 2px solid var(--gray-light); margin-top: 8px;">
+                        <span>Estimated Total</span>
+                        <span style="color: var(--primary);">₹${total}</span>
+                    </div>
+                `;
+                modalBody.innerHTML = html;
+            }
+            document.getElementById('cartModalOverlay').classList.add('active');
+
+            setTimeout(() => {
+                if(!window.mapInstance) {
+                    window.mapInstance = L.map('mapPreview').setView([window.currentLat, window.currentLon], 15);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap'
+                    }).addTo(window.mapInstance);
+                    window.markerInstance = L.marker([window.currentLat, window.currentLon], {draggable: true}).addTo(window.mapInstance);
+                    
+                    window.markerInstance.on('dragend', function(e) {
+                        const coord = e.target.getLatLng();
+                        window.currentLat = coord.lat;
+                        window.currentLon = coord.lng;
+                        document.getElementById('latitudeInput').value = coord.lat;
+                        document.getElementById('longitudeInput').value = coord.lng;
+                    });
+                } else {
+                    window.mapInstance.setView([window.currentLat, window.currentLon], 15);
+                    window.markerInstance.setLatLng([window.currentLat, window.currentLon]);
+                    window.mapInstance.invalidateSize();
+                }
+            }, 300);
+        };
+
+        window.closeCartModal = function() {
+            document.getElementById('cartModalOverlay').classList.remove('active');
+        };
+
+        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; 
+            const dLat = (lat2 - lat1) * (Math.PI / 180);
+            const dLon = (lon2 - lon1) * (Math.PI / 180);
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
         }
 
-        window.onload = function () {
-            console.log("SewaAstra Auth System Ready.");
+        window.proceedToOrderWithPartnerAssignment = async function() {
+            const date = document.getElementById('bookingDateInput').value;
+            const timeSlot = document.getElementById('bookingTimeSlot').value;
+            const remarks = document.getElementById('bookingRemarks').value;
+
+            if(!date || !timeSlot) {
+                alert('Please select date and time slot.');
+                return;
+            }
+
+            const partners = getStoreData('partners', defaultPartners);
+            let nearestPartner = partners[0];
+            let minDistance = Infinity;
+
+            partners.forEach(partner => {
+                const dist = calculateHaversineDistance(window.currentLat, window.currentLon, partner.lat, partner.lon);
+                if(dist < minDistance) {
+                    minDistance = dist;
+                    nearestPartner = partner;
+                }
+            });
+
+            const verificationOtp = Math.floor(1000 + Math.random() * 9000).toString();
+            const total = window.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+            const itemsSummary = window.cart.map(i => `${i.name} (x${i.qty})`).join(', ');
+            const checkedReqs = Array.from(document.querySelectorAll('#requirementsGrid input[type="checkbox"]:checked')).map(cb => cb.value);
+
+            const orderPayload = {
+                items: window.cart,
+                requirements: checkedReqs,
+                totalAmount: total,
+                date: date,
+                timeSlot: timeSlot,
+                remarks: remarks,
+                clientName: 'Direct Customer',
+                clientPhone: 'Customer Direct Order',
+                latitude: window.currentLat,
+                longitude: window.currentLon,
+                assignedPartner: nearestPartner,
+                otp: verificationOtp,
+                status: 'Assigned',
+                createdAt: new Date().toISOString()
+            };
+
+            let ordersHistory = getStoreData('cooler_orders', []);
+            ordersHistory.unshift(orderPayload);
+            setStoreData('cooler_orders', ordersHistory);
+
+            const mapsUrl = `https://maps.google.com/?q=${window.currentLat},${window.currentLon}`;
+            const whatsappMessage = `*🌬️ SewaAstra Pro - NEW COOLER ORDER*%0A` +
+                                    `----------------------------------%0A` +
+                                    `*Cart Services:* ${encodeURIComponent(itemsSummary || 'None')}%0A` +
+                                    `*Requirements (${checkedReqs.length}):* ${encodeURIComponent(checkedReqs.join(', ') || 'None')}%0A` +
+                                    `*Est. Total:* ₹${total}%0A` +
+                                    `*Date & Slot:* ${date} (${encodeURIComponent(timeSlot)})%0A` +
+                                    `*Remarks:* ${encodeURIComponent(remarks || 'None')}%0A` +
+                                    `*📍 Live GPS Pin:* ${mapsUrl}%0A` +
+                                    `----------------------------------%0A` +
+                                    `*🛠️ Assigned Tech:* ${encodeURIComponent(nearestPartner.name)} (${nearestPartner.phone}) — *${minDistance.toFixed(2)} km away*%0A` +
+                                    `*🔑 Verification OTP:* *${verificationOtp}*`;
+
+            window.open(`https://wa.me/917869969190?text=${whatsappMessage}`, '_blank');
+
+            window.cart = [];
+            document.querySelectorAll('#requirementsGrid input[type="checkbox"]').forEach(cb => cb.checked = false);
+            updateSelectedRequirementsCount();
+            updateCartUi();
+            closeCartModal();
+            openActiveTrackingModal(orderPayload);
+        };
+
+        window.openActiveTrackingModal = function(order) {
+            const body = document.getElementById('trackingModalBody');
+            body.innerHTML = `
+                <div style="background: var(--primary-light); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 10px; border: 1px solid var(--primary);">
+                    <h4 style="color: var(--primary); margin-bottom: 4px; font-size: calc(var(--base-font-size) * 1.02);"><i class="fa-solid fa-circle-check"></i> Technician Assigned Successfully!</h4>
+                    <p style="font-size: calc(var(--base-font-size) * 0.85); color: var(--dark);">Nearest cooler specialist is dispatched and notified via WhatsApp.</p>
+                </div>
+                <p><b>Technician:</b> ${order.assignedPartner.name}</p>
+                <p><b>Phone:</b> <a href="tel:${order.assignedPartner.phone}" style="color: var(--primary); font-weight: 800;">${order.assignedPartner.phone}</a></p>
+                <div style="margin: 12px 0; background: var(--gray-lighter); padding: 12px; border-radius: var(--radius-sm); text-align: center; border: 1px dashed var(--gray-light);">
+                    <span style="font-size: calc(var(--base-font-size) * 0.78); display:block; color: var(--gray); font-weight: 800;">Service Completion OTP</span>
+                    <h2 style="font-size: 1.8rem; letter-spacing: 4px; color: var(--accent-pink); font-weight: 900;">${order.otp}</h2>
+                    <span style="font-size: calc(var(--base-font-size) * 0.75); color: var(--danger); font-weight: 700;">Share with technician only after service completion.</span>
+                </div>
+                <button class="btn-primary" onclick="closeTrackingModal(); switchNavTab('bookings')">View All Active Bookings</button>
+            `;
+            document.getElementById('trackingModalOverlay').classList.add('active');
+        };
+
+        window.closeTrackingModal = function() {
+            document.getElementById('trackingModalOverlay').classList.remove('active');
+        };
+
+        window.openSettingsModal = function() {
+            document.getElementById('settingsModalOverlay').classList.add('active');
+            closeDrawer();
+        };
+
+        window.closeSettingsModal = function() {
+            document.getElementById('settingsModalOverlay').classList.remove('active');
+        };
+
+        window.applyFontSizeSetting = function(sizeVal, showAlert = true) {
+            document.documentElement.style.setProperty('--base-font-size', sizeVal);
+            localStorage.setItem('sw_font_size', sizeVal);
+            if(showAlert) alert('Font size adjusted successfully!');
+        };
+
+        window.applyBannerSizeSetting = function(sizeVal, showAlert = true) {
+            document.documentElement.style.setProperty('--banner-height', sizeVal);
+            localStorage.setItem('sw_banner_size', sizeVal);
+            if(showAlert) alert('Banner size adjusted successfully!');
+        };
+
+        window.applyIconSizeSetting = function(sizeVal, showAlert = true) {
+            document.documentElement.style.setProperty('--icon-size', sizeVal);
+            localStorage.setItem('sw_icon_size', sizeVal);
+            if(showAlert) alert('Small icon size adjusted successfully!');
+        };
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            window.deferredPwaPrompt = e;
+            document.getElementById('installAppBtn').style.display = 'flex';
+            document.getElementById('pwaBanner').classList.add('show');
+        });
+
+        window.triggerPwaInstall = async function() {
+            if(!window.deferredPwaPrompt) { alert('App is already installed or running natively.'); return; }
+            window.deferredPwaPrompt.prompt();
+            const { outcome } = await window.deferredPwaPrompt.userChoice;
+            if(outcome === 'accepted') {
+                document.getElementById('installAppBtn').style.display = 'none';
+                document.getElementById('pwaBanner').classList.remove('show');
+            }
+            window.deferredPwaPrompt = null;
+        };
+
+        document.getElementById('installAppBtn').addEventListener('click', triggerPwaInstall);
+        document.getElementById('pwaInstallTrigger').addEventListener('click', triggerPwaInstall);
+
+        window.addEventListener('DOMContentLoaded', initializeAppUi);
+    </script>
+
+    <script>
+        const menuToggle = document.getElementById('menuToggle');
+        const sideDrawer = document.getElementById('sideDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+
+        menuToggle.addEventListener('click', () => {
+            sideDrawer.classList.toggle('open');
+            drawerOverlay.style.display = sideDrawer.classList.contains('open') ? 'block' : 'none';
+        });
+
+        drawerOverlay.addEventListener('click', () => {
+            sideDrawer.classList.remove('open');
+            drawerOverlay.style.display = 'none';
+        });
+
+        function closeDrawer() {
+            sideDrawer.classList.remove('open');
+            drawerOverlay.style.display = 'none';
+        }
+
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.style.display = card.innerText.toLowerCase().includes(query) ? 'flex' : 'none';
+            });
+        });
+
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            if(currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('sw_theme', 'light');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('sw_theme', 'dark');
+            }
+            closeDrawer();
+        }
+
+        if(localStorage.getItem('sw_theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+
+        function switchNavTab(tabName, element) {
+            if(element) {
+                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+                element.classList.add('active');
+            }
+            const mainContent = document.getElementById('mainAppContent');
+            if(tabName === 'home') {
+                location.reload();
+            } else if(tabName === 'bookings') {
+                const orders = getStoreData('cooler_orders', []);
+                if(orders.length === 0) {
+                    mainContent.innerHTML = `
+                        <div style="padding: 3rem 1rem; text-align: center;">
+                            <h2 style="font-size: calc(var(--base-font-size) * 1.15); margin-bottom: 0.6rem;"><i class="fa-solid fa-receipt"></i> No Bookings Yet</h2>
+                            <p style="color: var(--gray); font-size: calc(var(--base-font-size) * 0.9);">Your booked cooler services with assigned technician and verification OTP will appear here.</p>
+                        </div>
+                    `;
+                } else {
+                    mainContent.innerHTML = `
+                        <div style="padding: 0.5rem 0;">
+                            <h2 style="font-size: calc(var(--base-font-size) * 1.25); font-weight: 900; margin-bottom: 1rem;"><i class="fa-solid fa-receipt"></i> Cooler Service Orders</h2>
+                            ${orders.map(o => `
+                                <div style="background: var(--white); padding: 14px; border-radius: var(--radius); border: 1px solid var(--gray-light); margin-bottom: 12px; box-shadow: var(--shadow-sm);">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                                        <b style="font-size: calc(var(--base-font-size) * 0.95); color: var(--primary);">📅 ${o.date} (${o.timeSlot})</b>
+                                        <span style="background: var(--primary-light); color: var(--primary); padding: 3px 8px; border-radius: 6px; font-size: calc(var(--base-font-size) * 0.8); font-weight: 900;">${o.status}</span>
+                                    </div>
+                                    ${o.items && o.items.length > 0 ? `<p style="font-size: calc(var(--base-font-size) * 0.9); color: var(--dark); margin-bottom: 4px;"><b>Cart Items:</b> ${o.items.map(i => i.name + ' (x' + i.qty + ')').join(', ')}</p>` : ''}
+                                    ${o.requirements && o.requirements.length > 0 ? `<p style="font-size: calc(var(--base-font-size) * 0.9); color: var(--dark); margin-bottom: 4px;"><b>Requirements:</b> ${o.requirements.join(', ')}</p>` : ''}
+                                    <p style="font-size: calc(var(--base-font-size) * 0.9); color: var(--gray); margin-bottom: 8px;"><b>Tech:</b> ${o.assignedPartner.name} (<a href="tel:${o.assignedPartner.phone}" style="color: var(--primary); font-weight: 800;">${o.assignedPartner.phone}</a>)</p>
+                                    <div style="background: var(--gray-lighter); padding: 8px; border-radius: 6px; display:flex; justify-content:space-between; align-items:center; border: 1px dashed var(--gray-light);">
+                                        <span style="font-size: calc(var(--base-font-size) * 0.85); font-weight: 800;">Completion OTP:</span>
+                                        <b style="font-size: 1.1rem; color: var(--accent-pink); letter-spacing: 3px; font-weight: 900;">${o.otp}</b>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+            } else if(tabName === 'support') {
+                mainContent.innerHTML = `
+                    <div style="padding: 1.5rem 0;">
+                        <h2 style="font-size: calc(var(--base-font-size) * 1.25); font-weight: 900; margin-bottom: 1rem;"><i class="fa-solid fa-headset"></i> 24/7 SewaAstra Support Desk</h2>
+                        <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--gray-light); box-shadow: var(--shadow-sm);">
+                            <h4 style="font-size: calc(var(--base-font-size) * 1.05); margin-bottom: 6px; font-weight: 800;">💬 Instant WhatsApp Helpline</h4>
+                            <p style="font-size: calc(var(--base-font-size) * 0.9); color: var(--gray); margin-bottom: 12px;">Direct assistance for emergency motor breakdowns, woodwool pad replacements, and technician scheduling.</p>
+                            <a href="https://wa.me/917869969190?text=Hello%20SewaAstra%20Support" target="_blank" class="add-btn" style="display:inline-block; text-align:center; padding: 8px 16px;">Chat with WhatsApp Support</a>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function scrollToServices() {
+            document.getElementById('servicesSection').scrollIntoView({ behavior: 'smooth' });
         }
     </script>
 </body>
