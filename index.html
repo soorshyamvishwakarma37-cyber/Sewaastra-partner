@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sewaastra Partner OS - Advanced Real-Time Enterprise Cloud</title>
+  <title>Sewaastra Partner OS - Enterprise Zomato-Style Edition</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
@@ -18,10 +18,9 @@
       --warning: #ffb300;
       --danger: #d32f2f;
       --blue: #1976d2;
-      --purple: #7b1fa2;
     }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
       background-color: var(--bg-main);
@@ -50,7 +49,7 @@
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      padding: 24px;
+      padding: 20px;
       border-radius: 14px;
       width: 100%;
       max-width: 440px;
@@ -59,7 +58,7 @@
       margin-bottom: 15px;
     }
     h1, h2, h3, h4 { margin: 0; }
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
     label {
       display: block;
       font-size: 11px;
@@ -97,7 +96,6 @@
     .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .btn-google:hover { background: #3367D6; }
     
-    /* GLOBAL LOADING OVERLAY WITH SPINNER */
     .loading-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -119,12 +117,8 @@
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* POPUP OVERLAY MODAL */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -143,36 +137,7 @@
       width: 100%;
       max-width: 380px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-      animation: scaleUp 0.3s ease;
     }
-    @keyframes scaleUp {
-      from { transform: scale(0.9); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-
-    .steps-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 20px;
-      position: relative;
-    }
-    .step-node {
-      text-align: center;
-      flex: 1;
-      position: relative;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
-    .step-node .circle {
-      width: 26px; height: 26px; border-radius: 50%; background: #e0e0e0; color: #fff;
-      display: flex; align-items: center; justify-content: center; margin: 0 auto 4px auto; font-size: 12px;
-    }
-    .step-node.active .circle { background: var(--primary-red); }
-    .step-node.completed .circle { background: var(--success); }
-    .step-node.active { color: var(--primary-red); }
-    .step-node.completed { color: var(--success); }
 
     .app-header {
       background: var(--bg-card);
@@ -190,7 +155,7 @@
       display: flex;
       align-items: center;
       background: #f1f1f1;
-      padding: 5px 12px;
+      padding: 6px 14px;
       border-radius: 20px;
       font-size: 12px;
       font-weight: bold;
@@ -223,14 +188,6 @@
     .badge-pending { background: rgba(255, 179, 0, 0.15); color: #b27d00; }
     .badge-danger { background: rgba(211, 47, 47, 0.1); color: var(--danger); }
 
-    .console-box {
-      background: #121212; color: #00ff66; padding: 12px; border-radius: 8px;
-      font-family: monospace; font-size: 11px; height: 130px; overflow-y: auto; margin-top: 12px;
-    }
-    .admin-card {
-      background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--blue);
-      padding: 16px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    }
     .wallet-card {
       background: linear-gradient(135deg, #e23744, #900c12); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px;
     }
@@ -241,11 +198,38 @@
     
     #liveMap {
       width: 100%;
-      height: 320px;
+      height: 220px;
       border-radius: 10px;
       margin-bottom: 12px;
       border: 1px solid var(--border);
     }
+    
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc; transition: .3s; border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background-color: white; transition: .3s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--primary-red); }
+    input:checked + .slider:before { transform: translateX(20px); }
   </style>
 </head>
 <body>
@@ -258,8 +242,7 @@
   <div id="mobilePopupModal" class="modal-overlay">
     <div class="modal-card">
       <h3 style="font-size: 16px; color: var(--primary-red); margin-bottom: 6px;">📱 Mobile Number Verification</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Please enter your WhatsApp-enabled 10-digit mobile number to proceed further.</p>
-      
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Please enter your 10-digit mobile number to proceed.</p>
       <div class="form-group">
         <label>Mobile Number:</label>
         <input type="text" id="popupPhoneInput" placeholder="Enter 10-digit number" maxlength="10">
@@ -271,8 +254,7 @@
   <div id="withdrawModal" class="modal-overlay">
     <div class="modal-card">
       <h3 style="font-size: 16px; color: var(--success); margin-bottom: 6px;">💸 Instant Bank Withdrawal</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Transfer your available cloud earnings instantly to your registered bank account.</p>
-      
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Transfer your available cloud earnings instantly.</p>
       <div class="form-group">
         <label>Withdrawal Amount (₹):</label>
         <input type="number" id="withdrawAmountInput" placeholder="Enter amount">
@@ -288,8 +270,7 @@
     <div class="modal-card" style="border-top: 5px solid var(--primary-red); text-align: center;">
       <span class="badge badge-pending" style="margin-bottom: 8px;">⚡ New Service Gig Alert!</span>
       <h3 id="modalOrderTitle" style="font-size: 16px; margin-bottom: 8px;">AC Split Jet Cleaning</h3>
-      <p id="modalOrderDetails" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Customer location near your telemetry coordinates. Estimated Payout: <b id="modalOrderPayout">₹899</b></p>
-      
+      <p id="modalOrderDetails" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Estimated Payout: <b id="modalOrderPayout">₹899</b></p>
       <div style="display: flex; gap: 10px;">
         <button onclick="acceptBroadcastedOrder()" style="background: var(--success); flex: 1;">Accept Order 👍</button>
         <button onclick="rejectBroadcastedOrder()" class="btn-outline" style="border-color: var(--danger); color: var(--danger); flex: 1;">Decline ❌</button>
@@ -304,7 +285,7 @@
         <button onclick="document.getElementById('customerChatModal').classList.remove('active')" class="btn-outline" style="width: auto; padding: 2px 6px; font-size: 10px;">Close X</button>
       </div>
       <div id="chatBoxLog" style="background: #f9f9f9; border: 1px solid var(--border); border-radius: 8px; padding: 10px; height: 140px; overflow-y: auto; font-size: 12px; margin-bottom: 10px;">
-        <div style="color: #666; margin-bottom: 4px;"><b>Customer:</b> Hello technician, please arrive within 20 minutes.</div>
+        <div style="color: #666; margin-bottom: 4px;"><b>Customer:</b> Hello partner, please arrive on time.</div>
       </div>
       <div class="form-group" style="margin-bottom: 8px;">
         <input type="text" id="chatMessageInput" placeholder="Type message to customer...">
@@ -315,27 +296,26 @@
 
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
-      <h2 style="color: var(--primary-red); font-weight: 900; font-size: 24px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA PARTNER</h2>
-      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Enterprise Partner Cloud Operating System</p>
+      <h2 style="color: var(--primary-red); font-weight: 900; font-size: 24px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System</p>
       
       <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.5 7c0-.4-.1-.8-.2-1.2H12v2.4h3.6c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.7-3.7 2.7-6.3zm-11.8 3.5c-.3-.9-.5-1.9-.5-2.9s.2-2 .5-2.9L3.5 6.6C2.5 8.6 2 10.7 2 13s.5 4.4 1.5 6.4l3.7-2.9Z"/></svg>
         Sign in with Google Firebase Auth
       </button>
-      <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">Automatic secure token exchange with Google OAuth Realtime Database backend.</p>
     </div>
   </div>
 
   <div id="stepKycScreen" class="screen">
     <div class="card" style="max-width: 480px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="font-size: 15px;">Sewaastra Partner Onboarding</h3>
+        <h3 style="font-size: 15px;">Partner Verification & KYC</h3>
         <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
       </div>
-      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Enterprise Rule: Admin verification is mandatory for live duty access.</p>
+      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide original documents for admin review.</p>
       
       <div class="form-group">
-        <label>Authenticated Email (Google):</label>
+        <label>Authenticated Email:</label>
         <input type="text" id="authEmailDisplay" readonly style="background: #f9f9f9; color: #555;">
       </div>
       <div class="form-group">
@@ -343,58 +323,57 @@
         <input type="text" id="kycFullName" placeholder="Enter Full Name">
       </div>
       <div class="form-group">
-        <label>Mobile Number (Auto-Linked):</label>
+        <label>Mobile Number:</label>
         <input type="text" id="kycPhone" readonly style="background: #f9f9f9; color: #555; font-weight: bold;">
       </div>
       <div class="form-group">
-        <label>Auto-Detected Live GPS Coordinates:</label>
+        <label>Live GPS Coordinates:</label>
         <input type="text" id="kycGeoLocation" readonly style="background: #f9f9f9; color: var(--success); font-weight: bold;" value="Acquiring GPS fix...">
       </div>
       <div class="form-group">
-        <label>Primary Specialization Skill:</label>
+        <label>Specialization Skill:</label>
         <select id="kycSkill">
           <option value="AC & Refrigeration Specialist">AC & Refrigeration Specialist</option>
-          <option value="Washing Machine & Appliance Tech">Washing Machine Appliance Tech</option>
+          <option value="Washing Machine Appliance Tech">Washing Machine Appliance Tech</option>
           <option value="Electrical & Geyser Expert">Electrical & Geyser Expert</option>
           <option value="RO Water Purifier Technician">RO Water Purifier Technician</option>
         </select>
       </div>
 
       <div style="background: #fafafa; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Systematic Verification Documents</h4>
+        <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Original Document Uploads</h4>
         <div class="form-group" style="margin-bottom: 10px;">
-          <label>1. Govt ID Document Upload:</label>
+          <label>1. Aadhaar Card Scan/Photo:</label>
           <input type="file" id="kycDocAadhaar" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
-          <label>2. PAN Card Number & Document:</label>
+          <label>2. PAN Card Number & Scan:</label>
           <input type="text" id="kycPan" placeholder="ABCDE1234F" style="margin-bottom: 6px;">
           <input type="file" id="kycDocPan" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
         </div>
         <div class="form-group" style="margin-bottom: 0;">
-          <label>3. Driver's License Number & Document:</label>
+          <label>3. Driver's License Number & Scan:</label>
           <input type="text" id="kycLicence" placeholder="DL-1420110012345" style="margin-bottom: 6px;">
           <input type="file" id="kycDocLicence" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
         </div>
       </div>
       
       <div class="form-group">
-        <label>Bank Account Number (Weekly Payouts):</label>
-        <input type="text" id="kycBank" placeholder="Account Number">
+        <label>Bank Account Number & IFSC Code:</label>
+        <input type="text" id="kycBank" placeholder="Enter Bank Account & IFSC">
       </div>
 
-      <button onclick="submitOnboardingData()" style="background: var(--success);">Submit & Sync to Cloud Database</button>
+      <button onclick="submitOnboardingData()" style="background: var(--success);">Submit KYC for Verification</button>
     </div>
   </div>
 
   <div id="stepWaitScreen" class="screen">
     <div class="card" style="text-align: center;">
       <div style="font-size: 42px; margin-bottom: 12px;">⏳</div>
-      <h3 style="font-size: 16px; margin-bottom: 6px;">Sewaastra Partner Verification Under Review</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your credentials have been securely stored in Firebase. Master Admin review in progress.</p>
-
+      <h3 style="font-size: 16px; margin-bottom: 6px;">Verification Under Review</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your documents are being reviewed by the admin team.</p>
       <div class="form-group">
-        <button onclick="checkAdminApprovalStatus()" class="btn-outline">🔄 Re-check Cloud Status</button>
+        <button onclick="checkAdminApprovalStatus()" class="btn-outline">🔄 Check Status</button>
       </div>
       <button onclick="logoutSession()" style="background: #666; font-size: 12px; padding: 8px;">Switch Account</button>
     </div>
@@ -402,15 +381,14 @@
 
   <div id="adminDashboard" class="screen">
     <div class="app-header" style="background: var(--blue); color: white;">
-      <h3 style="font-size: 14px; font-weight: 900;">👑 Sewaastra Partner Admin Portal</h3>
+      <h3 style="font-size: 14px; font-weight: 900;">Master Admin Portal</h3>
       <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: white; color: white;">Logout</button>
     </div>
     <div style="padding: 15px 0;">
       <div class="card" style="max-width: 100%; border-left: 5px solid var(--blue);">
-        <h4 style="font-size: 13px; margin-bottom: 5px;">Real-Time Registered Partner Network</h4>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Authorize partner onboarding records instantly across the Firebase cluster.</p>
+        <h4 style="font-size: 13px; margin-bottom: 5px;">Partner Verification Queue</h4>
         <div id="adminPartnerQueue">
-          <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Synchronizing database nodes...</p>
+          <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Loading database records...</p>
         </div>
       </div>
     </div>
@@ -418,32 +396,41 @@
 
   <div id="partnerHome" class="screen">
     <div class="app-header">
+      <h3 style="font-size: 16px; font-weight: 900; color: var(--primary-red);">Sewaastra Partner</h3>
       <div>
-        <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: bold;">Sewaastra Partner</span>
-        <div class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer; margin-top: 2px;">
+        <div class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer;">
           <div id="dutyDot" class="dot"></div>
           <span id="dutyText">OFF DUTY</span>
         </div>
       </div>
-      <div style="text-align: right;">
-        <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: bold;">Cloud Earning</span>
-        <div style="font-size: 16px; font-weight: 900; color: var(--success);" id="topBarEarnings">₹0</div>
-      </div>
     </div>
 
-    <!-- 1. LIVE MAP & FINDING ORDER TAB -->
     <div id="feedTab" class="tab-content active" style="padding: 15px 0;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="font-size: 15px;">Live Map & Finding Order</h3>
+        <h3 style="font-size: 15px;">Live Radar & Map</h3>
         <span class="badge badge-success">Telemetry Live ✅</span>
       </div>
 
       <div id="liveMap"></div>
 
-      <div id="activeOrderContainer" style="display: none; margin-top: 15px;">
+      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
+        <h4 style="font-size: 13px; margin-bottom: 10px;">Simulate Customer Booking</h4>
+        <div class="form-group">
+          <label>Select Service Package:</label>
+          <select id="serviceCategory">
+            <option value="AC Split Jet Cleaning & Servicing (₹899)">AC Split Jet Cleaning (₹899)</option>
+            <option value="Geyser Tank Heating Element Fix (₹599)">Geyser Element Repair (₹599)</option>
+            <option value="Washing Machine PCB Diagnostic (₹749)">Washing Machine Diagnostic (₹749)</option>
+            <option value="RO Water Purifier Filter Replacements (₹649)">RO Purifier Filter Service (₹649)</option>
+          </select>
+        </div>
+        <button onclick="broadcastCustomerOrder()">Broadcast Test Gig</button>
+      </div>
+
+      <div id="activeOrderContainer" style="display: none;">
         <div class="card" style="max-width: 100%; border-left: 5px solid var(--primary-red);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="badge badge-pending">Active Service Assignment</span>
+            <span class="badge badge-pending">Active Assignment</span>
             <span style="font-weight: 900; color: var(--primary-red);" id="orderAmountText">₹0</span>
           </div>
           <div id="orderDetailsBox" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></div>
@@ -455,21 +442,29 @@
           </div>
 
           <div class="form-group">
-            <label style="color: var(--success);">Customer Completion Verification OTP:</label>
+            <label style="color: var(--success);">Customer Completion OTP:</label>
             <input type="text" id="enteredOtp" placeholder="Enter 4-digit code" maxlength="4" style="text-align: center; letter-spacing: 6px; font-weight: bold; font-size: 16px;">
           </div>
 
           <div style="display: flex; gap: 10px; margin-bottom: 12px;">
             <button onclick="verifyOtpAndCompleteOrder()" style="flex: 1; background: var(--success);">Verify & Complete</button>
-            <button onclick="declineAssignedOrder()" class="btn-outline" style="flex: 1; border-color: var(--danger); color: var(--danger);">Decline / Unaccept</button>
+            <button onclick="declineAssignedOrder()" class="btn-outline" style="flex: 1; border-color: var(--danger); color: var(--danger);">Decline</button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- 2. EARNING SECTION -->
+    <div id="ordersTab" class="tab-content" style="padding: 15px 0;">
+      <h3 style="font-size: 15px; margin-bottom: 12px;">Finding & Incoming Orders</h3>
+      <div class="card" style="max-width: 100%; text-align: center;">
+        <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
+        <h4 style="font-size: 14px; margin-bottom: 6px;">Scanning Firebase Order Stream</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Incoming customer gigs and service broadcasts will appear here in real-time when online.</p>
+        <button onclick="broadcastCustomerOrder()" class="btn-outline" style="font-size: 12px;">Trigger Test Dispatch</button>
+      </div>
+    </div>
+
     <div id="earningsTab" class="tab-content" style="padding: 15px 0;">
-      <h3 style="font-size: 15px; margin-bottom: 12px;">Earnings & Payouts</h3>
       <div class="wallet-card">
         <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85;">Available Payout Balance</span>
         <div style="font-size: 34px; font-weight: 900; margin: 8px 0;" id="walletNetBalance">₹0</div>
@@ -482,49 +477,54 @@
       </div>
     </div>
 
-    <!-- 3. GIG BOOKING SECTION -->
-    <div id="bookingTab" class="tab-content" style="padding: 15px 0;">
-      <h3 style="font-size: 15px; margin-bottom: 12px;">Gig Booking Section</h3>
-      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
-        <h4 style="font-size: 13px; margin-bottom: 10px;">Simulate Customer Booking Request</h4>
-        <div class="form-group">
-          <label>Select Service Package:</label>
-          <select id="serviceCategory">
-            <option value="AC Split Jet Cleaning & Servicing (₹899)">AC Split Jet Cleaning (₹899)</option>
-            <option value="Geyser Tank Heating Element Fix (₹599)">Geyser Element Repair (₹599)</option>
-            <option value="Washing Machine PCB Diagnostic (₹749)">Washing Machine Diagnostic (₹749)</option>
-            <option value="RO Water Purifier Filter Replacements (₹649)">RO Purifier Filter Service (₹649)</option>
-          </select>
-        </div>
-        <button onclick="broadcastCustomerOrder()">Broadcast Multi-Gig Order</button>
-      </div>
-    </div>
-
-    <!-- 4. PROFILE SECTION WITH ALL SETTINGS -->
     <div id="profileTab" class="tab-content" style="padding: 15px 0;">
-      <h3 style="font-size: 15px; margin-bottom: 12px;">Partner Profile & Settings</h3>
-      <div class="card" style="max-width: 100%;">
+      <div class="card" style="max-width: 100%; margin-bottom: 12px;">
+        <h3 style="font-size: 15px; margin-bottom: 12px;">👤 Partner Account</h3>
         <div class="form-group">
-          <label>Authenticated Email:</label>
+          <label>Account Email:</label>
           <input type="text" id="profileEmailDisplay" readonly style="background: #f9f9f9;">
         </div>
         <div class="form-group">
           <label>Registered Phone:</label>
           <input type="text" id="profilePhoneDisplay" readonly style="background: #f9f9f9;">
         </div>
-        
-        <h4 style="font-size: 12px; margin: 15px 0 8px 0; color: var(--primary-red);">Live Enterprise Telemetry Console</h4>
-        <div class="console-box" id="systemConsole"></div>
-        <button onclick="document.getElementById('systemConsole').innerHTML=''" class="btn-outline" style="margin-top: 8px; font-size: 11px; padding: 6px;">Clear Console</button>
+        <div class="form-group">
+          <label>Specialization Skill:</label>
+          <input type="text" id="profileSkillDisplay" readonly style="background: #f9f9f9;">
+        </div>
+      </div>
 
-        <button onclick="logoutSession()" class="btn-outline" style="margin-top: 20px; border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
+      <div class="card" style="max-width: 100%;">
+        <h3 style="font-size: 15px; margin-bottom: 6px;">⚙️ Zomato-Style App Settings</h3>
+        
+        <div class="setting-row">
+          <span>🔔 Push Notifications & Alerts</span>
+          <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <span>🔊 Audio In-App Order Beep</span>
+          <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <span>🌙 Dark Mode Theme</span>
+          <label class="switch"><input type="checkbox" onchange="toggleDarkMode(this)"><span class="slider"></span></label>
+        </div>
+        <div class="setting-row" style="border-bottom: none;">
+          <span>🌐 Preferred Language (Hindi/English)</span>
+          <select style="width: 110px; padding: 6px; font-size: 12px;">
+            <option value="en">English</option>
+            <option value="hi">हिंदी (Hindi)</option>
+          </select>
+        </div>
+
+        <button onclick="logoutSession()" class="btn-outline" style="margin-top: 15px; border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
       </div>
     </div>
 
     <div class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('feedTab', this)"><span>🗺️</span>Live Map</div>
+      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span>⚡</span>Finding Orders</div>
       <div class="nav-item" onclick="switchTab('earningsTab', this)"><span>💰</span>Earnings</div>
-      <div class="nav-item" onclick="switchTab('bookingTab', this)"><span>⚡</span>Booking</div>
       <div class="nav-item" onclick="switchTab('profileTab', this)"><span>👤</span>Profile</div>
     </div>
   </div>
@@ -533,7 +533,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, push, get, child, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, push, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
@@ -558,14 +558,6 @@
     let currentAssignedOrderId = null;
     let currentLat = 28.6139;
     let currentLng = 77.2090;
-    const consoleBox = document.getElementById("systemConsole");
-
-    function logMessage(text) {
-      if(!consoleBox) return;
-      const time = new Date().toLocaleTimeString();
-      consoleBox.innerHTML += `[${time}] ${text}<br>`;
-      consoleBox.scrollTop = consoleBox.scrollHeight;
-    }
 
     function showLoader(text = "Processing...") {
       document.getElementById("loadingText").innerText = text;
@@ -588,9 +580,7 @@
         gainNode.connect(audioCtx.destination);
         oscillator.start();
         oscillator.stop(audioCtx.currentTime + 0.4);
-      } catch(e) {
-        console.log("Audio alert suppressed by browser policy");
-      }
+      } catch(e) {}
     }
 
     function detectCurrentGeolocation() {
@@ -603,11 +593,8 @@
             if (geoField) {
               geoField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)} (GPS Verified)`;
             }
-            logMessage(`GPS Acquired: ${currentLat}, ${currentLng}`);
           },
-          (error) => {
-            logMessage(`GPS Warning: Using default network tower coordinates.`);
-          },
+          (error) => {},
           { timeout: 10000 }
         );
       }
@@ -642,13 +629,28 @@
       L.marker([currentLat, currentLng]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Location</b>").openPopup();
     }
 
+    window.toggleDarkMode = function(checkbox) {
+      if (checkbox.checked) {
+        document.documentElement.style.setProperty('--bg-main', '#121212');
+        document.documentElement.style.setProperty('--bg-card', '#1e1e1e');
+        document.documentElement.style.setProperty('--text-main', '#e0e0e0');
+        document.documentElement.style.setProperty('--text-muted', '#a0a0a0');
+        document.documentElement.style.setProperty('--border', '#333333');
+      } else {
+        document.documentElement.style.setProperty('--bg-main', '#f4f6f8');
+        document.documentElement.style.setProperty('--bg-card', '#ffffff');
+        document.documentElement.style.setProperty('--text-main', '#1c1c1c');
+        document.documentElement.style.setProperty('--text-muted', '#696969');
+        document.documentElement.style.setProperty('--border', '#e0e0e0');
+      }
+    };
+
     window.addEventListener('DOMContentLoaded', async () => {
       detectCurrentGeolocation();
       const persistedUid = localStorage.getItem('sewaastra_persisted_uid');
       const persistedEmail = localStorage.getItem('sewaastra_persisted_email');
       
       if (persistedUid) {
-        logMessage(`Restoring session for UID: ${persistedUid}`);
         loggedInUser = { uid: persistedUid, email: persistedEmail };
         evaluateUserRouting(persistedUid, persistedEmail);
       }
@@ -659,7 +661,6 @@
       try {
         const result = await signInWithPopup(auth, googleProvider);
         loggedInUser = result.user;
-        logMessage(`Google Auth successful for: ${loggedInUser.email}`);
         
         const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
         const snap = await get(partnerRef);
@@ -675,7 +676,6 @@
       } catch (error) {
         hideLoader();
         alert("Google Login Error: " + error.message);
-        logMessage(`Auth Error: ${error.message}`);
       }
     };
 
@@ -687,7 +687,6 @@
       }
       temporaryUserPhone = phoneInput;
       document.getElementById("mobilePopupModal").classList.remove("active");
-      logMessage(`Mobile number captured: ${temporaryUserPhone}`);
 
       showScreen('stepKycScreen');
       document.getElementById("authEmailDisplay").value = loggedInUser.email;
@@ -717,8 +716,6 @@
         if (data.kycStatus === "approved") {
           showScreen('partnerHome');
           attachPartnerRealtimeSync(uid);
-          document.getElementById("profileEmailDisplay").value = email;
-          document.getElementById("profilePhoneDisplay").value = data.phone || "";
         } else {
           showScreen('stepWaitScreen');
         }
@@ -736,12 +733,12 @@
       const licence = document.getElementById("kycLicence").value.trim();
       const bank = document.getElementById("kycBank").value.trim();
 
-      if (!name || !phone || !pan || !licence) {
-        alert("Please fill in all mandatory onboarding text fields.");
+      if (!name || !phone || !pan || !licence || !bank) {
+        alert("Please fill in all original KYC document details.");
         return;
       }
 
-      showLoader("Uploading systematic KYC documents to cloud storage...");
+      showLoader("Uploading original documents to cloud storage...");
       
       const payload = {
         email: loggedInUser.email,
@@ -760,7 +757,7 @@
       localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
 
       hideLoader();
-      alert("Systematic KYC documents and profile successfully synced to Firebase!");
+      alert("KYC documents and profile successfully synced to Firebase!");
       showScreen('stepWaitScreen');
     };
 
@@ -772,7 +769,7 @@
       hideLoader();
 
       if (data.kycStatus === "approved") {
-        alert("🎉 Admin approved your onboarding! Entering live work dashboard.");
+        alert("🎉 Admin approved your onboarding! Entering dashboard.");
         showScreen('partnerHome');
         attachPartnerRealtimeSync(loggedInUser.uid);
       } else {
@@ -793,17 +790,17 @@
         for (const [uid, data] of Object.entries(records)) {
           const badgeClass = data.kycStatus === "approved" ? "badge-success" : (data.kycStatus === "rejected" ? "badge-danger" : "badge-pending");
           html += `
-            <div class="admin-card">
+            <div style="background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--blue); padding: 14px; border-radius: 8px; margin-bottom: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <h4 style="font-size: 14px;">${data.name}</h4>
                 <span class="badge ${badgeClass}">${data.kycStatus.toUpperCase()}</span>
               </div>
-              <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+              <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;">
                 📧 Email: <b>${data.email}</b><br>
                 📱 Phone: <b>${data.phone}</b><br>
-                🛠️ Specialization: <b>${data.skill}</b><br>
-                📁 PAN Card: <b>${data.pan}</b><br>
-                🚗 License: <b>${data.licence}</b>
+                🛠️ Skill: <b>${data.skill}</b><br>
+                📁 PAN: <b>${data.pan}</b> | Lic: <b>${data.licence}</b><br>
+                🏦 Bank: <b>${data.bank}</b>
               </div>
               <div style="display: flex; gap: 10px;">
                 <button onclick="adminApprovePartner('${uid}')" style="background: var(--success); padding: 8px; font-size: 12px;">Approve ✅</button>
@@ -818,12 +815,10 @@
 
     window.adminApprovePartner = async function(uid) {
       await update(ref(db, `live_partners/${uid}`), { kycStatus: "approved" });
-      logMessage(`Admin approved partner UID: ${uid}`);
     };
 
     window.adminRejectPartner = async function(uid) {
       await update(ref(db, `live_partners/${uid}`), { kycStatus: "rejected" });
-      logMessage(`Admin rejected partner UID: ${uid}`);
     };
 
     window.logoutSession = async function() {
@@ -833,7 +828,6 @@
       await signOut(auth);
       loggedInUser = null;
       showScreen('stepLoginScreen');
-      logMessage("Partner signed out and session destroyed.");
     };
 
     function attachPartnerRealtimeSync(uid) {
@@ -871,9 +865,12 @@
         }
 
         const earned = data.totalEarned || 0;
-        document.getElementById("topBarEarnings").innerText = `₹${earned}`;
         document.getElementById("walletNetBalance").innerText = `₹${earned}`;
         document.getElementById("completedJobsCount").innerText = data.completedJobs || 0;
+
+        document.getElementById("profileEmailDisplay").value = data.email || "";
+        document.getElementById("profilePhoneDisplay").value = data.phone || "";
+        document.getElementById("profileSkillDisplay").value = data.skill || "";
       });
 
       onValue(ref(db, 'live_orders'), (snap) => {
@@ -900,7 +897,7 @@
       const data = snap.val() || {};
 
       if (data.kycStatus !== "approved") {
-        alert("❌ Error: You cannot toggle online until Admin approves your KYC profile!");
+        alert("❌ Error: You cannot go online until Admin approves your KYC profile!");
         return;
       }
 
@@ -909,7 +906,6 @@
         isOnline: nextState,
         status: nextState ? "available" : "offline"
       });
-      logMessage(`Duty status updated: ${nextState ? 'ONLINE' : 'OFFLINE'}`);
     };
 
     window.broadcastCustomerOrder = async function() {
@@ -923,8 +919,6 @@
       };
 
       await set(newOrderRef, orderPayload);
-      logMessage(`📦 Customer Multi-Gig Broadcasted: ${serviceCat}`);
-      alert("✅ Order successfully broadcasted to Firebase cloud!");
     };
 
     window.acceptBroadcastedOrder = async function() {
@@ -942,14 +936,12 @@
 
       await update(ref(db), batch);
       document.getElementById("incomingOrderModal").classList.remove("active");
-      logMessage(`✅ Order Accepted. OTP Code: [ ${completionOtp} ]`);
       currentPendingOrderId = null;
     };
 
     window.rejectBroadcastedOrder = function() {
       document.getElementById("incomingOrderModal").classList.remove("active");
       currentPendingOrderId = null;
-      logMessage("⚠️ Incoming order alert dismissed/declined.");
     };
 
     window.openChatModal = function() {
@@ -983,7 +975,7 @@
       const currentEarned = data.totalEarned || 0;
 
       if (amt > currentEarned) {
-        alert("❌ Insufficient payout balance in your cloud wallet.");
+        alert("❌ Insufficient payout balance in your wallet.");
         return;
       }
 
@@ -991,7 +983,6 @@
       await update(pRef, { totalEarned: newBalance });
       document.getElementById("withdrawModal").classList.remove("active");
       alert(`🎉 Successfully transferred ₹${amt} to your bank account!`);
-      logMessage(`💸 Withdrawn ₹${amt} from wallet balance.`);
     };
 
     window.verifyOtpAndCompleteOrder = async function() {
@@ -1007,7 +998,7 @@
 
       const orderData = orderSnap.val();
       if (enteredOtp !== orderData.completionOtp) {
-        alert(`❌ Incorrect Verification OTP! Check console for test code.`);
+        alert(`❌ Incorrect Verification OTP!`);
         return;
       }
 
@@ -1023,7 +1014,6 @@
       updates[`/live_partners/${uid}/completedJobs`] = newCompletedJobs;
 
       await update(ref(db), updates);
-      logMessage(`🎉 Order completed successfully. Credited ₹${orderAmount} to wallet.`);
       alert("✅ Service verified and wallet updated successfully!");
     };
 
@@ -1039,7 +1029,6 @@
       updates[`/live_partners/${uid}/currentOrderId`] = null;
 
       await update(ref(db), updates);
-      logMessage(`⚠️ Assigned order unaccepted/declined and re-queued in cloud database.`);
     };
   </script>
 </body>
