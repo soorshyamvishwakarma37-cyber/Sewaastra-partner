@@ -96,6 +96,32 @@
     .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .btn-google:hover { background: #3367D6; }
     
+    /* POPUP OVERLAY MODAL FOR MOBILE NUMBER */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 15px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-card {
+      background: #fff;
+      border-radius: 14px;
+      padding: 24px;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      animation: scaleUp 0.3s ease;
+    }
+    @keyframes scaleUp {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
     .steps-header {
       display: flex;
       justify-content: space-between;
@@ -205,6 +231,20 @@
 </head>
 <body>
 
+  <!-- POPUP MODAL FOR MOBILE NUMBER AFTER GOOGLE LOGIN -->
+  <div id="mobilePopupModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="font-size: 16px; color: var(--primary-red); margin-bottom: 6px;">📱 Mobile Number Verification</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Please enter your WhatsApp-enabled 10-digit mobile number to proceed further.</p>
+      
+      <div class="form-group">
+        <label>Mobile Number:</label>
+        <input type="text" id="popupPhoneInput" placeholder="Enter 10-digit number" maxlength="10">
+      </div>
+      <button onclick="submitPopupMobileNumber()" style="background: var(--success);">Save & Continue ➔</button>
+    </div>
+  </div>
+
   <!-- STEP 1: GOOGLE AUTHENTICATION LOGIN SCREEN -->
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
@@ -251,8 +291,8 @@
         <input type="text" id="kycFullName" placeholder="Enter Full Name">
       </div>
       <div class="form-group">
-        <label>Mobile Number (WhatsApp Enabled):</label>
-        <input type="text" id="kycPhone" placeholder="10-digit mobile number" maxlength="10">
+        <label>Mobile Number (Auto-Linked):</label>
+        <input type="text" id="kycPhone" readonly style="background: #f9f9f9; color: #555; font-weight: bold;">
       </div>
       <div class="form-group">
         <label>Primary Specialization Skill:</label>
@@ -630,6 +670,7 @@
     const googleProvider = new GoogleAuthProvider();
 
     let loggedInUser = null;
+    let temporaryUserPhone = "";
     let activeSyncListener = null;
     const consoleBox = document.getElementById("systemConsole");
 
@@ -658,11 +699,39 @@
         const result = await signInWithPopup(auth, googleProvider);
         loggedInUser = result.user;
         logMessage(`Google Auth successful for: ${loggedInUser.email}`);
-        evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
+        
+        // Check if partner already exists in database
+        const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
+        const snap = await get(partnerRef);
+
+        if (!snap.exists()) {
+          // Trigger Popup Modal to ask for Mobile Number immediately after Google Login
+          document.getElementById("mobilePopupModal").classList.add("active");
+        } else {
+          evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
+        }
       } catch (error) {
         alert("Google Login Error: " + error.message);
         logMessage(`Auth Error: ${error.message}`);
       }
+    };
+
+    // SUBMIT MOBILE NUMBER FROM POPUP MODAL
+    window.submitPopupMobileNumber = function() {
+      const phoneInput = document.getElementById("popupPhoneInput").value.trim();
+      if (!phoneInput || phoneInput.length !== 10) {
+        alert("Please enter a valid 10-digit mobile number.");
+        return;
+      }
+      temporaryUserPhone = phoneInput;
+      document.getElementById("mobilePopupModal").classList.remove("active");
+      logMessage(`Mobile number captured: ${temporaryUserPhone}`);
+
+      // Move to Step 2 (Onboarding Form with pre-filled details)
+      showScreen('stepKycScreen');
+      document.getElementById("authEmailDisplay").value = loggedInUser.email;
+      document.getElementById("kycPhone").value = temporaryUserPhone;
+      document.getElementById("kycFullName").value = loggedInUser.displayName || "";
     };
 
     // ROUTING LOGIC BASED ON CLOUD RECORD
@@ -794,6 +863,7 @@
       if (activeSyncListener) activeSyncListener();
       await signOut(auth);
       loggedInUser = null;
+      temporaryUserPhone = "";
       showScreen('stepLoginScreen');
       logMessage("User session terminated securely.");
     };
