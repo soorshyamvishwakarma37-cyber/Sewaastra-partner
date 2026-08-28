@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sewaastra Partner OS - Enterprise Zomato-Style Edition</title>
+  <title>Sewaastra Partner OS</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
@@ -49,7 +49,7 @@
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      padding: 20px;
+      padding: 24px;
       border-radius: 14px;
       width: 100%;
       max-width: 440px;
@@ -58,7 +58,7 @@
       margin-bottom: 15px;
     }
     h1, h2, h3, h4 { margin: 0; }
-    .form-group { margin-bottom: 14px; }
+    .form-group { margin-bottom: 16px; }
     label {
       display: block;
       font-size: 11px;
@@ -141,7 +141,7 @@
 
     .app-header {
       background: var(--bg-card);
-      padding: 12px 16px;
+      padding: 10px 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -150,18 +150,35 @@
       top: 0;
       z-index: 100;
       border-radius: 0 0 12px 12px;
+      gap: 8px;
+    }
+    .location-badge {
+      display: flex;
+      align-items: center;
+      background: #fff5f5;
+      border: 1px solid #ffdada;
+      padding: 4px 10px;
+      border-radius: 15px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--primary-red);
+      max-width: 160px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
     }
     .duty-pill {
       display: flex;
       align-items: center;
       background: #f1f1f1;
-      padding: 6px 14px;
+      padding: 5px 10px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: bold;
-      gap: 6px;
+      gap: 5px;
     }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; }
     .dot.online { background: var(--success); }
 
     .bottom-nav {
@@ -203,33 +220,6 @@
       margin-bottom: 12px;
       border: 1px solid var(--border);
     }
-    
-    .setting-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 13px;
-      font-weight: 600;
-    }
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-    }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ccc; transition: .3s; border-radius: 24px;
-    }
-    .slider:before {
-      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
-      background-color: white; transition: .3s; border-radius: 50%;
-    }
-    input:checked + .slider { background-color: var(--primary-red); }
-    input:checked + .slider:before { transform: translateX(20px); }
   </style>
 </head>
 <body>
@@ -285,7 +275,7 @@
         <button onclick="document.getElementById('customerChatModal').classList.remove('active')" class="btn-outline" style="width: auto; padding: 2px 6px; font-size: 10px;">Close X</button>
       </div>
       <div id="chatBoxLog" style="background: #f9f9f9; border: 1px solid var(--border); border-radius: 8px; padding: 10px; height: 140px; overflow-y: auto; font-size: 12px; margin-bottom: 10px;">
-        <div style="color: #666; margin-bottom: 4px;"><b>Customer:</b> Hello partner, please arrive on time.</div>
+        <div style="color: #666; margin-bottom: 4px;"><b>Customer:</b> Hello technician, please arrive on time.</div>
       </div>
       <div class="form-group" style="margin-bottom: 8px;">
         <input type="text" id="chatMessageInput" placeholder="Type message to customer...">
@@ -312,7 +302,7 @@
         <h3 style="font-size: 15px;">Partner Verification & KYC</h3>
         <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
       </div>
-      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide original documents for admin review.</p>
+      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please upload original documents for admin verification.</p>
       
       <div class="form-group">
         <label>Authenticated Email:</label>
@@ -327,7 +317,7 @@
         <input type="text" id="kycPhone" readonly style="background: #f9f9f9; color: #555; font-weight: bold;">
       </div>
       <div class="form-group">
-        <label>Live GPS Coordinates:</label>
+        <label>Live GPS Coordinates & Area:</label>
         <input type="text" id="kycGeoLocation" readonly style="background: #f9f9f9; color: var(--success); font-weight: bold;" value="Acquiring GPS fix...">
       </div>
       <div class="form-group">
@@ -341,26 +331,26 @@
       </div>
 
       <div style="background: #fafafa; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Original Document Uploads</h4>
+        <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Document Uploads</h4>
         <div class="form-group" style="margin-bottom: 10px;">
-          <label>1. Aadhaar Card Scan/Photo:</label>
+          <label>1. Aadhaar Card Upload:</label>
           <input type="file" id="kycDocAadhaar" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
         </div>
         <div class="form-group" style="margin-bottom: 10px;">
-          <label>2. PAN Card Number & Scan:</label>
+          <label>2. PAN Card & Document:</label>
           <input type="text" id="kycPan" placeholder="ABCDE1234F" style="margin-bottom: 6px;">
           <input type="file" id="kycDocPan" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
         </div>
         <div class="form-group" style="margin-bottom: 0;">
-          <label>3. Driver's License Number & Scan:</label>
+          <label>3. Driver's License & Document:</label>
           <input type="text" id="kycLicence" placeholder="DL-1420110012345" style="margin-bottom: 6px;">
           <input type="file" id="kycDocLicence" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
         </div>
       </div>
       
       <div class="form-group">
-        <label>Bank Account Number & IFSC Code:</label>
-        <input type="text" id="kycBank" placeholder="Enter Bank Account & IFSC">
+        <label>Bank Account Number & IFSC:</label>
+        <input type="text" id="kycBank" placeholder="Account Number & IFSC Code">
       </div>
 
       <button onclick="submitOnboardingData()" style="background: var(--success);">Submit KYC for Verification</button>
@@ -396,8 +386,10 @@
 
   <div id="partnerHome" class="screen">
     <div class="app-header">
-      <h3 style="font-size: 16px; font-weight: 900; color: var(--primary-red);">Sewaastra Partner</h3>
-      <div>
+      <div id="topLocationBadge" class="location-badge" onclick="detectCurrentGeolocation(true)" title="Click to refresh location">
+        📍 <span id="locationText">Detecting area...</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 6px;">
         <div class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer;">
           <div id="dutyDot" class="dot"></div>
           <span id="dutyText">OFF DUTY</span>
@@ -459,7 +451,7 @@
       <div class="card" style="max-width: 100%; text-align: center;">
         <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
         <h4 style="font-size: 14px; margin-bottom: 6px;">Scanning Firebase Order Stream</h4>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Incoming customer gigs and service broadcasts will appear here in real-time when online.</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Orders matching your active duty status and location will automatically appear here instantly.</p>
         <button onclick="broadcastCustomerOrder()" class="btn-outline" style="font-size: 12px;">Trigger Test Dispatch</button>
       </div>
     </div>
@@ -478,8 +470,8 @@
     </div>
 
     <div id="profileTab" class="tab-content" style="padding: 15px 0;">
-      <div class="card" style="max-width: 100%; margin-bottom: 12px;">
-        <h3 style="font-size: 15px; margin-bottom: 12px;">👤 Partner Account</h3>
+      <div class="card" style="max-width: 100%;">
+        <h3 style="font-size: 15px; margin-bottom: 15px;">Partner Profile & Settings</h3>
         <div class="form-group">
           <label>Account Email:</label>
           <input type="text" id="profileEmailDisplay" readonly style="background: #f9f9f9;">
@@ -489,35 +481,10 @@
           <input type="text" id="profilePhoneDisplay" readonly style="background: #f9f9f9;">
         </div>
         <div class="form-group">
-          <label>Specialization Skill:</label>
+          <label>Skill Specialization:</label>
           <input type="text" id="profileSkillDisplay" readonly style="background: #f9f9f9;">
         </div>
-      </div>
-
-      <div class="card" style="max-width: 100%;">
-        <h3 style="font-size: 15px; margin-bottom: 6px;">⚙️ Zomato-Style App Settings</h3>
-        
-        <div class="setting-row">
-          <span>🔔 Push Notifications & Alerts</span>
-          <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-        </div>
-        <div class="setting-row">
-          <span>🔊 Audio In-App Order Beep</span>
-          <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
-        </div>
-        <div class="setting-row">
-          <span>🌙 Dark Mode Theme</span>
-          <label class="switch"><input type="checkbox" onchange="toggleDarkMode(this)"><span class="slider"></span></label>
-        </div>
-        <div class="setting-row" style="border-bottom: none;">
-          <span>🌐 Preferred Language (Hindi/English)</span>
-          <select style="width: 110px; padding: 6px; font-size: 12px;">
-            <option value="en">English</option>
-            <option value="hi">हिंदी (Hindi)</option>
-          </select>
-        </div>
-
-        <button onclick="logoutSession()" class="btn-outline" style="margin-top: 15px; border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
+        <button onclick="logoutSession()" class="btn-outline" style="margin-top: 10px; border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
       </div>
     </div>
 
@@ -533,7 +500,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, push, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
@@ -583,22 +550,45 @@
       } catch(e) {}
     }
 
-    function detectCurrentGeolocation() {
+    // 🔥 Auto Geolocation & Reverse Geocoding for Header Area Name 🔥
+    window.detectCurrentGeolocation = function(showAlert = false) {
+      const locationLabel = document.getElementById("locationText");
+      if (locationLabel) locationLabel.innerText = "Locating...";
+
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
-          (position) => {
+          async (position) => {
             currentLat = position.coords.latitude;
             currentLng = position.coords.longitude;
+            
             const geoField = document.getElementById("kycGeoLocation");
             if (geoField) {
               geoField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)} (GPS Verified)`;
             }
+
+            // Fetch exact area name using OpenStreetMap Nominatim API
+            try {
+              const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLat}&lon=${currentLng}`);
+              const data = await response.json();
+              const address = data.address || {};
+              const areaName = address.suburb || address.neighbourhood || address.city_district || address.city || address.town || "Current Location";
+              
+              if (locationLabel) locationLabel.innerText = areaName;
+              if (showAlert) alert(`📍 Location updated: ${areaName}`);
+            } catch (err) {
+              if (locationLabel) locationLabel.innerText = `${currentLat.toFixed(2)}, ${currentLng.toFixed(2)}`;
+            }
           },
-          (error) => {},
-          { timeout: 10000 }
+          (error) => {
+            if (locationLabel) locationLabel.innerText = "New Delhi (Default)";
+            if (showAlert) alert("⚠️ Could not fetch precise GPS. Please check location permissions.");
+          },
+          { timeout: 10000, enableHighAccuracy: true }
         );
+      } else {
+        if (locationLabel) locationLabel.innerText = "GPS Not Supported";
       }
-    }
+    };
 
     window.switchTab = function(tabId, el) {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
@@ -629,22 +619,6 @@
       L.marker([currentLat, currentLng]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Location</b>").openPopup();
     }
 
-    window.toggleDarkMode = function(checkbox) {
-      if (checkbox.checked) {
-        document.documentElement.style.setProperty('--bg-main', '#121212');
-        document.documentElement.style.setProperty('--bg-card', '#1e1e1e');
-        document.documentElement.style.setProperty('--text-main', '#e0e0e0');
-        document.documentElement.style.setProperty('--text-muted', '#a0a0a0');
-        document.documentElement.style.setProperty('--border', '#333333');
-      } else {
-        document.documentElement.style.setProperty('--bg-main', '#f4f6f8');
-        document.documentElement.style.setProperty('--bg-card', '#ffffff');
-        document.documentElement.style.setProperty('--text-main', '#1c1c1c');
-        document.documentElement.style.setProperty('--text-muted', '#696969');
-        document.documentElement.style.setProperty('--border', '#e0e0e0');
-      }
-    };
-
     window.addEventListener('DOMContentLoaded', async () => {
       detectCurrentGeolocation();
       const persistedUid = localStorage.getItem('sewaastra_persisted_uid');
@@ -662,6 +636,9 @@
         const result = await signInWithPopup(auth, googleProvider);
         loggedInUser = result.user;
         
+        // Auto-Detect Location right after login success
+        detectCurrentGeolocation();
+
         const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
         const snap = await get(partnerRef);
 
@@ -734,7 +711,7 @@
       const bank = document.getElementById("kycBank").value.trim();
 
       if (!name || !phone || !pan || !licence || !bank) {
-        alert("Please fill in all original KYC document details.");
+        alert("Please fill in all mandatory KYC onboarding details.");
         return;
       }
 
@@ -769,7 +746,7 @@
       hideLoader();
 
       if (data.kycStatus === "approved") {
-        alert("🎉 Admin approved your onboarding! Entering dashboard.");
+        alert("🎉 Admin approved your onboarding! Entering live dashboard.");
         showScreen('partnerHome');
         attachPartnerRealtimeSync(loggedInUser.uid);
       } else {
@@ -799,8 +776,7 @@
                 📧 Email: <b>${data.email}</b><br>
                 📱 Phone: <b>${data.phone}</b><br>
                 🛠️ Skill: <b>${data.skill}</b><br>
-                📁 PAN: <b>${data.pan}</b> | Lic: <b>${data.licence}</b><br>
-                🏦 Bank: <b>${data.bank}</b>
+                📁 PAN: <b>${data.pan}</b> | Lic: <b>${data.licence}</b>
               </div>
               <div style="display: flex; gap: 10px;">
                 <button onclick="adminApprovePartner('${uid}')" style="background: var(--success); padding: 8px; font-size: 12px;">Approve ✅</button>
