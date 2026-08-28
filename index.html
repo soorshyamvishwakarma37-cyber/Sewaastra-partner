@@ -227,23 +227,6 @@
       background: #121212; color: #00ff66; padding: 12px; border-radius: 8px;
       font-family: monospace; font-size: 11px; height: 130px; overflow-y: auto; margin-top: 12px;
     }
-    .settings-list { display: flex; flex-direction: column; gap: 8px; }
-    .setting-item {
-      background: #fff; border: 1px solid var(--border); padding: 10px 14px;
-      border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600;
-    }
-    .toggle-switch { position: relative; display: inline-block; width: 38px; height: 20px; }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .slider {
-      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ccc; transition: .3s; border-radius: 20px;
-    }
-    .slider:before {
-      position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
-      background-color: white; transition: .3s; border-radius: 50%;
-    }
-    input:checked + .slider { background-color: var(--primary-red); }
-    input:checked + .slider:before { transform: translateX(18px); }
     .admin-card {
       background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--blue);
       padding: 16px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
@@ -258,7 +241,7 @@
     
     #liveMap {
       width: 100%;
-      height: 220px;
+      height: 320px;
       border-radius: 10px;
       margin-bottom: 12px;
       border: 1px solid var(--border);
@@ -332,14 +315,7 @@
 
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
-      <div class="steps-header">
-        <div class="step-node active"><div class="circle">1</div>Login</div>
-        <div class="step-node"><div class="circle">2</div>Profile</div>
-        <div class="step-node"><div class="circle">3</div>Status</div>
-        <div class="step-node"><div class="circle">4</div>Work</div>
-      </div>
-
-      <h2 style="color: var(--primary-red); font-weight: 900; font-size: 24px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
+      <h2 style="color: var(--primary-red); font-weight: 900; font-size: 24px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA PARTNER</h2>
       <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Enterprise Partner Cloud Operating System</p>
       
       <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
@@ -352,15 +328,8 @@
 
   <div id="stepKycScreen" class="screen">
     <div class="card" style="max-width: 480px;">
-      <div class="steps-header">
-        <div class="step-node completed"><div class="circle">✓</div>Login</div>
-        <div class="step-node active"><div class="circle">2</div>Profile</div>
-        <div class="step-node"><div class="circle">3</div>Status</div>
-        <div class="step-node"><div class="circle">4</div>Work</div>
-      </div>
-
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="font-size: 15px;">Step 2: Partner Onboarding Info</h3>
+        <h3 style="font-size: 15px;">Sewaastra Partner Onboarding</h3>
         <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
       </div>
       <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Enterprise Rule: Admin verification is mandatory for live duty access.</p>
@@ -420,15 +389,8 @@
 
   <div id="stepWaitScreen" class="screen">
     <div class="card" style="text-align: center;">
-      <div class="steps-header">
-        <div class="step-node completed"><div class="circle">✓</div>Login</div>
-        <div class="step-node completed"><div class="circle">✓</div>Profile</div>
-        <div class="step-node active"><div class="circle">3</div>Status</div>
-        <div class="step-node"><div class="circle">4</div>Work</div>
-      </div>
-
       <div style="font-size: 42px; margin-bottom: 12px;">⏳</div>
-      <h3 style="font-size: 16px; margin-bottom: 6px;">Enterprise Verification Under Review</h3>
+      <h3 style="font-size: 16px; margin-bottom: 6px;">Sewaastra Partner Verification Under Review</h3>
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your credentials have been securely stored in Firebase. Master Admin review in progress.</p>
 
       <div class="form-group">
@@ -440,7 +402,7 @@
 
   <div id="adminDashboard" class="screen">
     <div class="app-header" style="background: var(--blue); color: white;">
-      <h3 style="font-size: 14px; font-weight: 900;">👑 Master Admin Enterprise Portal</h3>
+      <h3 style="font-size: 14px; font-weight: 900;">👑 Sewaastra Partner Admin Portal</h3>
       <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: white; color: white;">Logout</button>
     </div>
     <div style="padding: 15px 0;">
@@ -455,16 +417,9 @@
   </div>
 
   <div id="partnerHome" class="screen">
-    <div class="steps-header" style="background: #fff; padding: 10px 15px; border-bottom: 1px solid var(--border);">
-      <div class="step-node completed"><div class="circle">✓</div>Login</div>
-      <div class="step-node completed"><div class="circle">✓</div>Profile</div>
-      <div class="step-node completed"><div class="circle">✓</div>Status</div>
-      <div class="step-node active"><div class="circle">4</div>Work</div>
-    </div>
-
     <div class="app-header">
       <div>
-        <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: bold;">Operational Duty</span>
+        <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: bold;">Sewaastra Partner</span>
         <div class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer; margin-top: 2px;">
           <div id="dutyDot" class="dot"></div>
           <span id="dutyText">OFF DUTY</span>
@@ -476,29 +431,16 @@
       </div>
     </div>
 
+    <!-- 1. LIVE MAP & FINDING ORDER TAB -->
     <div id="feedTab" class="tab-content active" style="padding: 15px 0;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="font-size: 15px;">Live Gig Dispatch Radar & Map</h3>
+        <h3 style="font-size: 15px;">Live Map & Finding Order</h3>
         <span class="badge badge-success">Telemetry Live ✅</span>
       </div>
 
       <div id="liveMap"></div>
 
-      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
-        <h4 style="font-size: 13px; margin-bottom: 10px;">Simulate Customer Booking Request</h4>
-        <div class="form-group">
-          <label>Select Service Package:</label>
-          <select id="serviceCategory">
-            <option value="AC Split Jet Cleaning & Servicing (₹899)">AC Split Jet Cleaning (₹899)</option>
-            <option value="Geyser Tank Heating Element Fix (₹599)">Geyser Element Repair (₹599)</option>
-            <option value="Washing Machine PCB Diagnostic (₹749)">Washing Machine Diagnostic (₹749)</option>
-            <option value="RO Water Purifier Filter Replacements (₹649)">RO Purifier Filter Service (₹649)</option>
-          </select>
-        </div>
-        <button onclick="broadcastCustomerOrder()">Broadcast Multi-Gig Order</button>
-      </div>
-
-      <div id="activeOrderContainer" style="display: none;">
+      <div id="activeOrderContainer" style="display: none; margin-top: 15px;">
         <div class="card" style="max-width: 100%; border-left: 5px solid var(--primary-red);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <span class="badge badge-pending">Active Service Assignment</span>
@@ -525,22 +467,9 @@
       </div>
     </div>
 
-    <div id="inventoryTab" class="tab-content" style="padding: 15px 0;">
-      <h3 style="font-size: 15px; margin-bottom: 12px;">Toolbox & Spare Parts Inventory</h3>
-      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; font-size: 12px;">
-          <span>R-32 Refrigerant Gas Canister</span>
-          <b style="color: var(--success);">In Stock (4.5 kg)</b>
-        </div>
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; font-size: 12px;">
-          <span>Universal Geyser Thermostat Valve</span>
-          <b style="color: var(--success);">3 Units Available</b>
-        </div>
-        <button class="btn-outline" style="margin-top: 10px; font-size: 12px; padding: 8px;">Request Spare Part Restock</button>
-      </div>
-    </div>
-
+    <!-- 2. EARNING SECTION -->
     <div id="earningsTab" class="tab-content" style="padding: 15px 0;">
+      <h3 style="font-size: 15px; margin-bottom: 12px;">Earnings & Payouts</h3>
       <div class="wallet-card">
         <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85;">Available Payout Balance</span>
         <div style="font-size: 34px; font-weight: 900; margin: 8px 0;" id="walletNetBalance">₹0</div>
@@ -553,31 +482,50 @@
       </div>
     </div>
 
-    <div id="ratingsTab" class="tab-content" style="padding: 15px 0;">
-      <div class="card" style="max-width: 100%; text-align: center; margin-bottom: 15px;">
-        <h3 style="font-size: 14px; margin-bottom: 5px;">Technician Quality Score</h3>
-        <div style="font-size: 42px; font-weight: 900; color: var(--warning); margin: 10px 0;">4.95 ⭐</div>
-        <p style="font-size: 12px; color: var(--text-muted);">Evaluated from real-time customer feedback logs</p>
+    <!-- 3. GIG BOOKING SECTION -->
+    <div id="bookingTab" class="tab-content" style="padding: 15px 0;">
+      <h3 style="font-size: 15px; margin-bottom: 12px;">Gig Booking Section</h3>
+      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
+        <h4 style="font-size: 13px; margin-bottom: 10px;">Simulate Customer Booking Request</h4>
+        <div class="form-group">
+          <label>Select Service Package:</label>
+          <select id="serviceCategory">
+            <option value="AC Split Jet Cleaning & Servicing (₹899)">AC Split Jet Cleaning (₹899)</option>
+            <option value="Geyser Tank Heating Element Fix (₹599)">Geyser Element Repair (₹599)</option>
+            <option value="Washing Machine PCB Diagnostic (₹749)">Washing Machine Diagnostic (₹749)</option>
+            <option value="RO Water Purifier Filter Replacements (₹649)">RO Purifier Filter Service (₹649)</option>
+          </select>
+        </div>
+        <button onclick="broadcastCustomerOrder()">Broadcast Multi-Gig Order</button>
       </div>
     </div>
 
-    <div id="settingsTab" class="tab-content" style="padding: 15px 0;">
+    <!-- 4. PROFILE SECTION WITH ALL SETTINGS -->
+    <div id="profileTab" class="tab-content" style="padding: 15px 0;">
+      <h3 style="font-size: 15px; margin-bottom: 12px;">Partner Profile & Settings</h3>
       <div class="card" style="max-width: 100%;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <h4 style="font-size: 12px; margin: 0;">Live Enterprise Telemetry Console</h4>
-          <button onclick="document.getElementById('systemConsole').innerHTML=''" style="width: auto; padding: 3px 8px; font-size: 10px; background: #333;">Clear</button>
+        <div class="form-group">
+          <label>Authenticated Email:</label>
+          <input type="text" id="profileEmailDisplay" readonly style="background: #f9f9f9;">
         </div>
+        <div class="form-group">
+          <label>Registered Phone:</label>
+          <input type="text" id="profilePhoneDisplay" readonly style="background: #f9f9f9;">
+        </div>
+        
+        <h4 style="font-size: 12px; margin: 15px 0 8px 0; color: var(--primary-red);">Live Enterprise Telemetry Console</h4>
         <div class="console-box" id="systemConsole"></div>
-        <button onclick="logoutSession()" class="btn-outline" style="margin-top: 15px; border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
+        <button onclick="document.getElementById('systemConsole').innerHTML=''" class="btn-outline" style="margin-top: 8px; font-size: 11px; padding: 6px;">Clear Console</button>
+
+        <button onclick="logoutSession()" class="btn-outline" style="margin-top: 20px; border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
       </div>
     </div>
 
     <div class="bottom-nav">
-      <div class="nav-item active" onclick="switchTab('feedTab', this)"><span>⚡</span>Gigs</div>
-      <div class="nav-item" onclick="switchTab('inventoryTab', this)"><span>🧰</span>Parts</div>
-      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span>💰</span>Wallet</div>
-      <div class="nav-item" onclick="switchTab('ratingsTab', this)"><span>⭐</span>Ratings</div>
-      <div class="nav-item" onclick="switchTab('settingsTab', this)"><span>⚙️</span>Settings</div>
+      <div class="nav-item active" onclick="switchTab('feedTab', this)"><span>🗺️</span>Live Map</div>
+      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span>💰</span>Earnings</div>
+      <div class="nav-item" onclick="switchTab('bookingTab', this)"><span>⚡</span>Booking</div>
+      <div class="nav-item" onclick="switchTab('profileTab', this)"><span>👤</span>Profile</div>
     </div>
   </div>
 
@@ -628,14 +576,13 @@
       document.getElementById("globalLoader").classList.remove("active");
     }
 
-    // AUDIO BEEP ALERT FOR INCOMING ORDERS
     function playAudioAlert() {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
         oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
         gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
@@ -646,7 +593,6 @@
       }
     }
 
-    // AUTO-DETECT GPS LOCATION
     function detectCurrentGeolocation() {
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
@@ -771,6 +717,8 @@
         if (data.kycStatus === "approved") {
           showScreen('partnerHome');
           attachPartnerRealtimeSync(uid);
+          document.getElementById("profileEmailDisplay").value = email;
+          document.getElementById("profilePhoneDisplay").value = data.phone || "";
         } else {
           showScreen('stepWaitScreen');
         }
@@ -937,7 +885,7 @@
             document.getElementById("modalOrderTitle").innerText = oData.category;
             document.getElementById("modalOrderPayout").innerText = `₹${oData.amount}`;
             document.getElementById("incomingOrderModal").classList.add("active");
-            playAudioAlert(); // Trigger Audio Alert
+            playAudioAlert();
             break;
           }
         }
@@ -976,6 +924,7 @@
 
       await set(newOrderRef, orderPayload);
       logMessage(`📦 Customer Multi-Gig Broadcasted: ${serviceCat}`);
+      alert("✅ Order successfully broadcasted to Firebase cloud!");
     };
 
     window.acceptBroadcastedOrder = async function() {
