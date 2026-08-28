@@ -1,1617 +1,975 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SewaAstra - Premium Cooler Ecosystem & Customer Requirements</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sewaastra Partner OS - Advanced Real-Time Enterprise Cloud</title>
+  <style>
+    :root {
+      --primary-red: #e23744;
+      --primary-hover: #c92a35;
+      --bg-main: #f4f6f8;
+      --bg-card: #ffffff;
+      --text-main: #1c1c1c;
+      --text-muted: #696969;
+      --border: #e0e0e0;
+      --success: #24963f;
+      --warning: #ffb300;
+      --danger: #d32f2f;
+      --blue: #1976d2;
+      --purple: #7b1fa2;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+    }
+    .screen {
+      display: none;
+      min-height: 100vh;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+    .screen.active {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    #partnerHome.active, #adminDashboard.active {
+      display: block;
+      justify-content: unset;
+      align-items: unset;
+      max-width: 520px;
+      margin: 0 auto;
+      padding-bottom: 75px;
+    }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      padding: 24px;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+    h1, h2, h3, h4 { margin: 0; }
+    .form-group { margin-bottom: 16px; }
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-red); }
+    button {
+      background-color: var(--primary-red);
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      width: 100%;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    button:hover { background-color: var(--primary-hover); }
+    .btn-outline { background: transparent; border: 1px solid var(--primary-red); color: var(--primary-red); }
+    .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-google:hover { background: #3367D6; }
     
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#4f46e5">
-    
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-
-    <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-dark: #4338ca;
-            --primary-light: #e0e7ff;
-            --accent-pink: #ec4899;
-            --accent-cyan: #06b6d4;
-            --accent-amber: #f59e0b;
-            --accent-emerald: #10b981;
-            --danger: #ef4444;
-            --dark: #0f172a;
-            --light: #f8fafc;
-            --gray: #64748b;
-            --gray-light: #e2e8f0;
-            --gray-lighter: #f1f5f9;
-            --white: #ffffff;
-            --shadow-sm: 0 2px 4px -1px rgb(0 0 0 / 0.05);
-            --shadow: 0 6px 15px -3px rgb(0 0 0 / 0.08);
-            --shadow-lg: 0 15px 30px -10px rgb(0 0 0 / 0.12);
-            --radius-sm: 8px;
-            --radius: 14px;
-            --radius-lg: 20px;
-            --transition: all 0.25s ease;
-            --base-font-size: 13.5px;
-            --banner-height: 140px;
-            --icon-size: 34px;
-        }
-
-        [data-theme="dark"] {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --primary-light: #312e81;
-            --dark: #f8fafc;
-            --light: #030712;
-            --gray: #94a3b8;
-            --gray-light: #1e293b;
-            --gray-lighter: #0f172a;
-            --white: #0f172a;
-            --shadow: 0 6px 15px -3px rgb(0 0 0 / 0.4);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Outfit', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-            font-size: var(--base-font-size);
-        }
-
-        body {
-            background-color: var(--light);
-            color: var(--dark);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-            overflow-x: hidden;
-            padding-bottom: 80px;
-        }
-
-        @media (min-width: 1024px) {
-            body { padding-bottom: 25px; }
-        }
-
-        a { text-decoration: none; color: inherit; }
-        ul { list-style: none; }
-        button, input, select, textarea { outline: none; border: none; background: none; font-size: inherit; }
-
-        /* Compact Colorful Header */
-        header {
-            background: var(--white);
-            padding: 0.6rem 2.5%;
-            box-shadow: var(--shadow-sm);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid transparent;
-            border-image: linear-gradient(to right, var(--primary), var(--accent-pink), var(--accent-cyan)) 1;
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .menu-toggle {
-            font-size: 1.1rem;
-            color: var(--dark);
-            cursor: pointer;
-            padding: 6px;
-            background: var(--gray-lighter);
-            border-radius: 50%;
-            transition: var(--transition);
-        }
-        .menu-toggle:hover { background: var(--primary-light); color: var(--primary); }
-
-        @media (min-width: 1024px) {
-            .menu-toggle { display: none; }
-        }
-
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .desktop-nav {
-            display: none;
-            gap: 15px;
-            align-items: center;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        @media (min-width: 1024px) {
-            .desktop-nav { display: flex; }
-        }
-
-        .desktop-nav a { cursor: pointer; transition: var(--transition); }
-        .desktop-nav a:hover { color: var(--primary); }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .icon-btn {
-            position: relative;
-            width: var(--icon-size);
-            height: var(--icon-size);
-            border-radius: 50%;
-            background: var(--gray-lighter);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--dark);
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.9rem;
-        }
-
-        .icon-btn:hover {
-            background: var(--primary-light);
-            color: var(--primary);
-            transform: scale(1.05);
-        }
-
-        .badge-count {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            background: var(--accent-pink);
-            color: white;
-            font-size: 0.55rem;
-            font-weight: 800;
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 4px rgba(236,72,153,0.4);
-        }
-
-        /* Location & Search Bar */
-        .location-search-wrapper {
-            background: var(--white);
-            padding: 0.5rem 2.5%;
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            border-bottom: 1px solid var(--gray-light);
-        }
-
-        @media (min-width: 768px) {
-            .location-search-wrapper {
-                flex-direction: row;
-                align-items: center;
-                justify-content: space-between;
-            }
-        }
-
-        .location-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.78rem;
-            color: var(--gray);
-            min-width: 240px;
-        }
-
-        .location-current {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            color: var(--dark);
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .location-current i { color: var(--accent-cyan); font-size: 0.95rem; }
-
-        .search-box {
-            position: relative;
-            width: 100%;
-        }
-
-        @media (min-width: 768px) {
-            .search-box { max-width: 380px; }
-        }
-
-        .search-box input {
-            width: 100%;
-            padding: 8px 12px 8px 34px;
-            background: var(--gray-lighter);
-            border-radius: var(--radius);
-            font-size: 0.82rem;
-            color: var(--dark);
-            transition: var(--transition);
-            border: 2px solid transparent;
-        }
-
-        .search-box input:focus {
-            background: var(--white);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-
-        .search-box i {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--gray);
-            font-size: 0.85rem;
-        }
-
-        /* Main Container */
-        .main-container {
-            max-width: 1300px;
-            margin: 0 auto;
-            width: 100%;
-            padding: 1rem 2.5%;
-            flex: 1;
-        }
-
-        /* Adjustable Small Banner Showcase */
-        .banner-slider-container {
-            margin-bottom: 1.8rem;
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: var(--shadow);
-            position: relative;
-            background: var(--dark);
-        }
-
-        .banner-track {
-            display: flex;
-            transition: transform 0.4s ease-in-out;
-        }
-
-        .banner-slide {
-            min-width: 100%;
-            padding: 1.5rem 1.5rem;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            min-height: var(--banner-height);
-            justify-content: center;
-        }
-
-        .banner-slide::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(90deg, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.6) 60%, rgba(15,23,42,0.2) 100%);
-            z-index: 1;
-        }
-
-        .banner-slide > * {
-            position: relative;
-            z-index: 2;
-        }
-
-        @media (min-width: 768px) {
-            .banner-slide { padding: 2rem 2.5rem; }
-        }
-
-        .banner-slide h1 {
-            font-size: calc(var(--base-font-size) * 1.3);
-            font-weight: 800;
-            line-height: 1.2;
-            max-width: 500px;
-        }
-
-        .banner-slide p {
-            font-size: calc(var(--base-font-size) * 0.9);
-            opacity: 0.9;
-            max-width: 450px;
-            line-height: 1.4;
-        }
-
-        .banner-btn {
-            background: var(--white);
-            color: var(--primary);
-            padding: 6px 14px;
-            border-radius: var(--radius-sm);
-            font-weight: 800;
-            font-size: calc(var(--base-font-size) * 0.9);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: var(--shadow-sm);
-            transition: var(--transition);
-            width: fit-content;
-            cursor: pointer;
-        }
-
-        .banner-btn:hover {
-            background: var(--gray-lighter);
-            transform: translateY(-1px);
-        }
-
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.8rem;
-        }
-
-        .section-title {
-            font-size: calc(var(--base-font-size) * 1.15);
-            font-weight: 800;
-            color: var(--dark);
-        }
-
-        .see-all {
-            font-size: calc(var(--base-font-size) * 0.9);
-            color: var(--primary);
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        /* Adjustable Small Icons Categories Grid */
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 1.8rem;
-        }
-
-        @media (min-width: 576px) {
-            .categories-grid { grid-template-columns: repeat(6, 1fr); }
-        }
-
-        .category-card {
-            background: var(--white);
-            padding: 10px 8px;
-            border-radius: var(--radius-sm);
-            text-align: center;
-            box-shadow: var(--shadow-sm);
-            cursor: pointer;
-            transition: var(--transition);
-            border: 1px solid var(--gray-light);
-        }
-
-        .category-card:hover {
-            transform: translateY(-3px);
-            border-color: var(--primary);
-            box-shadow: var(--shadow);
-            background: linear-gradient(135deg, var(--white) 0%, var(--primary-light) 100%);
-        }
-
-        .category-icon {
-            width: var(--icon-size);
-            height: var(--icon-size);
-            margin: 0 auto 6px;
-            background: linear-gradient(135deg, var(--primary-light), var(--accent-cyan));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            font-size: calc(var(--base-font-size) * 0.95);
-            box-shadow: 0 2px 6px rgba(79, 70, 229, 0.15);
-        }
-
-        .category-card span {
-            font-size: calc(var(--base-font-size) * 0.85);
-            font-weight: 700;
-            color: var(--dark);
-            display: block;
-        }
-
-        /* Services Grid */
-        .services-grid {
-            display: grid;
-            grid-template-columns: repeat(1, 1fr);
-            gap: 12px;
-            margin-bottom: 2.2rem;
-        }
-
-        @media (min-width: 640px) {
-            .services-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        @media (min-width: 1024px) {
-            .services-grid { grid-template-columns: repeat(4, 1fr); }
-        }
-
-        .service-card {
-            background: var(--white);
-            border-radius: var(--radius);
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-            border: 1px solid var(--gray-light);
-            display: flex;
-            flex-direction: column;
-            transition: var(--transition);
-        }
-
-        .service-card:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--shadow);
-            border-color: var(--accent-pink);
-        }
-
-        .service-img-wrap {
-            height: 120px;
-            background: linear-gradient(135deg, var(--gray-lighter), var(--primary-light));
-            position: relative;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary);
-            background-size: cover;
-            background-position: center;
-        }
-
-        .service-img-wrap i {
-            font-size: 2rem;
-        }
-
-        .service-badge {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: linear-gradient(135deg, var(--accent-pink), var(--primary));
-            color: white;
-            padding: 3px 6px;
-            border-radius: 6px;
-            font-size: calc(var(--base-font-size) * 0.7);
-            font-weight: 800;
-            box-shadow: 0 2px 4px rgba(236,72,153,0.3);
-            z-index: 2;
-        }
-
-        .discount-tag {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: var(--accent-emerald);
-            color: white;
-            padding: 3px 6px;
-            border-radius: 6px;
-            font-size: calc(var(--base-font-size) * 0.7);
-            font-weight: 800;
-            z-index: 2;
-        }
-
-        .service-content {
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            flex: 1;
-        }
-
-        .service-title {
-            font-size: calc(var(--base-font-size) * 1.02);
-            font-weight: 800;
-            color: var(--dark);
-            line-height: 1.25;
-        }
-
-        .service-rating {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: calc(var(--base-font-size) * 0.85);
-            color: var(--accent-amber);
-            font-weight: 800;
-        }
-
-        .service-rating span {
-            color: var(--gray);
-            font-weight: 600;
-        }
-
-        .service-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-            padding-top: 8px;
-            border-top: 1px dashed var(--gray-light);
-        }
-
-        .service-price-box {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .service-price {
-            font-size: calc(var(--base-font-size) * 1.1);
-            font-weight: 900;
-            color: var(--dark);
-        }
-
-        .service-old-price {
-            font-size: calc(var(--base-font-size) * 0.8);
-            color: var(--gray);
-            text-decoration: line-through;
-        }
-
-        .add-btn {
-            background: var(--primary-light);
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            padding: 5px 12px;
-            border-radius: var(--radius-sm);
-            font-weight: 800;
-            font-size: calc(var(--base-font-size) * 0.9);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .add-btn:hover {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
-        }
-
-        /* Modals */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(15, 23, 42, 0.7);
-            backdrop-filter: blur(4px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            padding: 15px;
-            transition: var(--transition);
-        }
-
-        .modal-overlay.active { display: flex; }
-
-        .modal-container {
-            background: var(--white);
-            width: 100%;
-            max-width: 650px;
-            max-height: 90vh;
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            overflow-y: auto;
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--gray-light);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            border-bottom: 2px solid var(--gray-light);
-            padding-bottom: 0.8rem;
-        }
-
-        .modal-title {
-            font-size: calc(var(--base-font-size) * 1.25);
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .close-modal {
-            font-size: 1.1rem;
-            color: var(--gray);
-            cursor: pointer;
-            padding: 6px;
-            background: var(--gray-lighter);
-            border-radius: 50%;
-            transition: var(--transition);
-        }
-        .close-modal:hover { background: var(--danger); color: white; }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            display: block;
-            font-size: calc(var(--base-font-size) * 0.9);
-            font-weight: 800;
-            color: var(--dark);
-            margin-bottom: 4px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 9px 12px;
-            background: var(--gray-lighter);
-            border: 1px solid var(--gray-light);
-            border-radius: var(--radius-sm);
-            font-size: calc(var(--base-font-size) * 0.95);
-            color: var(--dark);
-            transition: var(--transition);
-        }
-
-        .form-control:focus {
-            border-color: var(--primary);
-            background: var(--white);
-            box-shadow: 0 0 0 3px var(--primary-light);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
-            color: white;
-            width: 100%;
-            padding: 10px;
-            border-radius: var(--radius-sm);
-            font-weight: 900;
-            font-size: calc(var(--base-font-size) * 0.98);
-            cursor: pointer;
-            transition: var(--transition);
-            box-shadow: var(--shadow-sm);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: var(--shadow);
-        }
-
-        #mapPreview {
-            width: 100%;
-            height: 160px;
-            border-radius: var(--radius-sm);
-            margin-top: 6px;
-            border: 1px solid var(--gray-light);
-            z-index: 10;
-        }
-
-        /* Cart Bar */
-        .cart-bar {
-            position: fixed;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 94%;
-            max-width: 950px;
-            background: var(--dark);
-            color: white;
-            padding: 10px 18px;
-            border-radius: var(--radius);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: var(--shadow-lg);
-            z-index: 1005;
-            display: none;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        @media (min-width: 1024px) {
-            .cart-bar { bottom: 20px; }
-        }
-
-        .cart-bar.active { display: flex; }
-
-        .cart-info span {
-            font-size: calc(var(--base-font-size) * 0.75);
-            color: var(--gray);
-            display: block;
-            font-weight: 600;
-        }
-
-        .cart-info h4 {
-            font-size: calc(var(--base-font-size) * 1.15);
-            font-weight: 900;
-            color: var(--accent-cyan);
-        }
-
-        .view-cart-btn {
-            background: linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan));
-            color: white;
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            font-weight: 800;
-            font-size: calc(var(--base-font-size) * 0.9);
-            cursor: pointer;
-            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
-            transition: var(--transition);
-        }
-        .view-cart-btn:hover { transform: scale(1.03); }
-
-        /* Bottom Nav */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            background: var(--white);
-            border-top: 1px solid var(--gray-light);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 1000;
-            box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.04);
-        }
-
-        @media (min-width: 1024px) {
-            .bottom-nav { display: none; }
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            color: var(--gray);
-            font-size: calc(var(--base-font-size) * 0.75);
-            font-weight: 800;
-            cursor: pointer;
-            transition: var(--transition);
-            flex: 1;
-        }
-
-        .nav-item i { font-size: 1.1rem; }
-        .nav-item.active, .nav-item:hover { color: var(--primary); transform: translateY(-1px); }
-
-        /* Side Drawer */
-        .drawer-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 3000;
-            display: none;
-            backdrop-filter: blur(2px);
-        }
-
-        .side-drawer {
-            position: fixed;
-            top: 0;
-            left: -280px;
-            width: 280px;
-            height: 100%;
-            background: var(--white);
-            z-index: 3001;
-            transition: var(--transition);
-            box-shadow: var(--shadow-lg);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .side-drawer.open { left: 0; }
-
-        .drawer-header {
-            padding: 1.8rem 1.2rem;
-            background: linear-gradient(135deg, var(--primary), var(--accent-pink));
-            color: white;
-        }
-
-        .drawer-body {
-            padding: 0.5rem 0;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        .drawer-item {
-            padding: 10px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: calc(var(--base-font-size) * 0.95);
-            font-weight: 800;
-            color: var(--dark);
-            cursor: pointer;
-            transition: var(--transition);
-            border-left: 3px solid transparent;
-        }
-
-        .drawer-item:hover {
-            background: var(--primary-light);
-            color: var(--primary);
-            border-left-color: var(--primary);
-            padding-left: 22px;
-        }
-
-        .drawer-item i { font-size: 1rem; width: 20px; color: var(--primary); }
-
-        .pwa-banner {
-            position: fixed;
-            bottom: 70px;
-            left: 10px;
-            right: 10px;
-            max-width: 380px;
-            margin: 0 auto;
-            background: var(--white);
-            padding: 12px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-lg);
-            border: 1px solid var(--primary);
-            z-index: 1500;
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .pwa-banner.show { display: flex; }
-        .hidden { display: none !important; }
-    </style>
+    .steps-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .step-node {
+      text-align: center;
+      flex: 1;
+      position: relative;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .step-node .circle {
+      width: 26px; height: 26px; border-radius: 50%; background: #e0e0e0; color: #fff;
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 4px auto; font-size: 12px;
+    }
+    .step-node.active .circle { background: var(--primary-red); }
+    .step-node.completed .circle { background: var(--success); }
+    .step-node.active { color: var(--primary-red); }
+    .step-node.completed { color: var(--success); }
+
+    .app-header {
+      background: var(--bg-card);
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-radius: 0 0 12px 12px;
+    }
+    .duty-pill {
+      display: flex;
+      align-items: center;
+      background: #f1f1f1;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      gap: 6px;
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+    .dot.online { background: var(--success); }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #fff;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 0;
+      z-index: 100;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .nav-item { text-align: center; font-size: 10px; color: var(--text-muted); cursor: pointer; font-weight: 600; }
+    .nav-item.active { color: var(--primary-red); }
+    .nav-item span { display: block; font-size: 17px; margin-bottom: 2px; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .badge-success { background: rgba(36, 150, 63, 0.1); color: var(--success); }
+    .badge-pending { background: rgba(255, 179, 0, 0.15); color: #b27d00; }
+    .badge-danger { background: rgba(211, 47, 47, 0.1); color: var(--danger); }
+
+    .console-box {
+      background: #121212; color: #00ff66; padding: 12px; border-radius: 8px;
+      font-family: monospace; font-size: 11px; height: 130px; overflow-y: auto; margin-top: 12px;
+    }
+    .settings-list { display: flex; flex-direction: column; gap: 8px; }
+    .setting-item {
+      background: #fff; border: 1px solid var(--border); padding: 10px 14px;
+      border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600;
+    }
+    .toggle-switch { position: relative; display: inline-block; width: 38px; height: 20px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc; transition: .3s; border-radius: 20px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px;
+      background-color: white; transition: .3s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--primary-red); }
+    input:checked + .slider:before { transform: translateX(18px); }
+    .admin-card {
+      background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--blue);
+      padding: 16px; border-radius: 8px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+    .wallet-card {
+      background: linear-gradient(135deg, #e23744, #900c12); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .stat-box { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+    .stat-box .val { font-size: 18px; font-weight: 800; color: var(--primary-red); }
+    .stat-box .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+  </style>
 </head>
 <body>
 
-    <header>
-        <div class="header-left">
-            <div class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars-staggered"></i></div>
-            <a href="#" class="logo"><i class="fa-solid fa-wind"></i> SewaAstra<span>Pro</span></a>
-            <nav class="desktop-nav">
-                <a onclick="switchNavTab('home')">Home</a>
-                <a onclick="scrollToServices()">Cooler Services</a>
-                <a onclick="switchNavTab('bookings')">My Bookings</a>
-                <a onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i> App Settings & 50 Requirements</a>
-            </nav>
-        </div>
-        <div class="header-right">
-            <div class="icon-btn" id="installAppBtn" title="Install App" style="display:none;"><i class="fa-solid fa-cloud-arrow-down"></i></div>
-            <div class="icon-btn" title="App Settings & 50 Requirements" onclick="openSettingsModal()"><i class="fa-solid fa-gear"></i></div>
-            <div class="icon-btn" id="headerCartBtn" title="Cart" onclick="openCartModal()"><i class="fa-solid fa-cart-shopping"></i><div class="badge-count" id="cartBadgeCount">0</div></div>
-        </div>
-    </header>
+  <!-- STEP 1: GOOGLE AUTHENTICATION LOGIN SCREEN -->
+  <div id="stepLoginScreen" class="screen active">
+    <div class="card" style="text-align: center;">
+      <div class="steps-header">
+        <div class="step-node active"><div class="circle">1</div>Login</div>
+        <div class="step-node"><div class="circle">2</div>Profile</div>
+        <div class="step-node"><div class="circle">3</div>Status</div>
+        <div class="step-node"><div class="circle">4</div>Work</div>
+      </div>
 
-    <div class="location-search-wrapper">
-        <div class="location-bar">
-            <div class="location-current" id="detectLocationBtn" onclick="refreshGeolocation()">
-                <i class="fa-solid fa-location-crosshairs"></i>
-                <span id="locationText">Auto-Detecting GPS Location...</span>
-            </div>
-            <span style="font-size: calc(var(--base-font-size) * 0.8); color: var(--accent-emerald); font-weight: 800;"><i class="fa-solid fa-shield-check"></i> Verified Fast Technicians</span>
+      <h2 style="color: var(--primary-red); font-weight: 900; font-size: 24px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Enterprise Partner Cloud Operating System</p>
+      
+      <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.5 7c0-.4-.1-.8-.2-1.2H12v2.4h3.6c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.7-3.7 2.7-6.3zm-11.8 3.5c-.3-.9-.5-1.9-.5-2.9s.2-2 .5-2.9L3.5 6.6C2.5 8.6 2 10.7 2 13s.5 4.4 1.5 6.4l3.7-2.9Z"/></svg>
+        Sign in with Google Firebase Auth
+      </button>
+      <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">Automatic secure token exchange with Google OAuth Realtime Database backend.</p>
+    </div>
+  </div>
+
+  <!-- STEP 2: ONBOARDING & PROFILE KYC INFO -->
+  <div id="stepKycScreen" class="screen">
+    <div class="card">
+      <div class="steps-header">
+        <div class="step-node completed"><div class="circle">✓</div>Login</div>
+        <div class="step-node active"><div class="circle">2</div>Profile</div>
+        <div class="step-node"><div class="circle">3</div>Status</div>
+        <div class="step-node"><div class="circle">4</div>Work</div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="font-size: 15px;">Step 2: Partner Onboarding Info</h3>
+        <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
+      </div>
+      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Enterprise Rule: Admin verification is mandatory for live duty access.</p>
+      
+      <div class="form-group">
+        <label>Authenticated Email (Google):</label>
+        <input type="text" id="authEmailDisplay" readonly style="background: #f9f9f9; color: #555;">
+      </div>
+      <div class="form-group">
+        <label>Full Name (As per Govt ID):</label>
+        <input type="text" id="kycFullName" placeholder="Enter Full Name">
+      </div>
+      <div class="form-group">
+        <label>Mobile Number (WhatsApp Enabled):</label>
+        <input type="text" id="kycPhone" placeholder="10-digit mobile number" maxlength="10">
+      </div>
+      <div class="form-group">
+        <label>Primary Specialization Skill:</label>
+        <select id="kycSkill">
+          <option value="AC & Refrigeration Specialist">AC & Refrigeration Specialist</option>
+          <option value="Washing Machine & Appliance Tech">Washing Machine Appliance Tech</option>
+          <option value="Electrical & Geyser Expert">Electrical & Geyser Expert</option>
+          <option value="RO Water Purifier Technician">RO Water Purifier Technician</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Aadhaar Number:</label>
+        <input type="text" id="kycAadhaar" placeholder="XXXX XXXX XXXX">
+      </div>
+      <div class="form-group">
+        <label>PAN Card Number:</label>
+        <input type="text" id="kycPan" placeholder="ABCDE1234F">
+      </div>
+      <div class="form-group">
+        <label>Bank Account Number (Weekly Payouts):</label>
+        <input type="text" id="kycBank" placeholder="Account Number">
+      </div>
+
+      <button onclick="submitOnboardingData()" style="background: var(--success);">Submit & Sync to Cloud Database</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: PENDING APPROVAL SCREEN -->
+  <div id="stepWaitScreen" class="screen">
+    <div class="card" style="text-align: center;">
+      <div class="steps-header">
+        <div class="step-node completed"><div class="circle">✓</div>Login</div>
+        <div class="step-node completed"><div class="circle">✓</div>Profile</div>
+        <div class="step-node active"><div class="circle">3</div>Status</div>
+        <div class="step-node"><div class="circle">4</div>Work</div>
+      </div>
+
+      <div style="font-size: 42px; margin-bottom: 12px;">⏳</div>
+      <h3 style="font-size: 16px; margin-bottom: 6px;">Enterprise Verification Under Review</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your credentials have been securely stored in Firebase. Master Admin review in progress.</p>
+
+      <div class="form-group">
+        <button onclick="checkAdminApprovalStatus()" class="btn-outline">🔄 Re-check Cloud Status</button>
+      </div>
+      <button onclick="logoutSession()" style="background: #666; font-size: 12px; padding: 8px;">Switch Account</button>
+    </div>
+  </div>
+
+  <!-- MASTER ADMIN CLOUD DASHBOARD -->
+  <div id="adminDashboard" class="screen">
+    <div class="app-header" style="background: var(--blue); color: white;">
+      <h3 style="font-size: 14px; font-weight: 900;">👑 Master Admin Enterprise Portal</h3>
+      <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: white; color: white;">Logout</button>
+    </div>
+    <div style="padding: 15px 0;">
+      <div class="card" style="max-width: 100%; border-left: 5px solid var(--blue);">
+        <h4 style="font-size: 13px; margin-bottom: 5px;">Real-Time Registered Partner Network</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Authorize partner onboarding records instantly across the Firebase cluster.</p>
+        <div id="adminPartnerQueue">
+          <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Synchronizing database nodes...</p>
         </div>
-        <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="searchInput" placeholder="Search cooler repair, woodwool, pump, wiring...">
-        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4: WORK DASHBOARD (5 NAV SECTIONS & EXPANDED 25+ FEATURES/SETTINGS PER SECTION) -->
+  <div id="partnerHome" class="screen">
+    <div class="steps-header" style="background: #fff; padding: 10px 15px; border-bottom: 1px solid var(--border);">
+      <div class="step-node completed"><div class="circle">✓</div>Login</div>
+      <div class="step-node completed"><div class="circle">✓</div>Profile</div>
+      <div class="step-node completed"><div class="circle">✓</div>Status</div>
+      <div class="step-node active"><div class="circle">4</div>Work</div>
     </div>
 
-    <div class="main-container" id="mainAppContent">
+    <div class="app-header">
+      <div>
+        <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: bold;">Operational Duty</span>
+        <div class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer; margin-top: 2px;">
+          <div id="dutyDot" class="dot"></div>
+          <span id="dutyText">OFF DUTY</span>
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: bold;">Cloud Earning</span>
+        <div style="font-size: 16px; font-weight: 900; color: var(--success);" id="topBarEarnings">₹0</div>
+      </div>
+    </div>
+
+    <!-- SECTION 1: GIG DISPATCH FEED (25+ Features & Controls) -->
+    <div id="feedTab" class="tab-content active" style="padding: 15px 0;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h3 style="font-size: 15px;">Live Gig Dispatch Radar</h3>
+        <span class="badge badge-success">Telemetry Live ✅</span>
+      </div>
+
+      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
+        <h4 style="font-size: 13px; margin-bottom: 10px;">Simulate Customer Booking Request</h4>
+        <div class="form-group">
+          <label>Select Service Package:</label>
+          <select id="serviceCategory">
+            <option value="AC Split Jet Cleaning & Servicing (₹899)">AC Split Jet Cleaning (₹899)</option>
+            <option value="Geyser Tank Heating Element Fix (₹599)">Geyser Element Repair (₹599)</option>
+            <option value="Washing Machine PCB Diagnostic (₹749)">Washing Machine Diagnostic (₹749)</option>
+            <option value="RO Water Purifier Filter Replacements (₹649)">RO Purifier Filter Service (₹649)</option>
+          </select>
+        </div>
+        <button onclick="broadcastCustomerOrder()">Broadcast Order to Cloud Feed</button>
+      </div>
+
+      <div id="activeOrderContainer" style="display: none;">
+        <div class="card" style="max-width: 100%; border-left: 5px solid var(--primary-red);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span class="badge badge-pending">Active Service Assignment</span>
+            <span style="font-weight: 900; color: var(--primary-red);" id="orderAmountText">₹0</span>
+          </div>
+          <div id="orderDetailsBox" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></div>
+          
+          <div class="form-group">
+            <label style="color: var(--success);">Customer Completion Verification OTP:</label>
+            <input type="text" id="enteredOtp" placeholder="Enter 4-digit code" maxlength="4" style="text-align: center; letter-spacing: 6px; font-weight: bold; font-size: 16px;">
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+            <button onclick="verifyOtpAndCompleteOrder()" style="flex: 1; background: var(--success);">Verify & Complete</button>
+            <button onclick="declineAssignedOrder()" class="btn-outline" style="flex: 1; border-color: var(--danger); color: var(--danger);">Decline</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="max-width: 100%;">
+        <h4 style="font-size: 13px; margin-bottom: 10px;">Gig Dispatch Advanced Features (25 Controls)</h4>
+        <div class="settings-list">
+          <div class="setting-item"><span>1. Auto-Accept Same-Street Gigs</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>2. Dynamic Surge Pricing Accept</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>3. Night Shift Gig Auto-Filter</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>4. Express Priority Routing Mode</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>5. Voice Broadcast Incoming Orders</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>6. Instant Map Navigation Trigger</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>7. Multi-Stop Route Optimizer</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>8. Customer Chat Auto-Greeting</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>9. Distance Radius Cap (Max 10km)</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>10. Heavy Appliance Load Flag</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>11. Live Traffic Congestion Bypass</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>12. Automated Arrival SMS Notification</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>13. Reschedule Request Handler</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>14. Direct Calling Masking Relay</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>15. Photo Evidence Upload Mandate</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>16. Spare Parts Requisition Prompt</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>17. Warranty Job Verification Tag</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>18. Repeat Customer Fast-Track</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>19. Commercial Corporate Gig Filter</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>20. Residential Society Gate Pass Log</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>21. Service Cancellation Reason Logger</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>22. Direct Tip Collection Prompt</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>23. Post-Job Feedback Reminder</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>24. Emergency Breakdown Alert</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>25. Offline Queue Synchronization</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: INVENTORY & SPARE PARTS STORE (25+ Features & Controls) -->
+    <div id="inventoryTab" class="tab-content" style="padding: 15px 0;">
+      <h3 style="font-size: 15px; margin-bottom: 12px;">Toolbox & Spare Parts Inventory</h3>
+      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; font-size: 12px;">
+          <span>R-32 Refrigerant Gas Canister</span>
+          <b style="color: var(--success);">In Stock (4.5 kg)</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; font-size: 12px;">
+          <span>Universal Geyser Thermostat Valve</span>
+          <b style="color: var(--success);">3 Units Available</b>
+        </div>
+        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; font-size: 12px;">
+          <span>Washing Machine Belt (21 Inch)</span>
+          <b style="color: var(--danger);">Out of Stock</b>
+        </div>
+        <button class="btn-outline" style="margin-top: 10px; font-size: 12px; padding: 8px;">Request Spare Part Restock</button>
+      </div>
+
+      <div class="card" style="max-width: 100%;">
+        <h4 style="font-size: 13px; margin-bottom: 10px;">Inventory Management Settings (25 Controls)</h4>
+        <div class="settings-list">
+          <div class="setting-item"><span>1. Low Stock Auto-Reorder Trigger</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>2. Barcode Scanner Tool Integration</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>3. Genuine OEM Parts Only Filter</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>4. Toolbox Weight Limit Tracker</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>5. Consumables Usage Audit Log</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>6. Warehouse Pickup Slot Booking</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>7. Defective Part Return Workflow</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>8. Quick Swap Component Exchange</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>9. Refrigerant Gas Leakage Alarm</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>10. Copper Pipe Meterage Tracker</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>11. Electrical Fuse & Relay Stock Alert</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>12. RO Membrane Expiry Warning</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>13. Multimeter Calibration Reminder</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>14. Vacuum Pump Oil Level Check</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>15. Spare Part Price Comparison Tool</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>16. Credit Ledger for Wholesaler</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>17. Second-Hand Part Verification</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>18. Warranty Serial Number Scanner</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>19. Safety Gloves & Gear Inventory</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>20. Chemical Cleaning Spray Refill Alert</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>21. Fast-Moving Spares Priority Stock</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>22. Supplier Delivery Status Tracking</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>23. Damaged Part Photo Log</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>24. Bulk Order Discount Tracker</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>25. Daily Toolbox Audit Report</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: EARNINGS & PAYOUT WALLET (25+ Features & Controls) -->
+    <div id="earningsTab" class="tab-content" style="padding: 15px 0;">
+      <div class="wallet-card">
+        <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85;">Available Payout Balance</span>
+        <div style="font-size: 34px; font-weight: 900; margin: 8px 0;" id="walletNetBalance">₹0</div>
+        <p style="font-size: 12px; margin: 0; opacity: 0.9;">Instant settlement to registered bank account</p>
+      </div>
+      <div class="grid-2">
+        <div class="stat-box"><div class="val" id="completedJobsCount">0</div><div class="lbl">Completed Gigs</div></div>
+        <div class="stat-box"><div class="val">₹0</div><div class="lbl">Tips Received</div></div>
+      </div>
+      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
+        <h4 style="font-size: 13px; margin-bottom: 8px;">Weekly Performance Bonus Tracker</h4>
+        <p style="font-size: 12px; color: var(--text-muted);">Complete 15 jobs this week to unlock ₹1,000 performance incentive bonus.</p>
+      </div>
+
+      <div class="card" style="max-width: 100%;">
+        <h4 style="font-size: 13px; margin-bottom: 10px;">Wallet & Payout Controls (25 Controls)</h4>
+        <div class="settings-list">
+          <div class="setting-item"><span>1. Instant Daily Payout Transfer</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>2. Weekly Direct Bank Deposit</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>3. Automated Tax Deduction (TDS)</span><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></div>
+          <div class="setting-item"><span>4. GST Invoice Generation Engine</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>5. Cash Collection Ledger Sync</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>6. UPI QR Code Payment Display</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>7. Tip Retention 100% Policy</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>8. Fuel Allowance Subsidy Tracker</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>9. Referral Bonus Payout Tracker</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>10. Micro-Insurance Premium Deduct</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>11. Emergency Cash Advance Advance</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>12. Monthly Financial Statement PDF</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>13. Revenue Milestone Alert Push</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>14. Dispute Refund Deduction Shield</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>15. Secondary Bank Account Switch</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>16. Currency Exchange Rate Auto-Lock</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>17. Partner Subscription Fee Auto-Pay</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>18. Peak Hour Surge Earning Split</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>19. Cancellation Penalty Waiver</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>20. Zero-Balance Bank Alert</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>21. Digital Wallet Cashback Tracker</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>22. Corporate Client Invoice Matching</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>23. Automated Earnings Graph View</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>24. Payout Failure SMS Notification</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>25. Annual Form 16A Tax Downloader</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: RATINGS & METRICS (25+ Features & Controls) -->
+    <div id="ratingsTab" class="tab-content" style="padding: 15px 0;">
+      <div class="card" style="max-width: 100%; text-align: center; margin-bottom: 15px;">
+        <h3 style="font-size: 14px; margin-bottom: 5px;">Technician Quality Score</h3>
+        <div style="font-size: 42px; font-weight: 900; color: var(--warning); margin: 10px 0;">4.95 ⭐</div>
+        <p style="font-size: 12px; color: var(--text-muted);">Evaluated from real-time customer feedback logs</p>
+      </div>
+
+      <div class="card" style="max-width: 100%;">
+        <h4 style="font-size: 13px; margin-bottom: 10px;">Ratings & Performance Controls (25 Controls)</h4>
+        <div class="settings-list">
+          <div class="setting-item"><span>1. Customer Review Sentiment Analyzer</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>2. Badge Showcase on Profile</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>3. Low Rating Appeal Ticket System</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>4. Punctuality Score Tracker</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>5. Cleanliness & Uniform Compliance</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>6. Technical Accuracy Benchmark</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>7. Customer Communication Rating</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>8. Repeat Customer Ratio Metric</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>9. Top Technician Leaderboard Rank</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>10. Video Testimonial Showcase</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>11. Skill Badge Certification Log</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>12. Automated Quality Audit Alerts</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>13. Negative Feedback Root Cause Log</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>14. Customer Compliment Push Notification</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>15. Monthly Performance PDF Report</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>16. Re-training Program Auto-Enroll</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>17. Safety Protocol Adherence Score</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>18. Equipment Handling Rating</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>19. Response Speed to Inquiries</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>20. Zero-Defect Job Streak Counter</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>21. Peer Review Feedback System</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>22. Customer Retention Incentive Flag</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>23. Rating Milestone Celebration Badge</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>24. Supervisor Inspection Log</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>25. Public Profile Link Generator</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 5: ADVANCED WORK SETTINGS & TELEMETRY (25+ Features & Controls) -->
+    <div id="settingsTab" class="tab-content" style="padding: 15px 0;">
+      <div class="card" style="max-width: 100%; margin-bottom: 15px;">
+        <h3 style="font-size: 14px; margin-bottom: 6px;">Partner Work Settings (25 Controls)</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Configure real-time dispatch alerts, geo-fencing, and notification rules.</p>
         
-        <div class="banner-slider-container" id="bannerSliderContainer">
-            <div class="banner-track" id="bannerTrack"></div>
+        <div class="settings-list">
+          <div class="setting-item"><span>1. Push Job Alert Notifications</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>2. SMS Dispatch Confirmations</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>3. WhatsApp Automated Updates</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>4. Auto-Accept Nearby Gigs</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>5. High Priority Emergency Dispatch</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>6. High Sound Alert on New Order</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>7. Voice Navigation Guidance</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>8. Dark Theme UI Mode</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>9. Live GPS Location Telemetry</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>10. Background Battery Optimizer</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>11. Auto-Offline on Inactivity</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>12. Weekly Payout Instant Alert</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>13. Customer Phone Masking (Privacy)</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>14. OTP Verification Mandate</span><label class="toggle-switch"><input type="checkbox" checked disabled><span class="slider"></span></label></div>
+          <div class="setting-item"><span>15. Allow Customer Tips</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>16. Geo-Fencing Radius Alerts</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>17. Daily Earnings Statement Email</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>18. Multi-Language Audio Prompt</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>19. Biometric Device Security Lock</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>20. Diagnostic AI Assistance Tool</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>21. Auto-Decline Overdue Requests</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>22. SOS Safety Emergency Alert</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>23. Real-Time Spare Stock Alerts</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="setting-item"><span>24. High Surge Pricing Filter</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="setting-item"><span>25. Offline Local Cache Logging</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
         </div>
+      </div>
 
-        <div class="section-header">
-            <h3 class="section-title"><i class="fa-solid fa-cubes"></i> Cooler Categories & Spare Parts</h3>
-            <span class="see-all" onclick="filterCategory('all')">View All</span>
+      <div class="card" style="max-width: 100%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <h4 style="font-size: 12px; margin: 0;">Live Enterprise Telemetry Console</h4>
+          <button onclick="document.getElementById('systemConsole').innerHTML=''" style="width: auto; padding: 3px 8px; font-size: 10px; background: #333;">Clear</button>
         </div>
-        <div class="categories-grid" id="categoriesGrid"></div>
-
-        <div class="section-header" id="servicesSection">
-            <h3 class="section-title"><i class="fa-solid fa-screwdriver-wrench"></i> Popular Cooler Services & Packages</h3>
-        </div>
-        <div class="services-grid" id="servicesGrid"></div>
+        <div class="console-box" id="systemConsole"></div>
+        <button onclick="logoutSession()" class="btn-outline" style="margin-top: 15px; border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
+      </div>
     </div>
 
-    <div class="cart-bar" id="floatingCartBar">
-        <div class="cart-info">
-            <span id="cartItemCountText">0 Items | Total Payable</span>
-            <h4 id="cartBarTotalAmount">₹0</h4>
-        </div>
-        <button class="view-cart-btn" onclick="openCartModal()">View Cart & Checkout</button>
+    <!-- 5 SECTIONS BOTTOM NAVIGATION BAR -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchTab('feedTab', this)"><span>⚡</span>Gigs</div>
+      <div class="nav-item" onclick="switchTab('inventoryTab', this)"><span>🧰</span>Parts</div>
+      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span>💰</span>Wallet</div>
+      <div class="nav-item" onclick="switchTab('ratingsTab', this)"><span>⭐</span>Ratings</div>
+      <div class="nav-item" onclick="switchTab('settingsTab', this)"><span>⚙️</span>Settings</div>
     </div>
+  </div>
 
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchNavTab('home', this)">
-            <i class="fa-solid fa-house-chimney"></i>
-            <span>Home</span>
-        </div>
-        <div class="nav-item" onclick="switchNavTab('bookings', this)">
-            <i class="fa-solid fa-receipt"></i>
-            <span>Bookings</span>
-        </div>
-        <div class="nav-item" onclick="openSettingsModal()">
-            <i class="fa-solid fa-gear"></i>
-            <span>Settings</span>
-        </div>
-        <div class="nav-item" onclick="switchNavTab('support', this)">
-            <i class="fa-solid fa-headset"></i>
-            <span>Support</span>
-        </div>
-    </nav>
+  <!-- Firebase SDK v10 (Real-Time Cloud Integration) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, set, push, get, child, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    <div class="drawer-overlay" id="drawerOverlay"></div>
-    <div class="side-drawer" id="sideDrawer">
-        <div class="drawer-header">
-            <h3>SewaAstra Pro</h3>
-            <p style="font-size: 0.75rem; opacity: 0.9;" id="drawerUserPhone">Guest User Account</p>
-        </div>
-        <div class="drawer-body">
-            <div class="drawer-item" onclick="openSettingsModal(); closeDrawer();"><i class="fa-solid fa-sliders"></i> App Settings & 50 Requirements</div>
-            <div class="drawer-item" onclick="switchNavTab('bookings'); closeDrawer();"><i class="fa-solid fa-clock-rotate-left"></i> Order History & Tracking</div>
-            <div class="drawer-item" onclick="toggleTheme();"><i class="fa-solid fa-palette"></i> Toggle Colorful Theme</div>
-            <div class="drawer-item" onclick="switchNavTab('support'); closeDrawer();"><i class="fa-solid fa-circle-question"></i> Help & FAQs</div>
-            <div class="drawer-item" onclick="triggerPwaInstall();"><i class="fa-solid fa-download"></i> Install Native App</div>
-        </div>
-    </div>
+    const app = initializeApp({
+      apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
+      authDomain: "sewaastra.firebaseapp.com",
+      databaseURL: "https://sewaastra-default-rtdb.firebaseio.com",
+      projectId: "sewaastra",
+      storageBucket: "sewaastra.firebasestorage.app",
+      messagingSenderId: "211091351218",
+      appId: "1:211091351218:web:bb555f4cae275b4f464bab",
+      measurementId: "G-Z08CQVRVQG"
+    });
 
-    <!-- Settings Modal Containing App Settings AND the 50 Customer Requirements Checklist -->
-    <div class="modal-overlay" id="settingsModalOverlay">
-        <div class="modal-container" style="max-width: 650px;">
-            <div class="modal-header">
-                <h3 class="modal-title"><i class="fa-solid fa-sliders"></i> Settings & 50 Customer Requirements</h3>
-                <div class="close-modal" onclick="closeSettingsModal()"><i class="fa-solid fa-xmark"></i></div>
+    const auth = getAuth(app);
+    const db = getDatabase(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    let loggedInUser = null;
+    let activeSyncListener = null;
+    const consoleBox = document.getElementById("systemConsole");
+
+    function logMessage(text) {
+      if(!consoleBox) return;
+      const time = new Date().toLocaleTimeString();
+      consoleBox.innerHTML += `[${time}] ${text}<br>`;
+      consoleBox.scrollTop = consoleBox.scrollHeight;
+    }
+
+    window.switchTab = function(tabId, el) {
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      el.classList.add('active');
+    };
+
+    function showScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(screenId).classList.add('active');
+    }
+
+    // GOOGLE FIREBASE AUTHENTICATION TRIGGER
+    window.loginWithGoogleFirebase = async function() {
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        loggedInUser = result.user;
+        logMessage(`Google Auth successful for: ${loggedInUser.email}`);
+        evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
+      } catch (error) {
+        alert("Google Login Error: " + error.message);
+        logMessage(`Auth Error: ${error.message}`);
+      }
+    };
+
+    // ROUTING LOGIC BASED ON CLOUD RECORD
+    async function evaluateUserRouting(uid, email) {
+      if (email === "admin@sewaastra.com" || email.includes("masteradmin")) {
+        showScreen('adminDashboard');
+        initAdminCloudDashboard();
+        logMessage("Master Admin logged into enterprise control panel.");
+        return;
+      }
+
+      const partnerRef = ref(db, `live_partners/${uid}`);
+      const snap = await get(partnerRef);
+
+      if (!snap.exists()) {
+        showScreen('stepKycScreen');
+        document.getElementById("authEmailDisplay").value = email;
+        logMessage("New partner detected. Prompting for onboarding profile info.");
+      } else {
+        const data = snap.val();
+        if (data.kycStatus === "approved") {
+          showScreen('partnerHome');
+          attachPartnerRealtimeSync(uid);
+          logMessage(`Partner ${data.name} authenticated. KYC is approved.`);
+        } else {
+          showScreen('stepWaitScreen');
+          logMessage("Partner KYC status is pending admin verification.");
+        }
+      }
+    }
+
+    // SUBMIT ONBOARDING PROFILE TO FIREBASE
+    window.submitOnboardingData = async function() {
+      if (!loggedInUser) return;
+      const uid = loggedInUser.uid;
+
+      const name = document.getElementById("kycFullName").value.trim();
+      const phone = document.getElementById("kycPhone").value.trim();
+      const skill = document.getElementById("kycSkill").value;
+      const aadhaar = document.getElementById("kycAadhaar").value.trim();
+      const pan = document.getElementById("kycPan").value.trim();
+      const bank = document.getElementById("kycBank").value.trim();
+
+      if (!name || !phone || !aadhaar || !pan) {
+        alert("Please fill in all mandatory onboarding fields.");
+        return;
+      }
+
+      const payload = {
+        email: loggedInUser.email,
+        name, phone, skill, aadhaar, pan, bank,
+        kycStatus: "pending",
+        isOnline: false,
+        status: "available",
+        latitude: 28.6139,
+        longitude: 77.2090,
+        totalEarned: 0,
+        completedJobs: 0
+      };
+
+      await set(ref(db, `live_partners/${uid}`), payload);
+      alert("Onboarding data successfully synced to Firebase Cloud Database!");
+      logMessage(`KYC profile submitted for ${name}. Moved to waiting screen.`);
+      showScreen('stepWaitScreen');
+    };
+
+    window.checkAdminApprovalStatus = async function() {
+      if (!loggedInUser) return;
+      const snap = await get(ref(db, `live_partners/${loggedInUser.uid}`));
+      const data = snap.val() || {};
+
+      if (data.kycStatus === "approved") {
+        alert("🎉 Admin approved your onboarding! Entering live work dashboard.");
+        showScreen('partnerHome');
+        attachPartnerRealtimeSync(loggedInUser.uid);
+      } else {
+        alert("⏳ Status is still PENDING in Firebase database.");
+      }
+    };
+
+    // MASTER ADMIN CONTROL PANEL
+    function initAdminCloudDashboard() {
+      const container = document.getElementById("adminPartnerQueue");
+      onValue(ref(db, 'live_partners'), (snap) => {
+        if (!snap.exists()) {
+          container.innerHTML = `<p style="font-size: 12px; text-align: center; color: var(--text-muted);">No partners registered.</p>`;
+          return;
+        }
+
+        let html = "";
+        const records = snap.val();
+        for (const [uid, data] of Object.entries(records)) {
+          const badgeClass = data.kycStatus === "approved" ? "badge-success" : (data.kycStatus === "rejected" ? "badge-danger" : "badge-pending");
+          html += `
+            <div class="admin-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <h4 style="font-size: 14px;">${data.name}</h4>
+                <span class="badge ${badgeClass}">${data.kycStatus.toUpperCase()}</span>
+              </div>
+              <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 12px;">
+                📧 Email: <b>${data.email}</b><br>
+                📱 Phone: <b>${data.phone}</b><br>
+                🛠️ Specialization: <b>${data.skill}</b><br>
+                🆔 Aadhaar: <b>${data.aadhaar}</b> | PAN: <b>${data.pan}</b>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <button onclick="adminApprovePartner('${uid}')" style="background: var(--success); padding: 8px; font-size: 12px;">Approve ✅</button>
+                <button onclick="adminRejectPartner('${uid}')" class="btn-outline" style="border-color: var(--danger); color: var(--danger); padding: 8px; font-size: 12px;">Reject ❌</button>
+              </div>
             </div>
-            
-            <div style="display:flex; flex-direction:column; gap:16px;">
-                <!-- General Settings Section -->
-                <div style="background: var(--gray-lighter); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--gray-light);">
-                    <h4 style="font-size: calc(var(--base-font-size) * 0.98); font-weight: 800; margin-bottom: 8px; color: var(--primary);">App Display Settings</h4>
-                    <div style="display: grid; grid-template-columns: repeat(1, 1fr); gap: 10px;">
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="form-label">Font Size Adjust</label>
-                            <select class="form-control" id="settingFontSize" onchange="applyFontSizeSetting(this.value)">
-                                <option value="12px">Compact Small (12px)</option>
-                                <option value="13.5px" selected>Standard Balanced (13.5px)</option>
-                                <option value="15px">Large Readable (15px)</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="form-label">Banner Size Adjust</label>
-                            <select class="form-control" id="settingBannerSize" onchange="applyBannerSizeSetting(this.value)">
-                                <option value="110px">Small Compact (110px)</option>
-                                <option value="140px" selected>Medium Standard (140px)</option>
-                                <option value="180px">Large Expanded (180px)</option>
-                            </select>
-                        </div>
-                        <div class="form-group" style="margin-bottom:0;">
-                            <label class="form-label">Small Icon Size Adjust</label>
-                            <select class="form-control" id="settingIconSize" onchange="applyIconSizeSetting(this.value)">
-                                <option value="28px">Small (28px)</option>
-                                <option value="34px" selected>Standard (34px)</option>
-                                <option value="42px">Large (42px)</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
+          `;
+        }
+        container.innerHTML = html;
+      });
+    }
 
-                <!-- 50 Customer Requirements Checklist Section inside Settings Icon -->
-                <div style="border-top: 2px solid var(--gray-light); padding-top: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <h4 style="font-size: calc(var(--base-font-size) * 0.98); font-weight: 800; color: var(--primary);"><i class="fa-solid fa-list-check"></i> 50 Customer Requirements Checklist</h4>
-                        <div class="requirements-counter" id="selectedReqCount" style="font-size: 0.8rem; background: var(--primary-light); color: var(--primary); padding: 3px 8px; border-radius: 12px; font-weight: 800;">0 Selected</div>
-                    </div>
-                    <p style="font-size: calc(var(--base-font-size) * 0.82); color: var(--gray); margin-bottom: 8px;">Select your required cooler checkups or custom service parts to add them directly to your order summary.</p>
-                    <div class="requirements-grid" id="requirementsGrid" style="display: grid; grid-template-columns: repeat(1, 1fr); gap: 6px; max-height: 250px; overflow-y: auto; padding-right: 4px;">
-                        <!-- Rendered via JS -->
-                    </div>
-                </div>
+    window.adminApprovePartner = async function(uid) {
+      await update(ref(db, `live_partners/${uid}`), { kycStatus: "approved" });
+      logMessage(`Admin approved partner UID: ${uid}`);
+    };
 
-                <button class="btn-primary" style="margin-top:6px;" onclick="closeSettingsModal()">Save & Apply Settings</button>
-            </div>
-        </div>
-    </div>
+    window.adminRejectPartner = async function(uid) {
+      await update(ref(db, `live_partners/${uid}`), { kycStatus: "rejected" });
+      logMessage(`Admin rejected partner UID: ${uid}`);
+    };
 
-    <div class="modal-overlay" id="cartModalOverlay">
-        <div class="modal-container" style="max-width: 580px;">
-            <div class="modal-header">
-                <h3 class="modal-title">Cooler Service Cart & Checkout</h3>
-                <div class="close-modal" onclick="closeCartModal()"><i class="fa-solid fa-xmark"></i></div>
-            </div>
-            <div id="cartModalBody"></div>
-            <div style="margin-top: 1rem;" id="checkoutFormSection">
-                <h4 style="margin-bottom: 8px; font-size: calc(var(--base-font-size) * 1.05); font-weight: 800;">Live Location Pin & Schedule</h4>
-                
-                <div class="form-group">
-                    <label class="form-label">Live GPS Map Pin (Drag to refine precise location)</label>
-                    <div id="mapPreview"></div>
-                    <input type="hidden" id="latitudeInput">
-                    <input type="hidden" id="longitudeInput">
-                </div>
+    // SIGN OUT SESSION
+    window.logoutSession = async function() {
+      if (activeSyncListener) activeSyncListener();
+      await signOut(auth);
+      loggedInUser = null;
+      showScreen('stepLoginScreen');
+      logMessage("User session terminated securely.");
+    };
 
-                <div class="form-group">
-                    <label class="form-label">Service Date</label>
-                    <input type="date" class="form-control" id="bookingDateInput" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Preferred Time Slot</label>
-                    <select class="form-control" id="bookingTimeSlot">
-                        <option value="09:00 AM - 11:00 AM">09:00 AM - 11:00 AM</option>
-                        <option value="11:00 AM - 01:00 PM">11:00 AM - 01:00 PM</option>
-                        <option value="02:00 PM - 04:00 PM">02:00 PM - 04:00 PM</option>
-                        <option value="04:00 PM - 06:00 PM">04:00 PM - 06:00 PM</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Cooler Type / Special Instructions</label>
-                    <textarea class="form-control" id="bookingRemarks" rows="2" placeholder="Desert Cooler, Tower Cooler, plastic/iron body, water leaking..."></textarea>
-                </div>
-                
-                <button class="btn-primary" onclick="proceedToOrderWithPartnerAssignment()">
-                    <i class="fa-brands fa-whatsapp"></i> Send Order & Assign Nearest Tech
-                </button>
-            </div>
-        </div>
-    </div>
+    // PARTNER REAL-TIME CLOUD SYNCHRONIZATION
+    function attachPartnerRealtimeSync(uid) {
+      if (activeSyncListener) activeSyncListener();
 
-    <div class="modal-overlay" id="trackingModalOverlay">
-        <div class="modal-container" style="max-width: 480px;">
-            <div class="modal-header">
-                <h3 class="modal-title">Live Technician Tracking & OTP</h3>
-                <div class="close-modal" onclick="closeTrackingModal()"><i class="fa-solid fa-xmark"></i></div>
-            </div>
-            <div id="trackingModalBody" style="font-size: calc(var(--base-font-size) * 0.95); line-height: 1.5;"></div>
-        </div>
-    </div>
+      activeSyncListener = onValue(ref(db, `live_partners/${uid}`), (snap) => {
+        const data = snap.val();
+        if (!data) return;
 
-    <div class="pwa-banner" id="pwaBanner">
-        <div>
-            <h4 style="font-size: calc(var(--base-font-size) * 0.95); font-weight: 800;">Install SewaAstra Pro App</h4>
-            <p style="font-size: calc(var(--base-font-size) * 0.8); color: var(--gray);">For instant cooler emergency support and offline alerts.</p>
-        </div>
-        <button class="add-btn" id="pwaInstallTrigger" style="padding: 4px 10px;">Install</button>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
-    <script>
-        window.cart = [];
-        window.currentLat = 23.2599; // Default Bhopal Coordinates
-        window.currentLon = 77.4126;
-        window.mapInstance = null;
-        window.markerInstance = null;
-        window.currentBannerIndex = 0;
-
-        // Expanded comprehensive 50 Customer Requirements List placed exclusively inside Settings Icon Modal
-        const customerRequirements = [
-            "Complete Deep Cleaning & Acid Wash", "Aspen Woodwool Pad Replacement", "HoneyComb Pad High-Efficiency Upgrade", 
-            "Submersible Water Pump Repair", "Submersible Water Pump Replacement", "Copper Winding Motor Rewinding", 
-            "Aluminum Winding Motor Repair", "Fan Blade Aerodynamic Alignment / Balancing", "Fan Blade Replacement", 
-            "Float Valve / Automatic Water Inlet Fix", "Drain Plug Leakage Sealing & Repair", "Main Power Switchboard Repair", 
-            "Speed Regulator Knob Replacement", "Wiring Insulation & Short Circuit Check", "Anti-Rust Body Spray Coating", 
-            "Cooler Iron Stand Assembly", "Cooler Stand Dismantling & Relocation", "Heavy Duty Castor Wheels Replacement", 
-            "Blower Wheel Debris Cleaning", "Blower Motor Bearing Greasing", "Inverter Power Compatibility Check", 
-            "Earthing / Ground Shock Prevention Fix", "Auto Water Filling Kit Installation", "Cooler Winter Cover Installation", 
-            "Odor / Algae Removal Chemical Treatment", "Water Tank Disinfection & Sterilization", "Side Grill Safety Mesh Fixing", 
-            "Exhaust Duct Connection Setup", "Voltage Stabilizer Wiring Connection", "Remote Control Kit Wireless Installation", 
-            "Automatic Timer Switch Installation", "LED Indicator Light Fix", "Main Fuse Replacement", "Capacitor / Condenser Replacement", 
-            "Nut, Bolt & Fastener Tightening", "Vibration Dampening Rubber Pad Setup", "Water Pipe / Hose Pipe Replacement", 
-            "Overflow Pipe Clearing & Cleaning", "Body Dent Removal & Pressing", "Fiber Body Crack Thermal Welding", 
-            "Plastic Body Epoxy Glue Patching", "Louvers / Air Deflector Blade Repair", "Auto Air Swing Motor Fix", 
-            "Pad Holding Wire Net Replacement", "Cooler Pre-Winter Servicing", "Pre-Summer Complete Health Checkup", 
-            "Emergency Midnight Service Dispatch", "Commercial Heavy Duty Cooler Maintenance", "Duct Cooler Complete Servicing", 
-            "Portable Personal Plastic Cooler Repair"
-        ];
-
-        const defaultBanners = [
-            { id: 1, title: 'Advanced Air Cooler Repair & Maintenance', subtitle: 'Instant automated GPS booking, live nearest technician matching via WhatsApp, & Fast OTP.', bg: 'linear-gradient(135deg, #4f46e5 0%, #06b6d4 50%, #ec4899 100%)', buttonText: 'Book Service Now' },
-            { id: 2, title: 'Honeycomb & Woodwool Pad Replacement', subtitle: 'Upgrade cooling efficiency instantly with 100% genuine pads and expert technician fitting.', bg: 'linear-gradient(135deg, #10b981 0%, #06b6d4 50%, #4f46e5 100%)', buttonText: 'Explore Pads' },
-            { id: 3, title: 'Emergency Copper Winding & Water Pump Fix', subtitle: 'Quick doorstep service for all desert and tower cooler electrical failures.', bg: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 100%)', buttonText: 'Emergency Dispatch' }
-        ];
-
-        const defaultCategories = [
-            { id: 'all', name: 'All Services', icon: 'fa-layer-group' },
-            { id: 'general', name: 'General', icon: 'fa-wind' },
-            { id: 'pad', name: 'Woodwool', icon: 'fa-square-full' },
-            { id: 'motor', name: 'Motor/Pump', icon: 'fa-gears' },
-            { id: 'wiring', name: 'Wiring', icon: 'fa-bolt' },
-            { id: 'install', name: 'Install', icon: 'fa-screwdriver-wrench' }
-        ];
-
-        const defaultServices = [
-            { id: 1, cat: 'general', name: 'Cooler Full Deep Cleaning & Wash', rating: '4.9', reviews: '1.4k', price: 399, oldPrice: 599, discount: '33% OFF', badge: 'Bestseller', icon: 'fa-bucket' },
-            { id: 2, cat: 'pad', name: 'Aspen Woodwool Pad Replacement', rating: '4.8', reviews: '920', price: 499, oldPrice: 699, discount: '28% OFF', badge: 'Popular', icon: 'fa-square' },
-            { id: 3, cat: 'pad', name: 'HoneyComb Cooling Pad Upgrade', rating: '4.9', reviews: '1.8k', price: 899, oldPrice: 1299, discount: '30% OFF', badge: 'Cooling', icon: 'fa-chess-board' },
-            { id: 4, cat: 'motor', name: 'Cooler Water Pump Repair / Replace', rating: '4.7', reviews: '750', price: 299, oldPrice: 449, discount: '33% OFF', badge: 'Quick', icon: 'fa-water' },
-            { id: 5, cat: 'motor', name: 'Cooler Copper Winding Motor Repair', rating: '4.8', reviews: '1.1k', price: 799, oldPrice: 1099, discount: '27% OFF', badge: 'Warranty', icon: 'fa-gears' },
-            { id: 6, cat: 'wiring', name: 'Switchboard, Regulator & Wiring Fix', rating: '4.8', reviews: '410', price: 249, oldPrice: 399, discount: '37% OFF', badge: 'Safe', icon: 'fa-plug' },
-            { id: 7, cat: 'install', name: 'Cooler Stand Assembly & Installation', rating: '4.7', reviews: '310', price: 349, oldPrice: 499, discount: '30% OFF', badge: 'Heavy', icon: 'fa-arrows-up-down' },
-            { id: 8, cat: 'general', name: 'Seasonal Maintenance & Oil Check', rating: '4.9', reviews: '640', price: 449, oldPrice: 599, discount: '25% OFF', badge: 'Essential', icon: 'fa-oil-can' }
-        ];
-
-        const defaultPartners = [
-            { id: 'CP-301', name: 'Manoj Sharma', phone: '+919876543210', lat: 23.2620, lon: 77.4100, rating: '4.9', status: 'Active' },
-            { id: 'CP-302', name: 'Rajesh Sen', phone: '+919123456789', lat: 23.2500, lon: 77.4200, rating: '4.8', status: 'Active' },
-            { id: 'CP-303', name: 'Deepak Verma', phone: '+919988776655', lat: 23.2700, lon: 77.3900, rating: '4.7', status: 'On Duty' }
-        ];
-
-        window.getStoreData = function(key, fallback) {
-            const data = localStorage.getItem(`sw_${key}`);
-            return data ? JSON.parse(data) : fallback;
-        };
-
-        window.setStoreData = function(key, value) {
-            localStorage.setItem(`sw_${key}`, JSON.stringify(value));
-        };
-
-        function initializeAppUi() {
-            renderBannersSlider();
-            renderCategoriesGrid();
-            renderServicesList(getStoreData('services', defaultServices));
-            renderRequirementsGrid();
-            refreshGeolocation();
-            setInterval(autoSlideBanners, 4000);
-            
-            const savedFont = localStorage.getItem('sw_font_size');
-            if(savedFont) { applyFontSizeSetting(savedFont, false); document.getElementById('settingFontSize').value = savedFont; }
-
-            const savedBanner = localStorage.getItem('sw_banner_size');
-            if(savedBanner) { applyBannerSizeSetting(savedBanner, false); document.getElementById('settingBannerSize').value = savedBanner; }
-
-            const savedIcon = localStorage.getItem('sw_icon_size');
-            if(savedIcon) { applyIconSizeSetting(savedIcon, false); document.getElementById('settingIconSize').value = savedIcon; }
+        if (data.kycStatus !== "approved") {
+          showScreen('stepWaitScreen');
+          return;
         }
 
-        window.renderBannersSlider = function() {
-            const banners = getStoreData('banners', defaultBanners);
-            const track = document.getElementById('bannerTrack');
-            track.innerHTML = banners.map(b => `
-                <div class="banner-slide" style="background: ${b.bg};">
-                    <h1>${b.title}</h1>
-                    <p>${b.subtitle}</p>
-                    <button class="banner-btn" onclick="scrollToServices()">${b.buttonText} <i class="fa-solid fa-arrow-right"></i></button>
-                </div>
-            `).join('');
-        };
+        const dutyDot = document.getElementById("dutyDot");
+        const dutyText = document.getElementById("dutyText");
+        const orderContainer = document.getElementById("activeOrderContainer");
 
-        function autoSlideBanners() {
-            const banners = getStoreData('banners', defaultBanners);
-            const track = document.getElementById('bannerTrack');
-            if(!track || banners.length <= 1) return;
-            window.currentBannerIndex = (window.currentBannerIndex + 1) % banners.length;
-            track.style.transform = `translateX(-${window.currentBannerIndex * 100}%)`;
+        if (data.isOnline) {
+          dutyDot.className = "dot online";
+          dutyText.innerText = data.status === "busy" ? "ON TASK (BUSY)" : "ONLINE (READY)";
+        } else {
+          dutyDot.className = "dot";
+          dutyText.innerText = "OFF DUTY";
         }
 
-        window.renderCategoriesGrid = function() {
-            const cats = getStoreData('categories', defaultCategories);
-            document.getElementById('categoriesGrid').innerHTML = cats.map(c => `
-                <div class="category-card" onclick="filterCategory('${c.id}')">
-                    <div class="category-icon"><i class="fa-solid ${c.icon}"></i></div>
-                    <span>${c.name}</span>
-                </div>
-            `).join('');
-        };
-
-        window.renderRequirementsGrid = function() {
-            const grid = document.getElementById('requirementsGrid');
-            grid.innerHTML = customerRequirements.map((req, index) => `
-                <label style="display: flex; align-items: center; gap: 10px; background: var(--gray-lighter); padding: 8px 12px; border-radius: var(--radius-sm); font-size: calc(var(--base-font-size) * 0.9); font-weight: 600; border: 1px solid var(--gray-light); cursor: pointer;">
-                    <input type="checkbox" value="${req}" onchange="updateSelectedRequirementsCount()" style="width: 16px; height: 16px; accent-color: var(--primary);">
-                    <span>${index + 1}. ${req}</span>
-                </label>
-            `).join('');
-        };
-
-        window.updateSelectedRequirementsCount = function() {
-            const checkedBoxes = document.querySelectorAll('#requirementsGrid input[type="checkbox"]:checked');
-            document.getElementById('selectedReqCount').innerText = `${checkedBoxes.length} Selected`;
-        };
-
-        window.renderServicesList = function(list) {
-            const grid = document.getElementById('servicesGrid');
-            if (list.length === 0) {
-                grid.innerHTML = `<p style="grid-column: 1/-1; text-align:center; padding: 2rem; color: var(--gray);">No cooler services found matching your search.</p>`;
-                return;
-            }
-            grid.innerHTML = list.map(s => `
-                <div class="service-card">
-                    <div class="service-img-wrap">
-                        <span class="service-badge">${s.badge}</span>
-                        <span class="discount-tag">${s.discount}</span>
-                        <i class="fa-solid ${s.icon}"></i>
-                    </div>
-                    <div class="service-content">
-                        <div class="service-title">${s.name}</div>
-                        <div class="service-rating">
-                            <i class="fa-solid fa-star"></i> ${s.rating} <span>(${s.reviews})</span>
-                        </div>
-                        <div class="service-footer">
-                            <div class="service-price-box">
-                                <span class="service-price">₹${s.price}</span>
-                                <span class="service-old-price">₹${s.oldPrice}</span>
-                            </div>
-                            <button class="add-btn" onclick="addServiceToCart(${s.id})">Add +</button>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        };
-
-        window.filterCategory = function(catId) {
-            const services = getStoreData('services', defaultServices);
-            if(catId === 'all') {
-                renderServicesList(services);
-            } else {
-                renderServicesList(services.filter(s => s.cat === catId));
-            }
-        };
-
-        window.addServiceToCart = function(serviceId) {
-            const services = getStoreData('services', defaultServices);
-            const service = services.find(s => s.id === serviceId);
-            if(!service) return;
-            const existing = window.cart.find(item => item.id === serviceId);
-            if(existing) { existing.qty += 1; } 
-            else { window.cart.push({ ...service, qty: 1 }); }
-            updateCartUi();
-        };
-
-        window.updateCartUi = function() {
-            const count = window.cart.reduce((sum, item) => sum + item.qty, 0);
-            document.getElementById('cartBadgeCount').innerText = count;
-            const totalAmt = window.cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
-            document.getElementById('cartBarTotalAmount').innerText = `₹${totalAmt}`;
-            const cartBar = document.getElementById('floatingCartBar');
-            if(count > 0) { cartBar.classList.add('active'); } else { cartBar.classList.remove('active'); }
-        };
-
-        window.refreshGeolocation = function() {
-            const locText = document.getElementById('locationText');
-            locText.innerText = "Acquiring precise GPS...";
-            if ("geolocation" in navigator) {
-                navigator.geolocation.getCurrentPosition(
-                    position => {
-                        window.currentLat = position.coords.latitude;
-                        window.currentLon = position.coords.longitude;
-                        locText.innerText = `GPS: ${window.currentLat.toFixed(2)}, ${window.currentLon.toFixed(2)}`;
-                        document.getElementById('latitudeInput').value = window.currentLat;
-                        document.getElementById('longitudeInput').value = window.currentLon;
-                    },
-                    error => {
-                        locText.innerText = "Bhopal, MP (Default GPS)";
-                    },
-                    { enableHighAccuracy: true, timeout: 15000 }
-                );
-            } else {
-                locText.innerText = "Geolocation not supported.";
-            }
-        };
-
-        window.openCartModal = function() {
-            const modalBody = document.getElementById('cartModalBody');
-            const checkedReqs = Array.from(document.querySelectorAll('#requirementsGrid input[type="checkbox"]:checked')).map(cb => cb.value);
-
-            if(window.cart.length === 0 && checkedReqs.length === 0) {
-                modalBody.innerHTML = `<p style="text-align:center; padding: 1.5rem; color: var(--gray);">Your cart & requirements list are empty. Select services or open the Settings icon to choose from the 50 requirements checklist.</p>`;
-                document.getElementById('checkoutFormSection').style.display = 'none';
-            } else {
-                document.getElementById('checkoutFormSection').style.display = 'block';
-                let html = '';
-                if(window.cart.length > 0) {
-                    html += `<h4 style="font-size:0.9rem; font-weight:800; margin-bottom:6px; color:var(--primary);">Cart Services:</h4>` + window.cart.map(item => `
-                        <div style="display:flex; justify-content:space-between; align-items:center; padding: 6px 0; border-bottom: 1px solid var(--gray-light);">
-                            <div>
-                                <h5 style="font-size: calc(var(--base-font-size) * 0.9); font-weight: 800;">${item.name}</h5>
-                                <span style="font-size: calc(var(--base-font-size) * 0.78); color: var(--gray);">₹${item.price} x ${item.qty}</span>
-                            </div>
-                            <div style="font-weight: 900; font-size: calc(var(--base-font-size) * 0.98);">₹${item.price * item.qty}</div>
-                        </div>
-                    `).join('');
-                }
-
-                if(checkedReqs.length > 0) {
-                    html += `<h4 style="font-size:0.9rem; font-weight:800; margin:10px 0 6px 0; color:var(--primary);">Selected Custom Requirements (${checkedReqs.length}):</h4>` + 
-                            `<ul style="list-style:disc; padding-left:18px; font-size:0.85rem; color:var(--dark); margin-bottom:10px;">` +
-                            checkedReqs.map(r => `<li>${r}</li>`).join('') + `</ul>`;
-                }
-
-                const total = window.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-                html += `
-                    <div style="display:flex; justify-content:space-between; align-items:center; padding-top: 10px; font-weight: 900; font-size: calc(var(--base-font-size) * 1.1); border-top: 2px solid var(--gray-light); margin-top: 8px;">
-                        <span>Estimated Total</span>
-                        <span style="color: var(--primary);">₹${total}</span>
-                    </div>
-                `;
-                modalBody.innerHTML = html;
-            }
-            document.getElementById('cartModalOverlay').classList.add('active');
-
-            setTimeout(() => {
-                if(!window.mapInstance) {
-                    window.mapInstance = L.map('mapPreview').setView([window.currentLat, window.currentLon], 15);
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '© OpenStreetMap'
-                    }).addTo(window.mapInstance);
-                    window.markerInstance = L.marker([window.currentLat, window.currentLon], {draggable: true}).addTo(window.mapInstance);
-                    
-                    window.markerInstance.on('dragend', function(e) {
-                        const coord = e.target.getLatLng();
-                        window.currentLat = coord.lat;
-                        window.currentLon = coord.lng;
-                        document.getElementById('latitudeInput').value = coord.lat;
-                        document.getElementById('longitudeInput').value = coord.lng;
-                    });
-                } else {
-                    window.mapInstance.setView([window.currentLat, window.currentLon], 15);
-                    window.markerInstance.setLatLng([window.currentLat, window.currentLon]);
-                    window.mapInstance.invalidateSize();
-                }
-            }, 300);
-        };
-
-        window.closeCartModal = function() {
-            document.getElementById('cartModalOverlay').classList.remove('active');
-        };
-
-        function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; 
-            const dLat = (lat2 - lat1) * (Math.PI / 180);
-            const dLon = (lon2 - lon1) * (Math.PI / 180);
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon/2) * Math.sin(dLon/2);
-            return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+        if (data.currentOrderId) {
+          orderContainer.style.display = "block";
+          document.getElementById("orderDetailsBox").innerHTML = `Assigned Service ID: <b>${data.currentOrderId}</b>`;
+        } else {
+          orderContainer.style.display = "none";
+          document.getElementById("enteredOtp").value = "";
         }
 
-        window.proceedToOrderWithPartnerAssignment = async function() {
-            const date = document.getElementById('bookingDateInput').value;
-            const timeSlot = document.getElementById('bookingTimeSlot').value;
-            const remarks = document.getElementById('bookingRemarks').value;
+        const earned = data.totalEarned || 0;
+        document.getElementById("topBarEarnings").innerText = `₹${earned}`;
+        document.getElementById("walletNetBalance").innerText = `₹${earned}`;
+        document.getElementById("completedJobsCount").innerText = data.completedJobs || 0;
+      });
+    }
 
-            if(!date || !timeSlot) {
-                alert('Please select date and time slot.');
-                return;
-            }
+    window.toggleDutyState = async function() {
+      if (!loggedInUser) return;
+      const uid = loggedInUser.uid;
+      const pRef = ref(db, `live_partners/${uid}`);
+      const snap = await get(pRef);
+      const data = snap.val() || {};
 
-            const partners = getStoreData('partners', defaultPartners);
-            let nearestPartner = partners[0];
-            let minDistance = Infinity;
+      if (data.kycStatus !== "approved") {
+        alert("❌ Error: You cannot toggle online until Admin approves your KYC profile!");
+        return;
+      }
 
-            partners.forEach(partner => {
-                const dist = calculateHaversineDistance(window.currentLat, window.currentLon, partner.lat, partner.lon);
-                if(dist < minDistance) {
-                    minDistance = dist;
-                    nearestPartner = partner;
-                }
-            });
+      const nextState = !data.isOnline;
+      await update(pRef, {
+        isOnline: nextState,
+        status: nextState ? "available" : "offline"
+      });
+      logMessage(`Duty status updated in cloud: ${nextState ? 'ONLINE' : 'OFFLINE'}`);
+    };
 
-            const verificationOtp = Math.floor(1000 + Math.random() * 9000).toString();
-            const total = window.cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
-            const itemsSummary = window.cart.map(i => `${i.name} (x${i.qty})`).join(', ');
-            const checkedReqs = Array.from(document.querySelectorAll('#requirementsGrid input[type="checkbox"]:checked')).map(cb => cb.value);
+    // DISPATCH ALGORITHM & ORDER BROADCASTING
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2)**2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2)**2;
+      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    }
 
-            const orderPayload = {
-                items: window.cart,
-                requirements: checkedReqs,
-                totalAmount: total,
-                date: date,
-                timeSlot: timeSlot,
-                remarks: remarks,
-                clientName: 'Direct Customer',
-                clientPhone: 'Customer Direct Order',
-                latitude: window.currentLat,
-                longitude: window.currentLon,
-                assignedPartner: nearestPartner,
-                otp: verificationOtp,
-                status: 'Assigned',
-                createdAt: new Date().toISOString()
-            };
+    async function autoAssignIncomingOrder(orderId, orderData) {
+      const partSnap = await get(child(ref(db), 'live_partners'));
+      if (!partSnap.exists()) return;
 
-            let ordersHistory = getStoreData('cooler_orders', []);
-            ordersHistory.unshift(orderPayload);
-            setStoreData('cooler_orders', ordersHistory);
+      const partList = partSnap.val();
+      let bestPartnerId = null, minDistance = Infinity;
 
-            const mapsUrl = `https://maps.google.com/?q=${window.currentLat},${window.currentLon}`;
-            const whatsappMessage = `*🌬️ SewaAstra Pro - NEW COOLER ORDER*%0A` +
-                                    `----------------------------------%0A` +
-                                    `*Cart Services:* ${encodeURIComponent(itemsSummary || 'None')}%0A` +
-                                    `*Requirements (${checkedReqs.length}):* ${encodeURIComponent(checkedReqs.join(', ') || 'None')}%0A` +
-                                    `*Est. Total:* ₹${total}%0A` +
-                                    `*Date & Slot:* ${date} (${encodeURIComponent(timeSlot)})%0A` +
-                                    `*Remarks:* ${encodeURIComponent(remarks || 'None')}%0A` +
-                                    `*📍 Live GPS Pin:* ${mapsUrl}%0A` +
-                                    `----------------------------------%0A` +
-                                    `*🛠️ Assigned Tech:* ${encodeURIComponent(nearestPartner.name)} (${nearestPartner.phone}) — *${minDistance.toFixed(2)} km away*%0A` +
-                                    `*🔑 Verification OTP:* *${verificationOtp}*`;
-
-            window.open(`https://wa.me/917869969190?text=${whatsappMessage}`, '_blank');
-
-            window.cart = [];
-            document.querySelectorAll('#requirementsGrid input[type="checkbox"]').forEach(cb => cb.checked = false);
-            updateSelectedRequirementsCount();
-            updateCartUi();
-            closeCartModal();
-            openActiveTrackingModal(orderPayload);
-        };
-
-        window.openActiveTrackingModal = function(order) {
-            const body = document.getElementById('trackingModalBody');
-            body.innerHTML = `
-                <div style="background: var(--primary-light); padding: 12px; border-radius: var(--radius-sm); margin-bottom: 10px; border: 1px solid var(--primary);">
-                    <h4 style="color: var(--primary); margin-bottom: 4px; font-size: calc(var(--base-font-size) * 1.02);"><i class="fa-solid fa-circle-check"></i> Technician Assigned Successfully!</h4>
-                    <p style="font-size: calc(var(--base-font-size) * 0.85); color: var(--dark);">Nearest cooler specialist is dispatched and notified via WhatsApp.</p>
-                </div>
-                <p><b>Technician:</b> ${order.assignedPartner.name}</p>
-                <p><b>Phone:</b> <a href="tel:${order.assignedPartner.phone}" style="color: var(--primary); font-weight: 800;">${order.assignedPartner.phone}</a></p>
-                <div style="margin: 12px 0; background: var(--gray-lighter); padding: 12px; border-radius: var(--radius-sm); text-align: center; border: 1px dashed var(--gray-light);">
-                    <span style="font-size: calc(var(--base-font-size) * 0.78); display:block; color: var(--gray); font-weight: 800;">Service Completion OTP</span>
-                    <h2 style="font-size: 1.8rem; letter-spacing: 4px; color: var(--accent-pink); font-weight: 900;">${order.otp}</h2>
-                    <span style="font-size: calc(var(--base-font-size) * 0.75); color: var(--danger); font-weight: 700;">Share with technician only after service completion.</span>
-                </div>
-                <button class="btn-primary" onclick="closeTrackingModal(); switchNavTab('bookings')">View All Active Bookings</button>
-            `;
-            document.getElementById('trackingModalOverlay').classList.add('active');
-        };
-
-        window.closeTrackingModal = function() {
-            document.getElementById('trackingModalOverlay').classList.remove('active');
-        };
-
-        window.openSettingsModal = function() {
-            document.getElementById('settingsModalOverlay').classList.add('active');
-            closeDrawer();
-        };
-
-        window.closeSettingsModal = function() {
-            document.getElementById('settingsModalOverlay').classList.remove('active');
-        };
-
-        window.applyFontSizeSetting = function(sizeVal, showAlert = true) {
-            document.documentElement.style.setProperty('--base-font-size', sizeVal);
-            localStorage.setItem('sw_font_size', sizeVal);
-            if(showAlert) alert('Font size adjusted successfully!');
-        };
-
-        window.applyBannerSizeSetting = function(sizeVal, showAlert = true) {
-            document.documentElement.style.setProperty('--banner-height', sizeVal);
-            localStorage.setItem('sw_banner_size', sizeVal);
-            if(showAlert) alert('Banner size adjusted successfully!');
-        };
-
-        window.applyIconSizeSetting = function(sizeVal, showAlert = true) {
-            document.documentElement.style.setProperty('--icon-size', sizeVal);
-            localStorage.setItem('sw_icon_size', sizeVal);
-            if(showAlert) alert('Small icon size adjusted successfully!');
-        };
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            window.deferredPwaPrompt = e;
-            document.getElementById('installAppBtn').style.display = 'flex';
-            document.getElementById('pwaBanner').classList.add('show');
-        });
-
-        window.triggerPwaInstall = async function() {
-            if(!window.deferredPwaPrompt) { alert('App is already installed or running natively.'); return; }
-            window.deferredPwaPrompt.prompt();
-            const { outcome } = await window.deferredPwaPrompt.userChoice;
-            if(outcome === 'accepted') {
-                document.getElementById('installAppBtn').style.display = 'none';
-                document.getElementById('pwaBanner').classList.remove('show');
-            }
-            window.deferredPwaPrompt = null;
-        };
-
-        document.getElementById('installAppBtn').addEventListener('click', triggerPwaInstall);
-        document.getElementById('pwaInstallTrigger').addEventListener('click', triggerPwaInstall);
-
-        window.addEventListener('DOMContentLoaded', initializeAppUi);
-    </script>
-
-    <script>
-        const menuToggle = document.getElementById('menuToggle');
-        const sideDrawer = document.getElementById('sideDrawer');
-        const drawerOverlay = document.getElementById('drawerOverlay');
-
-        menuToggle.addEventListener('click', () => {
-            sideDrawer.classList.toggle('open');
-            drawerOverlay.style.display = sideDrawer.classList.contains('open') ? 'block' : 'none';
-        });
-
-        drawerOverlay.addEventListener('click', () => {
-            sideDrawer.classList.remove('open');
-            drawerOverlay.style.display = 'none';
-        });
-
-        function closeDrawer() {
-            sideDrawer.classList.remove('open');
-            drawerOverlay.style.display = 'none';
+      for (const [pId, pData] of Object.entries(partList)) {
+        if (pData.isOnline === true && pData.status === "available" && pData.kycStatus === "approved") {
+          const dist = calculateDistance(orderData.latitude, orderData.longitude, pData.latitude, pData.longitude);
+          if (dist < minDistance) {
+            minDistance = dist;
+            bestPartnerId = pId;
+          }
         }
+      }
 
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase();
-            document.querySelectorAll('.service-card').forEach(card => {
-                card.style.display = card.innerText.toLowerCase().includes(query) ? 'flex' : 'none';
-            });
-        });
+      if (bestPartnerId) {
+        const completionOtp = Math.floor(1000 + Math.random() * 9000).toString();
+        const batch = {};
+        batch[`/live_orders/${orderId}/status`] = "assigned";
+        batch[`/live_orders/${orderId}/assignedPartnerId`] = bestPartnerId;
+        batch[`/live_orders/${orderId}/completionOtp`] = completionOtp;
 
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            if(currentTheme === 'dark') {
-                document.documentElement.setAttribute('data-theme', 'light');
-                localStorage.setItem('sw_theme', 'light');
-            } else {
-                document.documentElement.setAttribute('data-theme', 'dark');
-                localStorage.setItem('sw_theme', 'dark');
-            }
-            closeDrawer();
-        }
+        batch[`/live_partners/${bestPartnerId}/status`] = "busy";
+        batch[`/live_partners/${bestPartnerId}/currentOrderId`] = orderId;
 
-        if(localStorage.getItem('sw_theme') === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-        }
+        await update(ref(db), batch);
+        logMessage(`✅ Order Auto-Assigned to partner ${bestPartnerId}. 🔑 CUSTOMER OTP: [ ${completionOtp} ]`);
+      } else {
+        logMessage(`⚠️ Order Queue: No online & approved partners available right now.`);
+      }
+    }
 
-        function switchNavTab(tabName, element) {
-            if(element) {
-                document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-                element.classList.add('active');
-            }
-            const mainContent = document.getElementById('mainAppContent');
-            if(tabName === 'home') {
-                location.reload();
-            } else if(tabName === 'bookings') {
-                const orders = getStoreData('cooler_orders', []);
-                if(orders.length === 0) {
-                    mainContent.innerHTML = `
-                        <div style="padding: 3rem 1rem; text-align: center;">
-                            <h2 style="font-size: calc(var(--base-font-size) * 1.15); margin-bottom: 0.6rem;"><i class="fa-solid fa-receipt"></i> No Bookings Yet</h2>
-                            <p style="color: var(--gray); font-size: calc(var(--base-font-size) * 0.9);">Your booked cooler services with assigned technician and verification OTP will appear here.</p>
-                        </div>
-                    `;
-                } else {
-                    mainContent.innerHTML = `
-                        <div style="padding: 0.5rem 0;">
-                            <h2 style="font-size: calc(var(--base-font-size) * 1.25); font-weight: 900; margin-bottom: 1rem;"><i class="fa-solid fa-receipt"></i> Cooler Service Orders</h2>
-                            ${orders.map(o => `
-                                <div style="background: var(--white); padding: 14px; border-radius: var(--radius); border: 1px solid var(--gray-light); margin-bottom: 12px; box-shadow: var(--shadow-sm);">
-                                    <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
-                                        <b style="font-size: calc(var(--base-font-size) * 0.95); color: var(--primary);">📅 ${o.date} (${o.timeSlot})</b>
-                                        <span style="background: var(--primary-light); color: var(--primary); padding: 3px 8px; border-radius: 6px; font-size: calc(var(--base-font-size) * 0.8); font-weight: 900;">${o.status}</span>
-                                    </div>
-                                    ${o.items && o.items.length > 0 ? `<p style="font-size: calc(var(--base-font-size) * 0.9); color: var(--dark); margin-bottom: 4px;"><b>Cart Items:</b> ${o.items.map(i => i.name + ' (x' + i.qty + ')').join(', ')}</p>` : ''}
-                                    ${o.requirements && o.requirements.length > 0 ? `<p style="font-size: calc(var(--base-font-size) * 0.9); color: var(--dark); margin-bottom: 4px;"><b>Requirements:</b> ${o.requirements.join(', ')}</p>` : ''}
-                                    <p style="font-size: calc(var(--base-font-size) * 0.9); color: var(--gray); margin-bottom: 8px;"><b>Tech:</b> ${o.assignedPartner.name} (<a href="tel:${o.assignedPartner.phone}" style="color: var(--primary); font-weight: 800;">${o.assignedPartner.phone}</a>)</p>
-                                    <div style="background: var(--gray-lighter); padding: 8px; border-radius: 6px; display:flex; justify-content:space-between; align-items:center; border: 1px dashed var(--gray-light);">
-                                        <span style="font-size: calc(var(--base-font-size) * 0.85); font-weight: 800;">Completion OTP:</span>
-                                        <b style="font-size: 1.1rem; color: var(--accent-pink); letter-spacing: 3px; font-weight: 900;">${o.otp}</b>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                }
-            } else if(tabName === 'support') {
-                mainContent.innerHTML = `
-                    <div style="padding: 1.5rem 0;">
-                        <h2 style="font-size: calc(var(--base-font-size) * 1.25); font-weight: 900; margin-bottom: 1rem;"><i class="fa-solid fa-headset"></i> 24/7 SewaAstra Support Desk</h2>
-                        <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius); border: 1px solid var(--gray-light); box-shadow: var(--shadow-sm);">
-                            <h4 style="font-size: calc(var(--base-font-size) * 1.05); margin-bottom: 6px; font-weight: 800;">💬 Instant WhatsApp Helpline</h4>
-                            <p style="font-size: calc(var(--base-font-size) * 0.9); color: var(--gray); margin-bottom: 12px;">Direct assistance for emergency motor breakdowns, woodwool pad replacements, and technician scheduling.</p>
-                            <a href="https://wa.me/917869969190?text=Hello%20SewaAstra%20Support" target="_blank" class="add-btn" style="display:inline-block; text-align:center; padding: 8px 16px;">Chat with WhatsApp Support</a>
-                        </div>
-                    </div>
-                `;
-            }
-        }
+    window.broadcastCustomerOrder = async function() {
+      const serviceCat = document.getElementById("serviceCategory").value;
+      const amount = serviceCat.includes("899") ? 899 : (serviceCat.includes("599") ? 599 : (serviceCat.includes("649") ? 649 : 749));
 
-        function scrollToServices() {
-            document.getElementById('servicesSection').scrollIntoView({ behavior: 'smooth' });
-        }
-    </script>
+      const newOrderRef = push(ref(db, 'live_orders'));
+      const orderPayload = {
+        category: serviceCat, amount, latitude: 28.6139, longitude: 77.2090,
+        status: "pending", createdAt: new Date().toISOString()
+      };
+
+      await set(newOrderRef, orderPayload);
+      logMessage(`📦 Customer Order Broadcasted: ${serviceCat}`);
+      autoAssignIncomingOrder(newOrderRef.key, orderPayload);
+    };
+
+    window.verifyOtpAndCompleteOrder = async function() {
+      if (!loggedInUser) return;
+      const uid = loggedInUser.uid;
+      const pRef = ref(db, `live_partners/${uid}`);
+      const snap = await get(pRef);
+      const data = snap.val();
+      if (!data || !data.currentOrderId) return;
+
+      const orderId = data.currentOrderId;
+      const enteredOtp = document.getElementById("enteredOtp").value.trim();
+
+      const orderSnap = await get(ref(db, `live_orders/${orderId}`));
+      if (!orderSnap.exists()) return;
+
+      const orderData = orderSnap.val();
+      if (enteredOtp !== orderData.completionOtp) {
+        alert(`❌ Incorrect Verification OTP! Check telemetry console for test code.`);
+        return;
+      }
+
+      const orderAmount = orderData.amount || 500;
+      const newTotalEarned = (data.totalEarned || 0) + orderAmount;
+      const newCompletedJobs = (data.completedJobs || 0) + 1;
+
+      const updates = {};
+      updates[`/live_orders/${orderId}/status`] = "completed";
+      updates[`/live_partners/${uid}/status`] = "available";
+      updates[`/live_partners/${uid}/currentOrderId`] = null;
+      updates[`/live_partners/${uid}/totalEarned`] = newTotalEarned;
+      updates[`/live_partners/${uid}/completedJobs`] = newCompletedJobs;
+
+      await update(ref(db), updates);
+      logMessage(`🎉 Order ${orderId} completed successfully. Credited ₹${orderAmount} to wallet.`);
+      alert("✅ Service verified and wallet updated successfully!");
+    };
+
+    window.declineAssignedOrder = async function() {
+      if (!loggedInUser) return;
+      const uid = loggedInUser.uid;
+      const pRef = ref(db, `live_partners/${uid}`);
+      const snap = await get(pRef);
+      const data = snap.val();
+      if (!data || !data.currentOrderId) return;
+
+      const orderId = data.currentOrderId;
+      const updates = {};
+      updates[`/live_orders/${orderId}/status`] = "pending";
+      updates[`/live_orders/${orderId}/assignedPartnerId`] = null;
+      updates[`/live_partners/${uid}/status`] = "available";
+      updates[`/live_partners/${uid}/currentOrderId`] = null;
+
+      await update(ref(db), updates);
+      logMessage(`⚠️ Assigned order declined and re-queued in cloud database.`);
+    };
+  </script>
 </body>
 </html>
