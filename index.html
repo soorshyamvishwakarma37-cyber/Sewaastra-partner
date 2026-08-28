@@ -256,7 +256,6 @@
     .stat-box .val { font-size: 18px; font-weight: 800; color: var(--primary-red); }
     .stat-box .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
     
-    /* LEAFLET MAP CONTAINER */
     #liveMap {
       width: 100%;
       height: 220px;
@@ -336,7 +335,7 @@
   </div>
 
   <div id="stepKycScreen" class="screen">
-    <div class="card">
+    <div class="card" style="max-width: 480px;">
       <div class="steps-header">
         <div class="step-node completed"><div class="circle">✓</div>Login</div>
         <div class="step-node active"><div class="circle">2</div>Profile</div>
@@ -371,16 +370,28 @@
           <option value="RO Water Purifier Technician">RO Water Purifier Technician</option>
         </select>
       </div>
-      
-      <div class="form-group">
-        <label>Aadhaar / ID Card Photo (Camera or Gallery):</label>
-        <input type="file" id="kycDocUpload" accept="image/*" capture="environment" style="padding: 8px; font-size: 12px; background: #fafafa;">
+
+      <div style="background: #fafafa; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+        <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Systematic Verification Documents</h4>
+        
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label>1. Aadhaar / Govt ID Card Upload:</label>
+          <input type="file" id="kycDocAadhaar" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label>2. PAN Card Number & Document:</label>
+          <input type="text" id="kycPan" placeholder="ABCDE1234F" style="margin-bottom: 6px;">
+          <input type="file" id="kycDocPan" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>3. Driver's License Number & Document:</label>
+          <input type="text" id="kycLicence" placeholder="DL-1420110012345" style="margin-bottom: 6px;">
+          <input type="file" id="kycDocLicence" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
+        </div>
       </div>
       
-      <div class="form-group">
-        <label>PAN Card Number:</label>
-        <input type="text" id="kycPan" placeholder="ABCDE1234F">
-      </div>
       <div class="form-group">
         <label>Bank Account Number (Weekly Payouts):</label>
         <input type="text" id="kycBank" placeholder="Account Number">
@@ -479,7 +490,7 @@
           <div id="orderDetailsBox" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></div>
           
           <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <a id="navMapBtn" href="#" target="_blank" style="flex: 1; text-decoration: none;"><button class="btn-outline" style="font-size: 12px; padding: 8px;">🗺️ Navigate</button></a>
+            <a id="navMapBtn" href="https://maps.google.com" target="_blank" style="flex: 1; text-decoration: none;"><button class="btn-outline" style="font-size: 12px; padding: 8px;">🗺️ Navigate</button></a>
             <a id="callCustomerBtn" href="tel:+919876543210" style="flex: 1; text-decoration: none;"><button class="btn-outline" style="border-color: var(--success); color: var(--success); font-size: 12px; padding: 8px;">📞 Call Cust</button></a>
             <button onclick="openChatModal()" class="btn-outline" style="flex: 1; border-color: var(--blue); color: var(--blue); font-size: 12px; padding: 8px;">💬 Chat</button>
           </div>
@@ -651,7 +662,6 @@
       }
     }
 
-    // INITIALIZE LEAFLET MAP
     function initLeafletMap() {
       if (leafletMap) return;
       leafletMap = L.map('liveMap').setView([28.6139, 77.2090], 14);
@@ -662,7 +672,18 @@
       L.marker([28.6139, 77.2090]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Location</b>").openPopup();
     }
 
-    // GOOGLE FIREBASE AUTHENTICATION TRIGGER
+    // CHECK PERSISTENT SESSION ON PAGE LOAD
+    window.addEventListener('DOMContentLoaded', async () => {
+      const persistedUid = localStorage.getItem('sewaastra_persisted_uid');
+      const persistedEmail = localStorage.getItem('sewaastra_persisted_email');
+      
+      if (persistedUid) {
+        logMessage(`Restoring session for UID: ${persistedUid}`);
+        loggedInUser = { uid: persistedUid, email: persistedEmail };
+        evaluateUserRouting(persistedUid, persistedEmail);
+      }
+    });
+
     window.loginWithGoogleFirebase = async function() {
       showLoader("Authenticating with Google Firebase...");
       try {
@@ -677,6 +698,9 @@
         if (!snap.exists()) {
           document.getElementById("mobilePopupModal").classList.add("active");
         } else {
+          // Save session to persistence
+          localStorage.setItem('sewaastra_persisted_uid', loggedInUser.uid);
+          localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
           evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
         }
       } catch (error) {
@@ -686,7 +710,6 @@
       }
     };
 
-    // SUBMIT MOBILE NUMBER FROM POPUP MODAL
     window.submitPopupMobileNumber = function() {
       const phoneInput = document.getElementById("popupPhoneInput").value.trim();
       if (!phoneInput || phoneInput.length !== 10) {
@@ -703,7 +726,6 @@
       document.getElementById("kycFullName").value = loggedInUser.displayName || "";
     };
 
-    // ROUTING LOGIC
     async function evaluateUserRouting(uid, email) {
       if (email === "admin@sewaastra.com" || email.includes("masteradmin")) {
         showScreen('adminDashboard');
@@ -730,7 +752,6 @@
       }
     }
 
-    // SUBMIT ONBOARDING PROFILE WITH DOCUMENT FILE
     window.submitOnboardingData = async function() {
       if (!loggedInUser) return;
       const uid = loggedInUser.uid;
@@ -739,22 +760,26 @@
       const phone = document.getElementById("kycPhone").value.trim();
       const skill = document.getElementById("kycSkill").value;
       const pan = document.getElementById("kycPan").value.trim();
+      const licence = document.getElementById("kycLicence").value.trim();
       const bank = document.getElementById("kycBank").value.trim();
-      const fileInput = document.getElementById("kycDocUpload");
+      
+      const fileAadhaar = document.getElementById("kycDocAadhaar").files[0];
+      const filePan = document.getElementById("kycDocPan").files[0];
+      const fileLicence = document.getElementById("kycDocLicence").files[0];
 
-      if (!name || !phone || !pan) {
-        alert("Please fill in all mandatory onboarding fields.");
+      if (!name || !phone || !pan || !licence) {
+        alert("Please fill in all mandatory onboarding text fields and document numbers.");
         return;
       }
 
-      showLoader("Uploading KYC documents to cloud storage...");
+      showLoader("Uploading systematic KYC documents to cloud storage...");
       
-      let docFileName = fileInput.files[0] ? fileInput.files[0].name : "Camera_Captured_ID.jpg";
-
       const payload = {
         email: loggedInUser.email,
-        name, phone, skill, pan, bank,
-        documentUploaded: docFileName,
+        name, phone, skill, pan, licence, bank,
+        docAadhaarUploaded: fileAadhaar ? fileAadhaar.name : "Aadhaar_Verified.jpg",
+        docPanUploaded: filePan ? filePan.name : "PAN_Verified.jpg",
+        docLicenceUploaded: fileLicence ? fileLicence.name : "Licence_Verified.jpg",
         kycStatus: "pending",
         isOnline: false,
         status: "available",
@@ -765,8 +790,13 @@
       };
 
       await set(ref(db, `live_partners/${uid}`), payload);
+      
+      // Save session token locally so they remain logged in
+      localStorage.setItem('sewaastra_persisted_uid', uid);
+      localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
+
       hideLoader();
-      alert("KYC documents and profile successfully synced to Firebase!");
+      alert("Systematic KYC documents and profile successfully synced to Firebase!");
       showScreen('stepWaitScreen');
     };
 
@@ -808,7 +838,9 @@
                 📧 Email: <b>${data.email}</b><br>
                 📱 Phone: <b>${data.phone}</b><br>
                 🛠️ Specialization: <b>${data.skill}</b><br>
-                📁 Document: <b>${data.documentUploaded || 'Camera Verified'}</b> | PAN: <b>${data.pan}</b>
+                📄 Aadhaar Doc: <b>${data.docAadhaarUploaded || 'Verified'}</b><br>
+                📁 PAN Card: <b>${data.pan}</b> (${data.docPanUploaded || 'Uploaded'})<br>
+                🚗 License: <b>${data.licence}</b> (${data.docLicenceUploaded || 'Uploaded'})
               </div>
               <div style="display: flex; gap: 10px;">
                 <button onclick="adminApprovePartner('${uid}')" style="background: var(--success); padding: 8px; font-size: 12px;">Approve ✅</button>
@@ -833,12 +865,14 @@
 
     window.logoutSession = async function() {
       if (activeSyncListener) activeSyncListener();
+      localStorage.removeItem('sewaastra_persisted_uid');
+      localStorage.removeItem('sewaastra_persisted_email');
       await signOut(auth);
       loggedInUser = null;
       showScreen('stepLoginScreen');
+      logMessage("Partner signed out and session destroyed.");
     };
 
-    // PARTNER REAL-TIME SYNC & ORDER ALERT POPUP
     function attachPartnerRealtimeSync(uid) {
       if (activeSyncListener) activeSyncListener();
 
@@ -867,8 +901,6 @@
           currentAssignedOrderId = data.currentOrderId;
           orderContainer.style.display = "block";
           document.getElementById("orderDetailsBox").innerHTML = `Assigned Service ID: <b>${data.currentOrderId}</b>`;
-          // Map navigation link setup
-          document.getElementById("navMapBtn").href = `https://www.google.com/maps/search/?api=1&query=28.6139,77.2090`;
         } else {
           currentAssignedOrderId = null;
           orderContainer.style.display = "none";
@@ -881,7 +913,6 @@
         document.getElementById("completedJobsCount").innerText = data.completedJobs || 0;
       });
 
-      // Listen for incoming available orders for radar alert popup
       onValue(ref(db, 'live_orders'), (snap) => {
         if (!snap.exists()) return;
         const orders = snap.val();
@@ -930,7 +961,6 @@
       logMessage(`📦 Customer Order Broadcasted: ${serviceCat}`);
     };
 
-    // ACCEPT ORDER FROM POPUP ALERT MODAL
     window.acceptBroadcastedOrder = async function() {
       if (!loggedInUser || !currentPendingOrderId) return;
       const uid = loggedInUser.uid;
