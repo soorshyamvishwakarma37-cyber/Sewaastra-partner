@@ -285,11 +285,27 @@
     </div>
   </div>
 
+  <div id="withdrawModal" class="modal-overlay">
+    <div class="modal-card">
+      <h3 style="font-size: 16px; color: var(--success); margin-bottom: 6px;">💸 Instant Bank Withdrawal</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Transfer your available cloud earnings instantly to your registered bank account.</p>
+      
+      <div class="form-group">
+        <label>Withdrawal Amount (₹):</label>
+        <input type="number" id="withdrawAmountInput" placeholder="Enter amount">
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="processWithdrawal()" style="background: var(--success); flex: 1;">Confirm Transfer ➔</button>
+        <button onclick="document.getElementById('withdrawModal').classList.remove('active')" class="btn-outline" style="flex: 1;">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <div id="incomingOrderModal" class="modal-overlay">
     <div class="modal-card" style="border-top: 5px solid var(--primary-red); text-align: center;">
       <span class="badge badge-pending" style="margin-bottom: 8px;">⚡ New Service Gig Alert!</span>
       <h3 id="modalOrderTitle" style="font-size: 16px; margin-bottom: 8px;">AC Split Jet Cleaning</h3>
-      <p id="modalOrderDetails" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Customer location near your coordinates. Estimated Payout: <b>₹899</b></p>
+      <p id="modalOrderDetails" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Customer location near your telemetry coordinates. Estimated Payout: <b id="modalOrderPayout">₹899</b></p>
       
       <div style="display: flex; gap: 10px;">
         <button onclick="acceptBroadcastedOrder()" style="background: var(--success); flex: 1;">Accept Order 👍</button>
@@ -362,6 +378,10 @@
         <input type="text" id="kycPhone" readonly style="background: #f9f9f9; color: #555; font-weight: bold;">
       </div>
       <div class="form-group">
+        <label>Auto-Detected Live GPS Coordinates:</label>
+        <input type="text" id="kycGeoLocation" readonly style="background: #f9f9f9; color: var(--success); font-weight: bold;" value="Acquiring GPS fix...">
+      </div>
+      <div class="form-group">
         <label>Primary Specialization Skill:</label>
         <select id="kycSkill">
           <option value="AC & Refrigeration Specialist">AC & Refrigeration Specialist</option>
@@ -373,18 +393,15 @@
 
       <div style="background: #fafafa; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
         <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Systematic Verification Documents</h4>
-        
         <div class="form-group" style="margin-bottom: 10px;">
-          <label>1. Aadhaar / Govt ID Card Upload:</label>
+          <label>1. Govt ID Document Upload:</label>
           <input type="file" id="kycDocAadhaar" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
         </div>
-
         <div class="form-group" style="margin-bottom: 10px;">
           <label>2. PAN Card Number & Document:</label>
           <input type="text" id="kycPan" placeholder="ABCDE1234F" style="margin-bottom: 6px;">
           <input type="file" id="kycDocPan" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
         </div>
-
         <div class="form-group" style="margin-bottom: 0;">
           <label>3. Driver's License Number & Document:</label>
           <input type="text" id="kycLicence" placeholder="DL-1420110012345" style="margin-bottom: 6px;">
@@ -478,7 +495,7 @@
             <option value="RO Water Purifier Filter Replacements (₹649)">RO Purifier Filter Service (₹649)</option>
           </select>
         </div>
-        <button onclick="broadcastCustomerOrder()">Broadcast Order to Cloud Feed</button>
+        <button onclick="broadcastCustomerOrder()">Broadcast Multi-Gig Order</button>
       </div>
 
       <div id="activeOrderContainer" style="display: none;">
@@ -506,37 +523,6 @@
           </div>
         </div>
       </div>
-
-      <div class="card" style="max-width: 100%;">
-        <h4 style="font-size: 13px; margin-bottom: 10px;">Gig Dispatch Advanced Features (25 Controls)</h4>
-        <div class="settings-list">
-          <div class="setting-item"><span>1. Auto-Accept Same-Street Gigs</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
-          <div class="setting-item"><span>2. Dynamic Surge Pricing Accept</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>3. Night Shift Gig Auto-Filter</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
-          <div class="setting-item"><span>4. Express Priority Routing Mode</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>5. Voice Broadcast Incoming Orders</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>6. Instant Map Navigation Trigger</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>7. Multi-Stop Route Optimizer</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
-          <div class="setting-item"><span>8. Customer Chat Auto-Greeting</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>9. Distance Radius Cap (Max 10km)</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>10. Heavy Appliance Load Flag</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
-          <div class="setting-item"><span>11. Live Traffic Congestion Bypass</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>12. Automated Arrival SMS Notification</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>13. Reschedule Request Handler</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>14. Direct Calling Masking Relay</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>15. Photo Evidence Upload Mandate</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>16. Spare Parts Requisition Prompt</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>17. Warranty Job Verification Tag</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
-          <div class="setting-item"><span>18. Repeat Customer Fast-Track</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>19. Commercial Corporate Gig Filter</span><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
-          <div class="setting-item"><span>20. Residential Society Gate Pass Log</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>21. Service Cancellation Reason Logger</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>22. Direct Tip Collection Prompt</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>23. Post-Job Feedback Reminder</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>24. Emergency Breakdown Alert</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-          <div class="setting-item"><span>25. Offline Queue Synchronization</span><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
-        </div>
-      </div>
     </div>
 
     <div id="inventoryTab" class="tab-content" style="padding: 15px 0;">
@@ -550,10 +536,6 @@
           <span>Universal Geyser Thermostat Valve</span>
           <b style="color: var(--success);">3 Units Available</b>
         </div>
-        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 8px; font-size: 12px;">
-          <span>Washing Machine Belt (21 Inch)</span>
-          <b style="color: var(--danger);">Out of Stock</b>
-        </div>
         <button class="btn-outline" style="margin-top: 10px; font-size: 12px; padding: 8px;">Request Spare Part Restock</button>
       </div>
     </div>
@@ -562,7 +544,8 @@
       <div class="wallet-card">
         <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85;">Available Payout Balance</span>
         <div style="font-size: 34px; font-weight: 900; margin: 8px 0;" id="walletNetBalance">₹0</div>
-        <p style="font-size: 12px; margin: 0; opacity: 0.9;">Instant settlement to registered bank account</p>
+        <p style="font-size: 12px; margin: 0 0 15px 0; opacity: 0.9;">Instant settlement to registered bank account</p>
+        <button onclick="openWithdrawModal()" style="background: white; color: var(--primary-red); font-weight: 900; border-radius: 20px; padding: 10px;">Withdraw Funds 💸</button>
       </div>
       <div class="grid-2">
         <div class="stat-box"><div class="val" id="completedJobsCount">0</div><div class="lbl">Completed Gigs</div></div>
@@ -625,6 +608,8 @@
     let leafletMap = null;
     let currentPendingOrderId = null;
     let currentAssignedOrderId = null;
+    let currentLat = 28.6139;
+    let currentLng = 77.2090;
     const consoleBox = document.getElementById("systemConsole");
 
     function logMessage(text) {
@@ -641,6 +626,45 @@
 
     function hideLoader() {
       document.getElementById("globalLoader").classList.remove("active");
+    }
+
+    // AUDIO BEEP ALERT FOR INCOMING ORDERS
+    function playAudioAlert() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.4);
+      } catch(e) {
+        console.log("Audio alert suppressed by browser policy");
+      }
+    }
+
+    // AUTO-DETECT GPS LOCATION
+    function detectCurrentGeolocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            currentLat = position.coords.latitude;
+            currentLng = position.coords.longitude;
+            const geoField = document.getElementById("kycGeoLocation");
+            if (geoField) {
+              geoField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)} (GPS Verified)`;
+            }
+            logMessage(`GPS Acquired: ${currentLat}, ${currentLng}`);
+          },
+          (error) => {
+            logMessage(`GPS Warning: Using default network tower coordinates.`);
+          },
+          { timeout: 10000 }
+        );
+      }
     }
 
     window.switchTab = function(tabId, el) {
@@ -664,16 +688,16 @@
 
     function initLeafletMap() {
       if (leafletMap) return;
-      leafletMap = L.map('liveMap').setView([28.6139, 77.2090], 14);
+      leafletMap = L.map('liveMap').setView([currentLat, currentLng], 14);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '© OpenStreetMap'
       }).addTo(leafletMap);
-      L.marker([28.6139, 77.2090]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Location</b>").openPopup();
+      L.marker([currentLat, currentLng]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Location</b>").openPopup();
     }
 
-    // CHECK PERSISTENT SESSION ON PAGE LOAD
     window.addEventListener('DOMContentLoaded', async () => {
+      detectCurrentGeolocation();
       const persistedUid = localStorage.getItem('sewaastra_persisted_uid');
       const persistedEmail = localStorage.getItem('sewaastra_persisted_email');
       
@@ -698,7 +722,6 @@
         if (!snap.exists()) {
           document.getElementById("mobilePopupModal").classList.add("active");
         } else {
-          // Save session to persistence
           localStorage.setItem('sewaastra_persisted_uid', loggedInUser.uid);
           localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
           evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
@@ -724,6 +747,7 @@
       document.getElementById("authEmailDisplay").value = loggedInUser.email;
       document.getElementById("kycPhone").value = temporaryUserPhone;
       document.getElementById("kycFullName").value = loggedInUser.displayName || "";
+      detectCurrentGeolocation();
     };
 
     async function evaluateUserRouting(uid, email) {
@@ -741,6 +765,7 @@
       if (!snap.exists()) {
         showScreen('stepKycScreen');
         document.getElementById("authEmailDisplay").value = email;
+        detectCurrentGeolocation();
       } else {
         const data = snap.val();
         if (data.kycStatus === "approved") {
@@ -762,13 +787,9 @@
       const pan = document.getElementById("kycPan").value.trim();
       const licence = document.getElementById("kycLicence").value.trim();
       const bank = document.getElementById("kycBank").value.trim();
-      
-      const fileAadhaar = document.getElementById("kycDocAadhaar").files[0];
-      const filePan = document.getElementById("kycDocPan").files[0];
-      const fileLicence = document.getElementById("kycDocLicence").files[0];
 
       if (!name || !phone || !pan || !licence) {
-        alert("Please fill in all mandatory onboarding text fields and document numbers.");
+        alert("Please fill in all mandatory onboarding text fields.");
         return;
       }
 
@@ -777,21 +798,16 @@
       const payload = {
         email: loggedInUser.email,
         name, phone, skill, pan, licence, bank,
-        docAadhaarUploaded: fileAadhaar ? fileAadhaar.name : "Aadhaar_Verified.jpg",
-        docPanUploaded: filePan ? filePan.name : "PAN_Verified.jpg",
-        docLicenceUploaded: fileLicence ? fileLicence.name : "Licence_Verified.jpg",
         kycStatus: "pending",
         isOnline: false,
         status: "available",
-        latitude: 28.6139,
-        longitude: 77.2090,
+        latitude: currentLat,
+        longitude: currentLng,
         totalEarned: 0,
         completedJobs: 0
       };
 
       await set(ref(db, `live_partners/${uid}`), payload);
-      
-      // Save session token locally so they remain logged in
       localStorage.setItem('sewaastra_persisted_uid', uid);
       localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
 
@@ -838,9 +854,8 @@
                 📧 Email: <b>${data.email}</b><br>
                 📱 Phone: <b>${data.phone}</b><br>
                 🛠️ Specialization: <b>${data.skill}</b><br>
-                📄 Aadhaar Doc: <b>${data.docAadhaarUploaded || 'Verified'}</b><br>
-                📁 PAN Card: <b>${data.pan}</b> (${data.docPanUploaded || 'Uploaded'})<br>
-                🚗 License: <b>${data.licence}</b> (${data.docLicenceUploaded || 'Uploaded'})
+                📁 PAN Card: <b>${data.pan}</b><br>
+                🚗 License: <b>${data.licence}</b>
               </div>
               <div style="display: flex; gap: 10px;">
                 <button onclick="adminApprovePartner('${uid}')" style="background: var(--success); padding: 8px; font-size: 12px;">Approve ✅</button>
@@ -920,7 +935,9 @@
           if (oData.status === "pending" && !currentPendingOrderId) {
             currentPendingOrderId = oId;
             document.getElementById("modalOrderTitle").innerText = oData.category;
+            document.getElementById("modalOrderPayout").innerText = `₹${oData.amount}`;
             document.getElementById("incomingOrderModal").classList.add("active");
+            playAudioAlert(); // Trigger Audio Alert
             break;
           }
         }
@@ -953,12 +970,12 @@
 
       const newOrderRef = push(ref(db, 'live_orders'));
       const orderPayload = {
-        category: serviceCat, amount, latitude: 28.6139, longitude: 77.2090,
+        category: serviceCat, amount, latitude: currentLat, longitude: currentLng,
         status: "pending", createdAt: new Date().toISOString()
       };
 
       await set(newOrderRef, orderPayload);
-      logMessage(`📦 Customer Order Broadcasted: ${serviceCat}`);
+      logMessage(`📦 Customer Multi-Gig Broadcasted: ${serviceCat}`);
     };
 
     window.acceptBroadcastedOrder = async function() {
@@ -997,6 +1014,35 @@
       log.innerHTML += `<div style="color: var(--blue); margin-bottom: 4px;"><b>You:</b> ${msg}</div>`;
       document.getElementById("chatMessageInput").value = "";
       log.scrollTop = log.scrollHeight;
+    };
+
+    window.openWithdrawModal = function() {
+      document.getElementById("withdrawModal").classList.add("active");
+    };
+
+    window.processWithdrawal = async function() {
+      const amt = parseInt(document.getElementById("withdrawAmountInput").value);
+      if (!amt || amt <= 0) {
+        alert("Please enter a valid withdrawal amount.");
+        return;
+      }
+      if (!loggedInUser) return;
+      const uid = loggedInUser.uid;
+      const pRef = ref(db, `live_partners/${uid}`);
+      const snap = await get(pRef);
+      const data = snap.val() || {};
+      const currentEarned = data.totalEarned || 0;
+
+      if (amt > currentEarned) {
+        alert("❌ Insufficient payout balance in your cloud wallet.");
+        return;
+      }
+
+      const newBalance = currentEarned - amt;
+      await update(pRef, { totalEarned: newBalance });
+      document.getElementById("withdrawModal").classList.remove("active");
+      alert(`🎉 Successfully transferred ₹${amt} to your bank account!`);
+      logMessage(`💸 Withdrawn ₹${amt} from wallet balance.`);
     };
 
     window.verifyOtpAndCompleteOrder = async function() {
