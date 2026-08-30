@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sewaastra Partner OS</title>
+  <title>Sewaastra Partner OS | Zomato Realtime Edition</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
@@ -122,21 +122,22 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0, 0, 0, 0.7);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 1000;
       padding: 15px;
+      backdrop-filter: blur(3px);
     }
     .modal-overlay.active { display: flex; }
     .modal-card {
       background: #fff;
-      border-radius: 14px;
+      border-radius: 16px;
       padding: 24px;
       width: 100%;
       max-width: 380px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
     }
 
     .app-header {
@@ -172,14 +173,16 @@
       display: flex;
       align-items: center;
       background: #f1f1f1;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: 20px;
       font-size: 11px;
       font-weight: bold;
-      gap: 5px;
+      gap: 6px;
+      transition: all 0.2s;
     }
-    .dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; }
-    .dot.online { background: var(--success); }
+    .duty-pill.active-duty { background: rgba(36, 150, 63, 0.12); color: var(--success); border: 1px solid var(--success); }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+    .dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
 
     .bottom-nav {
       position: fixed;
@@ -239,12 +242,12 @@
       font-weight: 600;
     }
     @keyframes pulseRing {
-      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0.7); }
-      70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(226, 55, 68, 0); }
-      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0); }
+      0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0.8); }
+      70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(226, 55, 68, 0); }
+      100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0); }
     }
     .zomato-alert-card {
-      animation: pulseRing 1.5s infinite;
+      animation: pulseRing 1.2s infinite;
       border-top: 6px solid var(--primary-red);
     }
   </style>
@@ -283,15 +286,16 @@
     </div>
   </div>
 
+  <!-- Zomato Style Incoming Order Popup Modal -->
   <div id="incomingOrderModal" class="modal-overlay">
     <div class="modal-card zomato-alert-card" style="text-align: center;">
-      <span class="badge badge-pending" style="margin-bottom: 8px; font-size: 12px; padding: 4px 10px;">⚡ NEW REALTIME ORDER ALERT!</span>
-      <h3 id="modalOrderTitle" style="font-size: 18px; margin-bottom: 6px; font-weight: 800;">AC Split Jet Cleaning</h3>
+      <span class="badge badge-pending" style="margin-bottom: 8px; font-size: 12px; padding: 5px 12px;">⚡ NEW REALTIME ORDER ALERT!</span>
+      <h3 id="modalOrderTitle" style="font-size: 20px; margin-bottom: 6px; font-weight: 900; color: var(--primary-red);">AC Split Jet Cleaning</h3>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Customer: <b id="modalCustomerName">Client</b></p>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Location: <b id="modalCustomerAddress">Area</b></p>
-      <div style="background: #fff5f5; border: 1px solid #ffdada; padding: 10px; border-radius: 8px; margin-bottom: 16px;">
+      <div style="background: #fff5f5; border: 1px solid #ffdada; padding: 12px; border-radius: 10px; margin-bottom: 16px;">
         <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 700;">Guaranteed Payout</span>
-        <span style="font-size: 22px; font-weight: 900; color: var(--primary-red);" id="modalOrderPayout">₹899</span>
+        <span style="font-size: 24px; font-weight: 900; color: var(--primary-red);" id="modalOrderPayout">₹899</span>
       </div>
       <div style="display: flex; gap: 10px;">
         <button onclick="acceptRealtimeOrder()" style="background: var(--success); flex: 1; padding: 14px; font-size: 15px;">Accept Gig 👍</button>
@@ -318,8 +322,8 @@
 
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
-      <h2 style="color: var(--primary-red); font-weight: 900; font-size: 24px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
-      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Multi-Gmail Cloud Sync)</p>
+      <h2 style="color: var(--primary-red); font-weight: 900; font-size: 26px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Zomato-Style Live Dispatch)</p>
       
       <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.5 7c0-.4-.1-.8-.2-1.2H12v2.4h3.6c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.7-3.7 2.7-6.3zm-11.8 3.5c-.3-.9-.5-1.9-.5-2.9s.2-2 .5-2.9L3.5 6.6C2.5 8.6 2 10.7 2 13s.5 4.4 1.5 6.4l3.7-2.9Z"/></svg>
@@ -410,6 +414,17 @@
       <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: white; color: white;">Logout</button>
     </div>
     <div style="padding: 15px 0;">
+      <!-- Test Order Creator for Zomato Popup Testing -->
+      <div class="card" style="max-width: 100%; border-left: 5px solid var(--success); margin-bottom: 15px; background: #f4fff6;">
+        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--success);">🚀 Simulate Customer Order (Test Zomato Popup)</h4>
+        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Clicking this will push a live order to Firebase. Any partner who is <b>ON DUTY</b> will instantly get the Zomato popup & audio chime!</p>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="testOrderCategory" placeholder="Service (e.g. AC Deep Clean)" value="AC Split Jet Cleaning" style="flex: 2;">
+          <input type="number" id="testOrderAmount" placeholder="Amount" value="899" style="flex: 1;">
+          <button onclick="adminSimulateCustomerOrder()" style="background: var(--success); flex: 1; padding: 8px; font-size: 12px;">Push Order ⚡</button>
+        </div>
+      </div>
+
       <div class="card" style="max-width: 100%; border-left: 5px solid var(--blue); margin-bottom: 15px;">
         <h4 style="font-size: 13px; margin-bottom: 5px;">Live Realtime Orders Stream</h4>
         <div id="adminLiveOrdersQueue">
@@ -431,7 +446,7 @@
         📍 <span id="locationText">Detecting GPS...</span>
       </div>
       <div style="display: flex; align-items: center; gap: 6px;">
-        <div class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer;">
+        <div id="dutyPillContainer" class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer;">
           <div id="dutyDot" class="dot"></div>
           <span id="dutyText">OFF DUTY</span>
         </div>
@@ -489,7 +504,7 @@
       <div class="card" style="max-width: 100%; text-align: center;">
         <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
         <h4 style="font-size: 14px; margin-bottom: 6px;">Listening for Incoming Firebase Gigs</h4>
-        <p style="font-size: 12px; color: var(--text-muted);">When a customer places an order on Firebase, your phone will instantly ring with Zomato-style sound and alert popup.</p>
+        <p style="font-size: 12px; color: var(--text-muted);">When you are <b>ON DUTY</b> and a customer places an order, your phone will instantly ring with Zomato-style sound and alert popup.</p>
       </div>
     </div>
 
@@ -604,7 +619,7 @@
           osc1.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
           osc2.frequency.setValueAtTime(1320, audioCtx.currentTime); // E6
 
-          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
 
           osc1.connect(gain);
@@ -631,7 +646,6 @@
       if (locationLabel) locationLabel.innerText = "Locating GPS...";
 
       if (navigator.geolocation) {
-        // Use watchPosition for real-time live GPS map tracking
         if (watchId !== null) navigator.geolocation.clearWatch(watchId);
         watchId = navigator.geolocation.watchPosition(
           async (position) => {
@@ -643,7 +657,6 @@
               geoField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)} (Live GPS)`;
             }
 
-            // Sync partner live GPS to Firebase under their specific UID node
             if (loggedInUser) {
               update(ref(db, `live_partners/${loggedInUser.uid}`), {
                 latitude: currentLat,
@@ -651,7 +664,6 @@
               });
             }
 
-            // Update Leaflet map marker
             if (leafletMap) {
               if (!partnerMarker) {
                 partnerMarker = L.marker([currentLat, currentLng]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Position</b>");
@@ -916,6 +928,23 @@
       });
     }
 
+    // Quick Admin test order simulation for Zomato instant popups
+    window.adminSimulateCustomerOrder = async function() {
+      const category = document.getElementById("testOrderCategory").value || "AC Split Jet Cleaning";
+      const amount = parseInt(document.getElementById("testOrderAmount").value) || 899;
+      
+      const newOrderRef = push(ref(db, 'live_orders'));
+      await set(newOrderRef, {
+        category: category,
+        amount: amount,
+        customerName: "Rahul Sharma",
+        address: "Connaught Place, New Delhi",
+        status: "pending",
+        timestamp: Date.now()
+      });
+      alert("⚡ Order pushed to Firebase Realtime! Any On-Duty partner will now receive the Zomato popup alert instantly.");
+    };
+
     window.adminApprovePartner = async function(uid) {
       await update(ref(db, `live_partners/${uid}`), { kycStatus: "approved" });
     };
@@ -952,14 +981,17 @@
 
         const dutyDot = document.getElementById("dutyDot");
         const dutyText = document.getElementById("dutyText");
+        const dutyPillContainer = document.getElementById("dutyPillContainer");
         const orderContainer = document.getElementById("activeOrderContainer");
 
         if (data.isOnline) {
           dutyDot.className = "dot online";
           dutyText.innerText = data.status === "busy" ? "ON TASK (BUSY)" : "ONLINE (READY)";
+          dutyPillContainer.className = "duty-pill active-duty";
         } else {
           dutyDot.className = "dot";
           dutyText.innerText = "OFF DUTY";
+          dutyPillContainer.className = "duty-pill";
         }
 
         if (data.currentOrderId) {
@@ -994,7 +1026,6 @@
         document.getElementById("profileAvatarInitial").innerText = (data.name || "P").charAt(0).toUpperCase();
         document.getElementById("profileIdBadge").innerText = `ID: SW-${uid.substring(0,4).toUpperCase()}`;
 
-        // Sync UI toggles with Firebase settings object
         if (data.settings) {
           for (const [sKey, sVal] of Object.entries(data.settings)) {
             const el = document.getElementById(`setting_${sKey}`);
@@ -1003,14 +1034,14 @@
         }
       });
 
-      // Realtime Orders stream listener with Zomato-style sound & popup
+      // Realtime Orders stream listener with Zomato-style sound & popup when ON DUTY
       ordersListenerUnsubscribe = onValue(ref(db, 'live_orders'), (snap) => {
         if (!snap.exists()) return;
         const orders = snap.val();
         
-        // Check if partner is online and currently free
         get(ref(db, `live_partners/${uid}`)).then((pSnap) => {
           const pData = pSnap.val() || {};
+          // Only trigger alert popup if partner is ONLINE and currently FREE (not busy)
           if (!pData.isOnline || pData.status === "busy") return;
 
           for (const [oId, oData] of Object.entries(orders)) {
@@ -1023,7 +1054,6 @@
               
               document.getElementById("incomingOrderModal").classList.add("active");
               
-              // Check if sound alerts setting is enabled
               if (pData.settings && pData.settings.soundAlerts !== false) {
                 playZomatoAlertSound();
               }
@@ -1180,7 +1210,6 @@
       await update(ref(db), updates);
     };
 
-    // Save settings directly to Firebase Realtime Database under this user's node
     window.saveFirebaseSetting = async function(settingKey, value) {
       if (!loggedInUser) return;
       const uid = loggedInUser.uid;
