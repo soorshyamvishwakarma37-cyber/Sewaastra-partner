@@ -228,6 +228,16 @@
       border-bottom: 1px solid #f0f0f0;
       font-size: 13px;
     }
+    .alert-banner {
+      background: #fff3cd;
+      border: 1px solid #ffeeba;
+      color: #856404;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -368,6 +378,10 @@
         <label>IFSC Code:</label>
         <input type="text" id="kycIfsc" placeholder="Enter Bank IFSC Code">
       </div>
+      <div class="form-group">
+        <label>Preferred UPI ID (e.g. paytm/ybl):</label>
+        <input type="text" id="kycUpi" placeholder="Enter UPI handle for instant collection">
+      </div>
 
       <button onclick="submitOnboardingData()" style="background: var(--success);">Submit KYC for Verification</button>
     </div>
@@ -391,8 +405,14 @@
       <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: white; color: white;">Logout</button>
     </div>
     <div style="padding: 15px 0;">
-      <div class="card" style="max-width: 100%; border-left: 5px solid var(--blue);">
-        <h4 style="font-size: 13px; margin-bottom: 5px;">Partner Verification Queue</h4>
+      <div class="card" style="max-width: 100%; border-left: 5px solid var(--blue); margin-bottom: 15px;">
+        <h4 style="font-size: 13px; margin-bottom: 5px;">Live Orders & Telemetry Stream</h4>
+        <div id="adminLiveOrdersQueue">
+          <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Connecting to order streams...</p>
+        </div>
+      </div>
+      <div class="card" style="max-width: 100%; border-left: 5px solid var(--success);">
+        <h4 style="font-size: 13px; margin-bottom: 5px;">Partner Verification Queue & Cash Limits</h4>
         <div id="adminPartnerQueue">
           <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Loading database records...</p>
         </div>
@@ -414,6 +434,8 @@
     </div>
 
     <div id="feedTab" class="tab-content active" style="padding: 15px 0;">
+      <div id="floatingCashAlertContainer"></div>
+
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
         <h3 style="font-size: 15px;">Live Radar & Map</h3>
         <span class="badge badge-success">Telemetry Live ✅</span>
@@ -450,6 +472,15 @@
           </div>
 
           <div class="form-group">
+            <label>Payment Collection Mode:</label>
+            <select id="paymentCollectionMode">
+              <option value="cash">Cash Collection (Adds to Floating Cash)</option>
+              <option value="upi">Online UPI QR Payment</option>
+              <option value="online">App Online Gateway</option>
+            </select>
+          </div>
+
+          <div class="form-group">
             <label style="color: var(--success);">Customer Completion OTP:</label>
             <input type="text" id="enteredOtp" placeholder="Enter 4-digit code" maxlength="4" style="text-align: center; letter-spacing: 6px; font-weight: bold; font-size: 16px;">
           </div>
@@ -483,6 +514,11 @@
         <div class="stat-box"><div class="val" id="completedJobsCount">0</div><div class="lbl">Completed Gigs</div></div>
         <div class="stat-box"><div class="val" id="partnerRatingDisplay">4.9 ⭐</div><div class="lbl">Partner Rating</div></div>
       </div>
+      <div class="card" style="max-width: 100%;">
+        <h4 style="font-size: 13px; color: var(--primary-red); margin-bottom: 8px;">💵 Floating Cash-in-Hand Status</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Maximum limit allowed: <b>₹2000</b>. Cash collected from customers reduces payout or requires deposit if limit is breached.</p>
+        <div style="font-size: 20px; font-weight: 800; color: var(--warning);" id="floatingCashDisplay">₹0 / ₹2000</div>
+      </div>
     </div>
 
     <div id="profileTab" class="tab-content" style="padding: 15px 0;">
@@ -495,7 +531,7 @@
           </div>
         </div>
 
-        <h4 style="font-size: 13px; color: var(--primary-red); margin-bottom: 10px;">⚙️ Partner Preferences & 20+ Settings</h4>
+        <h4 style="font-size: 13px; color: var(--primary-red); margin-bottom: 10px;">⚙️ Partner Preferences & Settings</h4>
 
         <div class="setting-row"><span>1. Push Notifications</span><input type="checkbox" checked onchange="saveSetting('pushNotif', this.checked)"></div>
         <div class="setting-row"><span>2. Sound Alerts (New Gig)</span><input type="checkbox" checked onchange="saveSetting('soundAlerts', this.checked)"></div>
@@ -505,19 +541,6 @@
         <div class="setting-row"><span>6. Night Shift Mode</span><input type="checkbox" onchange="saveSetting('nightShift', this.checked)"></div>
         <div class="setting-row"><span>7. Hindi Audio Prompts</span><input type="checkbox" checked onchange="saveSetting('hindiAudio', this.checked)"></div>
         <div class="setting-row"><span>8. Customer Call Masking</span><input type="checkbox" checked onchange="saveSetting('callMasking', this.checked)"></div>
-        <div class="setting-row"><span>9. Instant Payout Auto-Trigger</span><input type="checkbox" onchange="saveSetting('autoPayout', this.checked)"></div>
-        <div class="setting-row"><span>10. Dynamic Surge Acceptance</span><input type="checkbox" checked onchange="saveSetting('surgeAccept', this.checked)"></div>
-        <div class="setting-row"><span>11. Background Location Sync</span><input type="checkbox" checked onchange="saveSetting('bgSync', this.checked)"></div>
-        <div class="setting-row"><span>12. Dark Mode UI Theme</span><input type="checkbox" onchange="saveSetting('darkMode', this.checked)"></div>
-        <div class="setting-row"><span>13. Biometric App Lock</span><input type="checkbox" onchange="saveSetting('biometricLock', this.checked)"></div>
-        <div class="setting-row"><span>14. SMS Dispatch Alerts</span><input type="checkbox" checked onchange="saveSetting('smsAlerts', this.checked)"></div>
-        <div class="setting-row"><span>15. Auto-Navigation Launch</span><input type="checkbox" checked onchange="saveSetting('autoNav', this.checked)"></div>
-        <div class="setting-row"><span>16. Tip Direct Settlement</span><input type="checkbox" checked onchange="saveSetting('tipSettle', this.checked)"></div>
-        <div class="setting-row"><span>17. Holiday Mode / Offline Pause</span><input type="checkbox" onchange="saveSetting('holidayMode', this.checked)"></div>
-        <div class="setting-row"><span>18. Daily Earnings Email Report</span><input type="checkbox" checked onchange="saveSetting('dailyEmail', this.checked)"></div>
-        <div class="setting-row"><span>19. Smart Routing Optimization</span><input type="checkbox" checked onchange="saveSetting('smartRoute', this.checked)"></div>
-        <div class="setting-row"><span>20. Partner Support Priority Queue</span><input type="checkbox" checked onchange="saveSetting('supportQueue', this.checked)"></div>
-        <div class="setting-row"><span>21. Crash Telemetry Diagnostics</span><input type="checkbox" checked onchange="saveSetting('crashDiag', this.checked)"></div>
 
         <div style="margin-top: 15px;">
           <button onclick="logoutSession()" class="btn-outline" style="border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
@@ -600,6 +623,14 @@
             const geoField = document.getElementById("kycGeoLocation");
             if (geoField) {
               geoField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)} (GPS Verified)`;
+            }
+
+            // Sync partner live GPS to Firebase if logged in
+            if (loggedInUser) {
+              update(ref(db, `live_partners/${loggedInUser.uid}`), {
+                latitude: currentLat,
+                longitude: currentLng
+              });
             }
 
             try {
@@ -745,6 +776,7 @@
       const licence = document.getElementById("kycLicence").value.trim();
       const bankAc = document.getElementById("kycBankAc").value.trim();
       const ifsc = document.getElementById("kycIfsc").value.trim();
+      const upi = document.getElementById("kycUpi").value.trim();
 
       if (!name || !phone || !aadharNum || !pan || !licence || !bankAc || !ifsc) {
         alert("Please fill in all mandatory KYC documentation fields and account numbers.");
@@ -755,13 +787,14 @@
       
       const payload = {
         email: loggedInUser.email,
-        name, phone, skill, aadharNum, pan, licence, bankAc, ifsc,
+        name, phone, skill, aadharNum, pan, licence, bankAc, ifsc, upi,
         kycStatus: "pending",
         isOnline: false,
         status: "available",
         latitude: currentLat,
         longitude: currentLng,
         totalEarned: 0,
+        floatingCash: 0,
         completedJobs: 0,
         rating: 4.9
       };
@@ -793,6 +826,26 @@
 
     function initAdminCloudDashboard() {
       const container = document.getElementById("adminPartnerQueue");
+      const orderContainer = document.getElementById("adminLiveOrdersQueue");
+
+      onValue(ref(db, 'live_orders'), (snap) => {
+        if (!snap.exists()) {
+          orderContainer.innerHTML = `<p style="font-size: 12px; text-align: center; color: var(--text-muted);">No orders recorded.</p>`;
+          return;
+        }
+        let html = "";
+        const records = snap.val();
+        for (const [oId, oData] of Object.entries(records)) {
+          html += `
+            <div style="background: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px;">
+              <b>Gig:</b> ${oData.category} | <b>Amount:</b> ₹${oData.amount} | <b>Status:</b> <span class="badge badge-pending">${oData.status}</span><br>
+              Payment Mode: <b>${oData.paymentMode || 'Pending'}</b> | Rating: <b>${oData.rating || 'N/A'} ⭐</b>
+            </div>
+          `;
+        }
+        orderContainer.innerHTML = html;
+      });
+
       onValue(ref(db, 'live_partners'), (snap) => {
         if (!snap.exists()) {
           container.innerHTML = `<p style="font-size: 12px; text-align: center; color: var(--text-muted);">No partners registered.</p>`;
@@ -811,10 +864,10 @@
               </div>
               <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;">
                 📧 Email: <b>${data.email}</b><br>
-                📱 Phone: <b>${data.phone}</b><br>
+                📱 Phone: <b>${data.phone}</b> | UPI: <b>${data.upi || 'N/A'}</b><br>
                 🛠️ Skill: <b>${data.skill}</b><br>
-                🆔 Aadhaar: <b>[Aadhaar Redacted]</b> | PAN: <b>${data.pan}</b> | Lic: <b>${data.licence}</b><br>
-                🏦 A/C: <b>${data.bankAc}</b> (${data.ifsc})
+                🆔 Aadhaar: <b>[Aadhaar Redacted]</b> | PAN: <b>${data.pan}</b><br>
+                💵 Floating Cash: <b>₹${data.floatingCash || 0} / ₹2000 limit</b>
               </div>
               <div style="display: flex; gap: 10px;">
                 <button onclick="adminApprovePartner('${uid}')" style="background: var(--success); padding: 8px; font-size: 12px;">Approve ✅</button>
@@ -872,6 +925,9 @@
           currentAssignedOrderId = data.currentOrderId;
           orderContainer.style.display = "block";
           document.getElementById("orderDetailsBox").innerHTML = `Assigned Service ID: <b>${data.currentOrderId}</b>`;
+          
+          // Update navigation link with live coordinates
+          document.getElementById("navMapBtn").href = `https://www.google.com/maps/search/?api=1&query=${currentLat},${currentLng}`;
         } else {
           currentAssignedOrderId = null;
           orderContainer.style.display = "none";
@@ -879,7 +935,19 @@
         }
 
         const earned = data.totalEarned || 0;
+        const floatingCash = data.floatingCash || 0;
+        
         document.getElementById("walletNetBalance").innerText = `₹${earned}`;
+        document.getElementById("floatingCashDisplay").innerText = `₹${floatingCash} / ₹2000 limit`;
+        
+        // Floating cash limit warning check
+        const alertBox = document.getElementById("floatingCashAlertContainer");
+        if (floatingCash >= 2000) {
+          alertBox.innerHTML = `<div class="alert-banner">⚠️ Floating Cash Limit Reached (₹${floatingCash} / ₹2000). Please deposit cash or settle to receive new cash gigs.</div>`;
+        } else {
+          alertBox.innerHTML = "";
+        }
+
         document.getElementById("completedJobsCount").innerText = data.completedJobs || 0;
         document.getElementById("partnerRatingDisplay").innerText = `${data.rating || 4.9} ⭐`;
         document.getElementById("profileRatingHeader").innerText = `${data.rating || 4.9} ⭐`;
@@ -1009,6 +1077,8 @@
       const data = snap.val();
 
       const enteredOtp = document.getElementById("enteredOtp").value.trim();
+      const paymentMode = document.getElementById("paymentCollectionMode").value;
+      
       const orderSnap = await get(ref(db, `live_orders/${currentAssignedOrderId}`));
       if (!orderSnap.exists()) return;
 
@@ -1019,18 +1089,31 @@
       }
 
       const orderAmount = orderData.amount || 500;
-      const newTotalEarned = (data.totalEarned || 0) + orderAmount;
+      let newTotalEarned = data.totalEarned || 0;
+      let newFloatingCash = data.floatingCash || 0;
+
+      if (paymentMode === 'cash') {
+        newFloatingCash += orderAmount;
+      } else {
+        newTotalEarned += orderAmount;
+      }
+
       const newCompletedJobs = (data.completedJobs || 0) + 1;
+      const randomRating = (4.7 + Math.random() * 0.3).toFixed(1);
 
       const updates = {};
       updates[`/live_orders/${currentAssignedOrderId}/status`] = "completed";
+      updates[`/live_orders/${currentAssignedOrderId}/paymentMode`] = paymentMode;
+      updates[`/live_orders/${currentAssignedOrderId}/rating`] = `${randomRating} ⭐`;
+
       updates[`/live_partners/${uid}/status`] = "available";
       updates[`/live_partners/${uid}/currentOrderId`] = null;
       updates[`/live_partners/${uid}/totalEarned`] = newTotalEarned;
+      updates[`/live_partners/${uid}/floatingCash`] = newFloatingCash;
       updates[`/live_partners/${uid}/completedJobs`] = newCompletedJobs;
 
       await update(ref(db), updates);
-      alert("✅ Service verified and wallet updated successfully!");
+      alert(`✅ Service verified! Payment received via ${paymentMode.toUpperCase()}. Rating: ${randomRating} ⭐`);
     };
 
     window.declineAssignedOrder = async function() {
