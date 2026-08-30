@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sewaastra Partner OS - Zomato Delivery Edition Pro v3</title>
+  <title>Sewaastra Partner OS - Live Zomato Dispatch Pro</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
@@ -340,13 +340,10 @@
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
       <h2 style="color: var(--zomato-red); font-weight: 900; font-size: 26px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
-      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Zomato-Style Dispatch Engine Pro)</p>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Realtime Dispatch Pro)</p>
       
       <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
-        <i class="fa-brands fa-google"></i> Sign in with Google (Any Gmail)
-      </button>
-      <button onclick="simulateMockLogin()" class="btn-outline" style="padding: 10px; font-size: 13px;">
-        <i class="fa-solid fa-bolt"></i> Quick Demo Login
+        <i class="fa-brands fa-google"></i> Sign in with any Google Gmail
       </button>
     </div>
   </div>
@@ -357,7 +354,7 @@
         <h3 style="font-size: 15px;"><i class="fa-solid fa-id-card"></i> Partner Verification & KYC</h3>
         <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
       </div>
-      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide accurate details for admin approval.</p>
+      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide correct details for admin approval.</p>
       
       <div class="form-group">
         <label>Authenticated Email:</label>
@@ -511,9 +508,8 @@
       <h3 style="font-size: 15px; margin-bottom: 12px;">Realtime Order Dispatch Stream</h3>
       <div class="card" style="max-width: 100%; text-align: center;">
         <div style="font-size: 32px; margin-bottom: 8px; color: var(--zomato-red);"><i class="fa-solid fa-satellite-dish fa-beat"></i></div>
-        <h4 style="font-size: 14px; margin-bottom: 6px;">Listening for Incoming Firebase Gigs</h4>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">When you are <b>ON DUTY</b> and a customer places an order, your screen will instantly ring with Zomato-style sound and popup.</p>
-        <button onclick="triggerSimulatedIncomingOrder()" class="btn-outline" style="font-size: 12px; border-color: var(--blue); color: var(--blue);">🧪 Trigger Test Incoming Order</button>
+        <h4 style="font-size: 14px; margin-bottom: 6px;">Listening for Incoming Gigs</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">When you are <b>ON DUTY</b>, any customer booking from your region will instantly ring your phone with Zomato-style alerts.</p>
       </div>
     </div>
 
@@ -564,16 +560,16 @@
 
     <div class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('feedTab', this)"><span><i class="fa-solid fa-map"></i></span>Live Map</div>
-      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span><i class="fa-solid fa-bolt"></i></span>Finding Orders</div>
-      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span><i class="fa-solid fa-wallet"></i></span>Earnings</div>
-      <div class="nav-item" onclick="switchTab('profileTab', this)"><span><i class="fa-solid fa-user"></i></span>Profile</div>
+      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span><i class="fa-solid fa-bolt">icon</i></span>Finding Orders</div>
+      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span><i class="fa-solid fa-wallet">icon</i></span>Earnings</div>
+      <div class="nav-item" onclick="switchTab('profileTab', this)"><span><i class="fa-solid fa-user">icon</i></span>Profile</div>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const app = initializeApp({
@@ -775,34 +771,6 @@
       } catch (error) {
         hideLoader();
         alert("Google Login Error: " + error.message);
-      }
-    };
-
-    window.simulateMockLogin = async function() {
-      showLoader("Signing in with Demo Account...");
-      try {
-        const result = await signInAnonymously(auth);
-        loggedInUser = { uid: result.user.uid, email: "demo.partner@sewaastra.com" };
-        detectCurrentGeolocation();
-
-        const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
-        const snap = await get(partnerRef);
-
-        hideLoader();
-        if (!snap.exists()) {
-          temporaryUserPhone = "9876543210";
-          showScreen('stepKycScreen');
-          document.getElementById("authEmailDisplay").value = loggedInUser.email;
-          document.getElementById("kycPhone").value = temporaryUserPhone;
-          document.getElementById("kycFullName").value = "Demo Service Partner";
-        } else {
-          localStorage.setItem('sewaastra_persisted_uid', loggedInUser.uid);
-          localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
-          evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
-        }
-      } catch(e) {
-        hideLoader();
-        alert("Demo Login error: " + e.message);
       }
     };
 
@@ -1066,7 +1034,7 @@
         }
       });
 
-      // Zomato-style Realtime Orders dispatch listener
+      // Realtime Order Dispatch Listener (Listens to actual Firebase database orders)
       ordersListenerUnsubscribe = onValue(ref(db, 'live_orders'), (snap) => {
         if (!snap.exists()) return;
         const orders = snap.val();
@@ -1122,18 +1090,6 @@
         isOnline: nextState,
         status: nextState ? "available" : "offline"
       });
-    };
-
-    window.triggerSimulatedIncomingOrder = async function() {
-      const newOrderRef = push(ref(db, 'live_orders'));
-      await set(newOrderRef, {
-        category: "AC Split Jet Deep Cleaning",
-        customerName: "Rahul Sharma",
-        address: "Block C, Connaught Place, New Delhi",
-        amount: 899,
-        status: "pending"
-      });
-      alert("✅ Test order created in Firebase! If you are ON DUTY, your popup will trigger instantly.");
     };
 
     window.acceptRealtimeOrder = async function() {
@@ -1217,7 +1173,7 @@
 
       const orderData = orderSnap.val();
       if (enteredOtp !== orderData.completionOtp) {
-        alert(`❌ Incorrect Verification OTP! (Hint: Check Firebase console / order record for test OTP)`);
+        alert(`❌ Incorrect Verification OTP! (Check Firebase console order node for active OTP)`);
         return;
       }
 
