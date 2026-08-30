@@ -598,7 +598,6 @@
       document.getElementById("globalLoader").classList.remove("active");
     }
 
-    // Zomato-style continuous alert chime loop until accepted or rejected
     function playZomatoAlertSound() {
       stopZomatoAlertSound();
       soundAlarmInterval = setInterval(() => {
@@ -610,8 +609,8 @@
 
           osc1.type = 'sine';
           osc2.type = 'triangle';
-          osc1.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
-          osc2.frequency.setValueAtTime(1320, audioCtx.currentTime); // E6
+          osc1.frequency.setValueAtTime(880, audioCtx.currentTime);
+          osc2.frequency.setValueAtTime(1320, audioCtx.currentTime);
 
           gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
@@ -1019,21 +1018,31 @@
           const pData = pSnap.val() || {};
           if (!pData.isOnline || pData.status === "busy") return;
 
+          let foundActivePending = false;
           for (const [oId, oData] of Object.entries(orders)) {
-            if (oData.status === "pending" && !currentPendingOrderId) {
-              currentPendingOrderId = oId;
-              document.getElementById("modalOrderTitle").innerText = oData.category || "Appliance Service Gig";
-              document.getElementById("modalCustomerName").innerText = oData.customerName || "Customer";
-              document.getElementById("modalCustomerAddress").innerText = oData.address || "Local Area";
-              document.getElementById("modalOrderPayout").innerText = `₹${oData.amount || 500}`;
-              
-              document.getElementById("incomingOrderModal").classList.add("active");
-              
-              if (pData.settings && pData.settings.soundAlerts !== false) {
-                playZomatoAlertSound();
+            if (oData.status === "pending") {
+              foundActivePending = true;
+              if (currentPendingOrderId !== oId) {
+                currentPendingOrderId = oId;
+                document.getElementById("modalOrderTitle").innerText = oData.category || "Appliance Service Gig";
+                document.getElementById("modalCustomerName").innerText = oData.customerName || "Customer";
+                document.getElementById("modalCustomerAddress").innerText = oData.address || "Local Area";
+                document.getElementById("modalOrderPayout").innerText = `₹${oData.amount || 500}`;
+                
+                document.getElementById("incomingOrderModal").classList.add("active");
+                
+                if (pData.settings && pData.settings.soundAlerts !== false) {
+                  playZomatoAlertSound();
+                }
               }
               break;
             }
+          }
+
+          if (!foundActivePending) {
+            currentPendingOrderId = null;
+            document.getElementById("incomingOrderModal").classList.remove("active");
+            stopZomatoAlertSound();
           }
         });
       });
