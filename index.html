@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sewaastra Partner OS | Zomato Realtime Edition</title>
+  <title>Sewaastra Partner OS - Zomato Delivery Edition</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     :root {
-      --primary-red: #e23744;
-      --primary-hover: #c92a35;
-      --bg-main: #f4f6f8;
+      --zomato-red: #e23744;
+      --zomato-hover: #c92a35;
+      --bg-main: #f8f9fa;
       --bg-card: #ffffff;
       --text-main: #1c1c1c;
-      --text-muted: #696969;
-      --border: #e0e0e0;
+      --text-muted: #6b6b6b;
+      --border: #e8e8e8;
       --success: #24963f;
       --warning: #ffb300;
       --danger: #d32f2f;
@@ -29,7 +29,7 @@
     .screen {
       display: none;
       min-height: 100vh;
-      padding: 15px;
+      padding: 12px;
       box-sizing: border-box;
     }
     .screen.active {
@@ -42,35 +42,35 @@
       display: block;
       justify-content: unset;
       align-items: unset;
-      max-width: 520px;
+      max-width: 480px;
       margin: 0 auto;
       padding-bottom: 75px;
     }
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      padding: 20px;
-      border-radius: 14px;
+      padding: 16px;
+      border-radius: 12px;
       width: 100%;
       max-width: 440px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
       box-sizing: border-box;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
     }
     h1, h2, h3, h4 { margin: 0; }
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 14px; }
     label {
       display: block;
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      margin-bottom: 6px;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
       color: var(--text-muted);
     }
     input, select, textarea {
       width: 100%;
-      padding: 12px;
+      padding: 11px;
       background: #fff;
       border: 1px solid var(--border);
       color: var(--text-main);
@@ -78,12 +78,12 @@
       box-sizing: border-box;
       font-size: 14px;
     }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary-red); }
+    input:focus, select:focus, textarea:focus { outline: none; border-color: var(--zomato-red); }
     button {
-      background-color: var(--primary-red);
+      background-color: var(--zomato-red);
       color: white;
       border: none;
-      padding: 12px 18px;
+      padding: 12px 16px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 700;
@@ -91,15 +91,15 @@
       font-size: 14px;
       transition: background 0.2s;
     }
-    button:hover { background-color: var(--primary-hover); }
-    .btn-outline { background: transparent; border: 1px solid var(--primary-red); color: var(--primary-red); }
+    button:hover { background-color: var(--zomato-hover); }
+    .btn-outline { background: transparent; border: 1px solid var(--zomato-red); color: var(--zomato-red); }
     .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
     .btn-google:hover { background: #3367D6; }
     
     .loading-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       display: none;
       justify-content: center;
       align-items: center;
@@ -111,9 +111,9 @@
     }
     .loading-overlay.active { display: flex; }
     .spinner {
-      width: 45px; height: 45px;
-      border: 5px solid rgba(255,255,255,0.3);
-      border-top: 5px solid #fff;
+      width: 40px; height: 40px;
+      border: 4px solid rgba(255,255,255,0.3);
+      border-top: 4px solid #fff;
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -122,27 +122,26 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7);
+      background: rgba(0, 0, 0, 0.65);
       display: none;
       justify-content: center;
       align-items: center;
       z-index: 1000;
       padding: 15px;
-      backdrop-filter: blur(3px);
     }
     .modal-overlay.active { display: flex; }
     .modal-card {
       background: #fff;
-      border-radius: 16px;
-      padding: 24px;
+      border-radius: 14px;
+      padding: 20px;
       width: 100%;
       max-width: 380px;
-      box-shadow: 0 12px 32px rgba(0,0,0,0.25);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
     .app-header {
       background: var(--bg-card);
-      padding: 10px 15px;
+      padding: 10px 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -158,11 +157,11 @@
       align-items: center;
       background: #fff5f5;
       border: 1px solid #ffdada;
-      padding: 4px 10px;
-      border-radius: 15px;
+      padding: 5px 10px;
+      border-radius: 20px;
       font-size: 11px;
       font-weight: 700;
-      color: var(--primary-red);
+      color: var(--zomato-red);
       max-width: 160px;
       white-space: nowrap;
       overflow: hidden;
@@ -176,12 +175,17 @@
       padding: 6px 12px;
       border-radius: 20px;
       font-size: 11px;
-      font-weight: bold;
+      font-weight: 800;
       gap: 6px;
-      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid #e0e0e0;
     }
-    .duty-pill.active-duty { background: rgba(36, 150, 63, 0.12); color: var(--success); border: 1px solid var(--success); }
-    .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+    .duty-pill.online-active {
+      background: rgba(36, 150, 63, 0.1);
+      border-color: var(--success);
+      color: var(--success);
+    }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #999; }
     .dot.online { background: var(--success); box-shadow: 0 0 8px var(--success); }
 
     .bottom-nav {
@@ -193,12 +197,12 @@
       justify-content: space-around;
       padding: 8px 0;
       z-index: 100;
-      max-width: 520px;
+      max-width: 480px;
       margin: 0 auto;
     }
     .nav-item { text-align: center; font-size: 10px; color: var(--text-muted); cursor: pointer; font-weight: 600; }
-    .nav-item.active { color: var(--primary-red); }
-    .nav-item span { display: block; font-size: 17px; margin-bottom: 2px; }
+    .nav-item.active { color: var(--zomato-red); }
+    .nav-item span { display: block; font-size: 18px; margin-bottom: 2px; }
 
     .tab-content { display: none; }
     .tab-content.active { display: block; }
@@ -209,16 +213,16 @@
     .badge-danger { background: rgba(211, 47, 47, 0.1); color: var(--danger); }
 
     .wallet-card {
-      background: linear-gradient(135deg, #e23744, #900c12); color: white; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 15px;
+      background: linear-gradient(135deg, #e23744, #900c12); color: white; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 12px;
     }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
     .stat-box { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
-    .stat-box .val { font-size: 18px; font-weight: 800; color: var(--primary-red); }
+    .stat-box .val { font-size: 18px; font-weight: 800; color: var(--zomato-red); }
     .stat-box .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
     
     #liveMap {
       width: 100%;
-      height: 260px;
+      height: 250px;
       border-radius: 10px;
       margin-bottom: 12px;
       border: 1px solid var(--border);
@@ -242,13 +246,16 @@
       font-weight: 600;
     }
     @keyframes pulseRing {
-      0% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0.8); }
+      0% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0.8); }
       70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(226, 55, 68, 0); }
-      100% { transform: scale(0.96); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0); }
+      100% { transform: scale(0.97); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0); }
     }
     .zomato-alert-card {
       animation: pulseRing 1.2s infinite;
-      border-top: 6px solid var(--primary-red);
+      border-top: 6px solid var(--zomato-red);
+      border-left: 2px solid var(--border);
+      border-right: 2px solid var(--border);
+      border-bottom: 2px solid var(--border);
     }
   </style>
 </head>
@@ -261,8 +268,8 @@
 
   <div id="mobilePopupModal" class="modal-overlay">
     <div class="modal-card">
-      <h3 style="font-size: 16px; color: var(--primary-red); margin-bottom: 6px;">📱 Mobile Number Verification</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Please enter your 10-digit mobile number to proceed.</p>
+      <h3 style="font-size: 16px; color: var(--zomato-red); margin-bottom: 6px;">📱 Partner Mobile Verification</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Enter your 10-digit mobile number to setup your cloud profile.</p>
       <div class="form-group">
         <label>Mobile Number:</label>
         <input type="text" id="popupPhoneInput" placeholder="Enter 10-digit number" maxlength="10">
@@ -273,8 +280,8 @@
 
   <div id="withdrawModal" class="modal-overlay">
     <div class="modal-card">
-      <h3 style="font-size: 16px; color: var(--success); margin-bottom: 6px;">💸 Instant Bank Withdrawal</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Transfer your available cloud earnings instantly.</p>
+      <h3 style="font-size: 16px; color: var(--success); margin-bottom: 6px;">💸 Instant Payout Withdrawal</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Transfer your available earnings to your registered bank account.</p>
       <div class="form-group">
         <label>Withdrawal Amount (₹):</label>
         <input type="number" id="withdrawAmountInput" placeholder="Enter amount">
@@ -286,16 +293,15 @@
     </div>
   </div>
 
-  <!-- Zomato Style Incoming Order Popup Modal -->
   <div id="incomingOrderModal" class="modal-overlay">
     <div class="modal-card zomato-alert-card" style="text-align: center;">
-      <span class="badge badge-pending" style="margin-bottom: 8px; font-size: 12px; padding: 5px 12px;">⚡ NEW REALTIME ORDER ALERT!</span>
-      <h3 id="modalOrderTitle" style="font-size: 20px; margin-bottom: 6px; font-weight: 900; color: var(--primary-red);">AC Split Jet Cleaning</h3>
+      <span class="badge badge-pending" style="margin-bottom: 8px; font-size: 12px; padding: 4px 10px;">⚡ NEW REALTIME ORDER ALERT!</span>
+      <h3 id="modalOrderTitle" style="font-size: 18px; margin-bottom: 6px; font-weight: 800;">AC Split Jet Cleaning</h3>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Customer: <b id="modalCustomerName">Client</b></p>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Location: <b id="modalCustomerAddress">Area</b></p>
-      <div style="background: #fff5f5; border: 1px solid #ffdada; padding: 12px; border-radius: 10px; margin-bottom: 16px;">
+      <div style="background: #fff5f5; border: 1px solid #ffdada; padding: 10px; border-radius: 8px; margin-bottom: 16px;">
         <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 700;">Guaranteed Payout</span>
-        <span style="font-size: 24px; font-weight: 900; color: var(--primary-red);" id="modalOrderPayout">₹899</span>
+        <span style="font-size: 24px; font-weight: 900; color: var(--zomato-red);" id="modalOrderPayout">₹899</span>
       </div>
       <div style="display: flex; gap: 10px;">
         <button onclick="acceptRealtimeOrder()" style="background: var(--success); flex: 1; padding: 14px; font-size: 15px;">Accept Gig 👍</button>
@@ -322,8 +328,8 @@
 
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
-      <h2 style="color: var(--primary-red); font-weight: 900; font-size: 26px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
-      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Zomato-Style Live Dispatch)</p>
+      <h2 style="color: var(--zomato-red); font-weight: 900; font-size: 26px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Zomato-Style Dispatch Engine)</p>
       
       <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.5 7c0-.4-.1-.8-.2-1.2H12v2.4h3.6c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.7-3.7 2.7-6.3zm-11.8 3.5c-.3-.9-.5-1.9-.5-2.9s.2-2 .5-2.9L3.5 6.6C2.5 8.6 2 10.7 2 13s.5 4.4 1.5 6.4l3.7-2.9Z"/></svg>
@@ -366,9 +372,8 @@
         </select>
       </div>
 
-      <div style="background: #fafafa; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Document & Tax Details</h4>
-        
+      <div style="background: #fafafa; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 14px;">
+        <h4 style="font-size: 12px; color: var(--zomato-red); margin-bottom: 8px;">📄 Document & Tax Details</h4>
         <div class="form-group" style="margin-bottom: 10px;">
           <label>PAN Card Number:</label>
           <input type="text" id="kycPan" placeholder="ABCDE1234F">
@@ -414,17 +419,6 @@
       <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: white; color: white;">Logout</button>
     </div>
     <div style="padding: 15px 0;">
-      <!-- Test Order Creator for Zomato Popup Testing -->
-      <div class="card" style="max-width: 100%; border-left: 5px solid var(--success); margin-bottom: 15px; background: #f4fff6;">
-        <h4 style="font-size: 13px; margin-bottom: 6px; color: var(--success);">🚀 Simulate Customer Order (Test Zomato Popup)</h4>
-        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Clicking this will push a live order to Firebase. Any partner who is <b>ON DUTY</b> will instantly get the Zomato popup & audio chime!</p>
-        <div style="display: flex; gap: 8px;">
-          <input type="text" id="testOrderCategory" placeholder="Service (e.g. AC Deep Clean)" value="AC Split Jet Cleaning" style="flex: 2;">
-          <input type="number" id="testOrderAmount" placeholder="Amount" value="899" style="flex: 1;">
-          <button onclick="adminSimulateCustomerOrder()" style="background: var(--success); flex: 1; padding: 8px; font-size: 12px;">Push Order ⚡</button>
-        </div>
-      </div>
-
       <div class="card" style="max-width: 100%; border-left: 5px solid var(--blue); margin-bottom: 15px;">
         <h4 style="font-size: 13px; margin-bottom: 5px;">Live Realtime Orders Stream</h4>
         <div id="adminLiveOrdersQueue">
@@ -446,17 +440,17 @@
         📍 <span id="locationText">Detecting GPS...</span>
       </div>
       <div style="display: flex; align-items: center; gap: 6px;">
-        <div id="dutyPillContainer" class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer;">
+        <div id="dutyPillContainer" class="duty-pill" onclick="toggleDutyState()">
           <div id="dutyDot" class="dot"></div>
           <span id="dutyText">OFF DUTY</span>
         </div>
       </div>
     </div>
 
-    <div id="feedTab" class="tab-content active" style="padding: 15px 0;">
+    <div id="feedTab" class="tab-content active" style="padding: 12px 0;">
       <div id="floatingCashAlertContainer"></div>
 
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h3 style="font-size: 15px;">Live Telemetry Radar & Map</h3>
         <span class="badge badge-success">Firebase Realtime Live ✅</span>
       </div>
@@ -464,10 +458,10 @@
       <div id="liveMap"></div>
 
       <div id="activeOrderContainer" style="display: none; margin-top: 15px;">
-        <div class="card" style="max-width: 100%; border-left: 5px solid var(--primary-red);">
+        <div class="card" style="max-width: 100%; border-left: 5px solid var(--zomato-red);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <span class="badge badge-pending">Active Service Assignment</span>
-            <span style="font-weight: 900; color: var(--primary-red);" id="orderAmountText">₹0</span>
+            <span style="font-weight: 900; color: var(--zomato-red);" id="orderAmountText">₹0</span>
           </div>
           <div id="orderDetailsBox" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></div>
           
@@ -499,44 +493,44 @@
       </div>
     </div>
 
-    <div id="ordersTab" class="tab-content" style="padding: 15px 0;">
+    <div id="ordersTab" class="tab-content" style="padding: 12px 0;">
       <h3 style="font-size: 15px; margin-bottom: 12px;">Realtime Order Dispatch Stream</h3>
       <div class="card" style="max-width: 100%; text-align: center;">
         <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
         <h4 style="font-size: 14px; margin-bottom: 6px;">Listening for Incoming Firebase Gigs</h4>
-        <p style="font-size: 12px; color: var(--text-muted);">When you are <b>ON DUTY</b> and a customer places an order, your phone will instantly ring with Zomato-style sound and alert popup.</p>
+        <p style="font-size: 12px; color: var(--text-muted);">When you are <b>ON DUTY</b> and a customer places an order, your screen will instantly ring with Zomato-style sound and popup.</p>
       </div>
     </div>
 
-    <div id="earningsTab" class="tab-content" style="padding: 15px 0;">
+    <div id="earningsTab" class="tab-content" style="padding: 12px 0;">
       <div class="wallet-card">
         <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85;">Available Payout Balance</span>
         <div style="font-size: 34px; font-weight: 900; margin: 8px 0;" id="walletNetBalance">₹0</div>
-        <p style="font-size: 12px; margin: 0 0 15px 0; opacity: 0.9;">Instant settlement to registered bank account</p>
-        <button onclick="openWithdrawModal()" style="background: white; color: var(--primary-red); font-weight: 900; border-radius: 20px; padding: 10px;">Withdraw Funds 💸</button>
+        <p style="font-size: 12px; margin: 0 0 14px 0; opacity: 0.9;">Instant settlement to registered bank account</p>
+        <button onclick="openWithdrawModal()" style="background: white; color: var(--zomato-red); font-weight: 900; border-radius: 20px; padding: 10px;">Withdraw Funds 💸</button>
       </div>
       <div class="grid-2">
         <div class="stat-box"><div class="val" id="completedJobsCount">0</div><div class="lbl">Completed Gigs</div></div>
         <div class="stat-box"><div class="val" id="partnerRatingDisplay">4.9 ⭐</div><div class="lbl">Partner Rating</div></div>
       </div>
       <div class="card" style="max-width: 100%;">
-        <h4 style="font-size: 13px; color: var(--primary-red); margin-bottom: 8px;">💵 Floating Cash-in-Hand Status</h4>
+        <h4 style="font-size: 13px; color: var(--zomato-red); margin-bottom: 8px;">💵 Floating Cash-in-Hand Status</h4>
         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Maximum limit allowed: <b>₹2000</b>. Cash collected from customers reduces payout or requires deposit if limit is breached.</p>
         <div style="font-size: 20px; font-weight: 800; color: var(--warning);" id="floatingCashDisplay">₹0 / ₹2000</div>
       </div>
     </div>
 
-    <div id="profileTab" class="tab-content" style="padding: 15px 0;">
+    <div id="profileTab" class="tab-content" style="padding: 12px 0;">
       <div class="card" style="max-width: 100%;">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
-          <div style="width: 50px; height: 50px; background: var(--primary-red); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;" id="profileAvatarInitial">P</div>
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
+          <div style="width: 50px; height: 50px; background: var(--zomato-red); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;" id="profileAvatarInitial">P</div>
           <div>
             <h3 style="font-size: 15px;" id="profileNameDisplay">Partner Name</h3>
             <span class="badge badge-success" id="profileIdBadge">ID: SW-9021</span> | <span style="font-size: 12px; color: var(--warning); font-weight: bold;" id="profileRatingHeader">4.9 ⭐</span>
           </div>
         </div>
 
-        <h4 style="font-size: 13px; color: var(--primary-red); margin-bottom: 10px;">⚙️ Firebase Synced Settings</h4>
+        <h4 style="font-size: 13px; color: var(--zomato-red); margin-bottom: 10px;">⚙️ Firebase Synced Settings</h4>
 
         <div class="setting-row"><span>1. Push Notifications</span><input type="checkbox" id="setting_pushNotif" checked onchange="saveFirebaseSetting('pushNotif', this.checked)"></div>
         <div class="setting-row"><span>2. Zomato Sound Alerts</span><input type="checkbox" id="setting_soundAlerts" checked onchange="saveFirebaseSetting('soundAlerts', this.checked)"></div>
@@ -565,7 +559,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
@@ -928,23 +922,6 @@
       });
     }
 
-    // Quick Admin test order simulation for Zomato instant popups
-    window.adminSimulateCustomerOrder = async function() {
-      const category = document.getElementById("testOrderCategory").value || "AC Split Jet Cleaning";
-      const amount = parseInt(document.getElementById("testOrderAmount").value) || 899;
-      
-      const newOrderRef = push(ref(db, 'live_orders'));
-      await set(newOrderRef, {
-        category: category,
-        amount: amount,
-        customerName: "Rahul Sharma",
-        address: "Connaught Place, New Delhi",
-        status: "pending",
-        timestamp: Date.now()
-      });
-      alert("⚡ Order pushed to Firebase Realtime! Any On-Duty partner will now receive the Zomato popup alert instantly.");
-    };
-
     window.adminApprovePartner = async function(uid) {
       await update(ref(db, `live_partners/${uid}`), { kycStatus: "approved" });
     };
@@ -969,7 +946,6 @@
       if (activeSyncListener) activeSyncListener();
       if (ordersListenerUnsubscribe) ordersListenerUnsubscribe();
 
-      // Sync partner profile data exclusively under this Gmail's UID node
       activeSyncListener = onValue(ref(db, `live_partners/${uid}`), (snap) => {
         const data = snap.val();
         if (!data) return;
@@ -979,19 +955,19 @@
           return;
         }
 
+        const dutyPillContainer = document.getElementById("dutyPillContainer");
         const dutyDot = document.getElementById("dutyDot");
         const dutyText = document.getElementById("dutyText");
-        const dutyPillContainer = document.getElementById("dutyPillContainer");
         const orderContainer = document.getElementById("activeOrderContainer");
 
         if (data.isOnline) {
+          dutyPillContainer.classList.add("online-active");
           dutyDot.className = "dot online";
           dutyText.innerText = data.status === "busy" ? "ON TASK (BUSY)" : "ONLINE (READY)";
-          dutyPillContainer.className = "duty-pill active-duty";
         } else {
+          dutyPillContainer.classList.remove("online-active");
           dutyDot.className = "dot";
           dutyText.innerText = "OFF DUTY";
-          dutyPillContainer.className = "duty-pill";
         }
 
         if (data.currentOrderId) {
@@ -1034,14 +1010,13 @@
         }
       });
 
-      // Realtime Orders stream listener with Zomato-style sound & popup when ON DUTY
+      // Zomato-style Realtime Orders dispatch listener
       ordersListenerUnsubscribe = onValue(ref(db, 'live_orders'), (snap) => {
         if (!snap.exists()) return;
         const orders = snap.val();
         
         get(ref(db, `live_partners/${uid}`)).then((pSnap) => {
           const pData = pSnap.val() || {};
-          // Only trigger alert popup if partner is ONLINE and currently FREE (not busy)
           if (!pData.isOnline || pData.status === "busy") return;
 
           for (const [oId, oData] of Object.entries(orders)) {
