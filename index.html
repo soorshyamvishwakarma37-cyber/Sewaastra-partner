@@ -49,7 +49,7 @@
     .card {
       background: var(--bg-card);
       border: 1px solid var(--border);
-      padding: 24px;
+      padding: 20px;
       border-radius: 14px;
       width: 100%;
       max-width: 440px;
@@ -139,26 +139,6 @@
       box-shadow: 0 8px 24px rgba(0,0,0,0.15);
     }
 
-    /* Zomato-style Bottom Sheet Popup */
-    .zomato-popup {
-      position: fixed;
-      bottom: 0; left: 0; right: 0;
-      background: #ffffff;
-      border-top-left-radius: 20px;
-      border-top-right-radius: 20px;
-      box-shadow: 0 -10px 30px rgba(0,0,0,0.25);
-      padding: 24px;
-      z-index: 2000;
-      transform: translateY(100%);
-      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      max-width: 520px;
-      margin: 0 auto;
-      box-sizing: border-box;
-    }
-    .zomato-popup.active {
-      transform: translateY(0);
-    }
-
     .app-header {
       background: var(--bg-card);
       padding: 10px 15px;
@@ -235,7 +215,7 @@
     
     #liveMap {
       width: 100%;
-      height: 300px;
+      height: 260px;
       border-radius: 10px;
       margin-bottom: 12px;
       border: 1px solid var(--border);
@@ -257,6 +237,15 @@
       font-size: 12px;
       margin-bottom: 12px;
       font-weight: 600;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(226, 55, 68, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(226, 55, 68, 0); }
+    }
+    .zomato-alert-card {
+      animation: pulseRing 1.5s infinite;
+      border-top: 6px solid var(--primary-red);
     }
   </style>
 </head>
@@ -294,17 +283,20 @@
     </div>
   </div>
 
-  <!-- Zomato-Style Live Incoming Order Popup Sheet -->
-  <div id="incomingOrderPopup" class="zomato-popup">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-      <span class="badge badge-pending" style="font-size: 11px;">⚡ NEW FIREBASE ORDER ALERT</span>
-      <span style="font-size: 12px; color: var(--text-muted);" id="popupTimerDisplay">Accept in 30s</span>
-    </div>
-    <h3 id="modalOrderTitle" style="font-size: 18px; font-weight: 900; margin-bottom: 6px; color: var(--text-main);">AC Split Jet Cleaning</h3>
-    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">Estimated Payout: <b style="color: var(--success); font-size: 16px;" id="modalOrderPayout">₹899</b></p>
-    <div style="display: flex; gap: 12px;">
-      <button onclick="acceptBroadcastedOrder()" style="background: var(--success); flex: 1; padding: 14px; font-size: 15px;">Accept Order 👍</button>
-      <button onclick="rejectBroadcastedOrder()" class="btn-outline" style="border-color: var(--danger); color: var(--danger); flex: 1; padding: 14px; font-size: 15px;">Decline ❌</button>
+  <div id="incomingOrderModal" class="modal-overlay">
+    <div class="modal-card zomato-alert-card" style="text-align: center;">
+      <span class="badge badge-pending" style="margin-bottom: 8px; font-size: 12px; padding: 4px 10px;">⚡ NEW REALTIME ORDER ALERT!</span>
+      <h3 id="modalOrderTitle" style="font-size: 18px; margin-bottom: 6px; font-weight: 800;">AC Split Jet Cleaning</h3>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Customer: <b id="modalCustomerName">Client</b></p>
+      <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Location: <b id="modalCustomerAddress">Area</b></p>
+      <div style="background: #fff5f5; border: 1px solid #ffdada; padding: 10px; border-radius: 8px; margin-bottom: 16px;">
+        <span style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); display: block; font-weight: 700;">Guaranteed Payout</span>
+        <span style="font-size: 22px; font-weight: 900; color: var(--primary-red);" id="modalOrderPayout">₹899</span>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="acceptRealtimeOrder()" style="background: var(--success); flex: 1; padding: 14px; font-size: 15px;">Accept Gig 👍</button>
+        <button onclick="rejectRealtimeOrder()" class="btn-outline" style="border-color: var(--danger); color: var(--danger); flex: 1; padding: 14px; font-size: 15px;">Decline ❌</button>
+      </div>
     </div>
   </div>
 
@@ -315,7 +307,7 @@
         <button onclick="document.getElementById('customerChatModal').classList.remove('active')" class="btn-outline" style="width: auto; padding: 2px 6px; font-size: 10px;">Close X</button>
       </div>
       <div id="chatBoxLog" style="background: #f9f9f9; border: 1px solid var(--border); border-radius: 8px; padding: 10px; height: 140px; overflow-y: auto; font-size: 12px; margin-bottom: 10px;">
-        <div style="color: #666; margin-bottom: 4px;"><b>Customer:</b> Hello technician, please arrive on time.</div>
+        <div style="color: #666; margin-bottom: 4px;"><b>Customer:</b> Hello partner, please arrive promptly.</div>
       </div>
       <div class="form-group" style="margin-bottom: 8px;">
         <input type="text" id="chatMessageInput" placeholder="Type message to customer...">
@@ -327,11 +319,11 @@
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
       <h2 style="color: var(--primary-red); font-weight: 900; font-size: 24px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
-      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System</p>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Multi-Gmail Cloud Sync)</p>
       
       <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
         <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.5 7c0-.4-.1-.8-.2-1.2H12v2.4h3.6c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.7-3.7 2.7-6.3zm-11.8 3.5c-.3-.9-.5-1.9-.5-2.9s.2-2 .5-2.9L3.5 6.6C2.5 8.6 2 10.7 2 13s.5 4.4 1.5 6.4l3.7-2.9Z"/></svg>
-        Sign in with Google Firebase Auth
+        Sign in with Google (Any Gmail)
       </button>
     </div>
   </div>
@@ -342,14 +334,14 @@
         <h3 style="font-size: 15px;">Partner Verification & KYC</h3>
         <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
       </div>
-      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please upload original documents and accurate info for admin approval.</p>
+      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide accurate details for admin approval.</p>
       
       <div class="form-group">
         <label>Authenticated Email:</label>
         <input type="text" id="authEmailDisplay" readonly style="background: #f9f9f9; color: #555;">
       </div>
       <div class="form-group">
-        <label>Full Name (As per Govt ID):</label>
+        <label>Full Name:</label>
         <input type="text" id="kycFullName" placeholder="Enter Full Name">
       </div>
       <div class="form-group">
@@ -371,24 +363,15 @@
       </div>
 
       <div style="background: #fafafa; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 16px;">
-        <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Document Uploads & Details</h4>
+        <h4 style="font-size: 12px; color: var(--primary-red); margin-bottom: 8px;">📄 Document & Tax Details</h4>
         
         <div class="form-group" style="margin-bottom: 10px;">
-          <label>1. Aadhaar Identification Number & Document:</label>
-          <input type="text" id="kycAadhaarNum" placeholder="12-digit Aadhaar Number" maxlength="12" style="margin-bottom: 6px;">
-          <input type="file" id="kycDocAadhaar" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
+          <label>PAN Card Number:</label>
+          <input type="text" id="kycPan" placeholder="ABCDE1234F">
         </div>
-
-        <div class="form-group" style="margin-bottom: 10px;">
-          <label>2. PAN Card Number & Document:</label>
-          <input type="text" id="kycPan" placeholder="ABCDE1234F" style="margin-bottom: 6px;">
-          <input type="file" id="kycDocPan" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
-        </div>
-
         <div class="form-group" style="margin-bottom: 0;">
-          <label>3. Driver's License Number & Document:</label>
-          <input type="text" id="kycLicence" placeholder="DL-1420110012345" style="margin-bottom: 6px;">
-          <input type="file" id="kycDocLicence" accept="image/*" style="padding: 6px; font-size: 11px; background: #fff;">
+          <label>Driver's License Number:</label>
+          <input type="text" id="kycLicence" placeholder="DL-1420110012345">
         </div>
       </div>
       
@@ -401,8 +384,8 @@
         <input type="text" id="kycIfsc" placeholder="Enter Bank IFSC Code">
       </div>
       <div class="form-group">
-        <label>Preferred UPI ID (e.g. paytm/ybl):</label>
-        <input type="text" id="kycUpi" placeholder="Enter UPI handle for instant collection">
+        <label>Preferred UPI ID:</label>
+        <input type="text" id="kycUpi" placeholder="Enter UPI handle">
       </div>
 
       <button onclick="submitOnboardingData()" style="background: var(--success);">Submit KYC for Verification</button>
@@ -413,7 +396,7 @@
     <div class="card" style="text-align: center;">
       <div style="font-size: 42px; margin-bottom: 12px;">⏳</div>
       <h3 style="font-size: 16px; margin-bottom: 6px;">Verification Under Review</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your documents are being reviewed by the admin team. Entry is restricted until approved.</p>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your cloud partner profile is being reviewed by the admin team.</p>
       <div class="form-group">
         <button onclick="checkAdminApprovalStatus()" class="btn-outline">🔄 Check Status</button>
       </div>
@@ -428,13 +411,13 @@
     </div>
     <div style="padding: 15px 0;">
       <div class="card" style="max-width: 100%; border-left: 5px solid var(--blue); margin-bottom: 15px;">
-        <h4 style="font-size: 13px; margin-bottom: 5px;">Live Orders & Telemetry Stream</h4>
+        <h4 style="font-size: 13px; margin-bottom: 5px;">Live Realtime Orders Stream</h4>
         <div id="adminLiveOrdersQueue">
-          <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Connecting to order streams...</p>
+          <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Connecting to Firebase order streams...</p>
         </div>
       </div>
       <div class="card" style="max-width: 100%; border-left: 5px solid var(--success);">
-        <h4 style="font-size: 13px; margin-bottom: 5px;">Partner Verification Queue & Cash Limits</h4>
+        <h4 style="font-size: 13px; margin-bottom: 5px;">Partner Verification Queue</h4>
         <div id="adminPartnerQueue">
           <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Loading database records...</p>
         </div>
@@ -445,7 +428,7 @@
   <div id="partnerHome" class="screen">
     <div class="app-header">
       <div id="topLocationBadge" class="location-badge" onclick="detectCurrentGeolocation(true)" title="Click to refresh location">
-        📍 <span id="locationText">Detecting area...</span>
+        📍 <span id="locationText">Detecting GPS...</span>
       </div>
       <div style="display: flex; align-items: center; gap: 6px;">
         <div class="duty-pill" onclick="toggleDutyState()" style="cursor: pointer;">
@@ -459,16 +442,16 @@
       <div id="floatingCashAlertContainer"></div>
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h3 style="font-size: 15px;">Live Radar & Map</h3>
-        <span class="badge badge-success">Firebase Realtime GPS ✅</span>
+        <h3 style="font-size: 15px;">Live Telemetry Radar & Map</h3>
+        <span class="badge badge-success">Firebase Realtime Live ✅</span>
       </div>
 
       <div id="liveMap"></div>
 
-      <div id="activeOrderContainer" style="display: none;">
+      <div id="activeOrderContainer" style="display: none; margin-top: 15px;">
         <div class="card" style="max-width: 100%; border-left: 5px solid var(--primary-red);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <span class="badge badge-pending">Active Firebase Assignment</span>
+            <span class="badge badge-pending">Active Service Assignment</span>
             <span style="font-weight: 900; color: var(--primary-red);" id="orderAmountText">₹0</span>
           </div>
           <div id="orderDetailsBox" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></div>
@@ -494,19 +477,19 @@
           </div>
 
           <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-            <button onclick="verifyOtpAndCompleteOrder()" style="flex: 1; background: var(--success);">Verify & Complete</button>
-            <button onclick="declineAssignedOrder()" class="btn-outline" style="flex: 1; border-color: var(--danger); color: var(--danger);">Decline</button>
+            <button onclick="verifyOtpAndCompleteOrder()" style="flex: 1; background: var(--success);">Verify & Complete Gig</button>
+            <button onclick="declineAssignedOrder()" class="btn-outline" style="flex: 1; border-color: var(--danger); color: var(--danger);">Decline / Unassign</button>
           </div>
         </div>
       </div>
     </div>
 
     <div id="ordersTab" class="tab-content" style="padding: 15px 0;">
-      <h3 style="font-size: 15px; margin-bottom: 12px;">Firebase Order Stream</h3>
+      <h3 style="font-size: 15px; margin-bottom: 12px;">Realtime Order Dispatch Stream</h3>
       <div class="card" style="max-width: 100%; text-align: center;">
         <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
-        <h4 style="font-size: 14px; margin-bottom: 6px;">Listening for Real Orders</h4>
-        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">When customers book a service, it streams instantly from Firebase with Zomato-style sound and popup alerts.</p>
+        <h4 style="font-size: 14px; margin-bottom: 6px;">Listening for Incoming Firebase Gigs</h4>
+        <p style="font-size: 12px; color: var(--text-muted);">When a customer places an order on Firebase, your phone will instantly ring with Zomato-style sound and alert popup.</p>
       </div>
     </div>
 
@@ -538,16 +521,16 @@
           </div>
         </div>
 
-        <h4 style="font-size: 13px; color: var(--primary-red); margin-bottom: 10px;">⚙️ Partner Preferences & Settings (Firebase Realtime)</h4>
+        <h4 style="font-size: 13px; color: var(--primary-red); margin-bottom: 10px;">⚙️ Firebase Synced Settings</h4>
 
-        <div class="setting-row"><span>1. Push Notifications</span><input type="checkbox" checked onchange="saveSetting('pushNotif', this.checked)"></div>
-        <div class="setting-row"><span>2. Sound Alerts (New Gig)</span><input type="checkbox" checked onchange="saveSetting('soundAlerts', this.checked)"></div>
-        <div class="setting-row"><span>3. Auto-Accept Nearby Gigs</span><input type="checkbox" onchange="saveSetting('autoAccept', this.checked)"></div>
-        <div class="setting-row"><span>4. High-Value Priority Mode</span><input type="checkbox" checked onchange="saveSetting('highPriority', this.checked)"></div>
-        <div class="setting-row"><span>5. Share Live GPS Telemetry</span><input type="checkbox" checked onchange="saveSetting('shareGps', this.checked)"></div>
-        <div class="setting-row"><span>6. Night Shift Mode</span><input type="checkbox" onchange="saveSetting('nightShift', this.checked)"></div>
-        <div class="setting-row"><span>7. Hindi Audio Prompts</span><input type="checkbox" checked onchange="saveSetting('hindiAudio', this.checked)"></div>
-        <div class="setting-row"><span>8. Customer Call Masking</span><input type="checkbox" checked onchange="saveSetting('callMasking', this.checked)"></div>
+        <div class="setting-row"><span>1. Push Notifications</span><input type="checkbox" id="setting_pushNotif" checked onchange="saveFirebaseSetting('pushNotif', this.checked)"></div>
+        <div class="setting-row"><span>2. Zomato Sound Alerts</span><input type="checkbox" id="setting_soundAlerts" checked onchange="saveFirebaseSetting('soundAlerts', this.checked)"></div>
+        <div class="setting-row"><span>3. Auto-Accept Nearby Gigs</span><input type="checkbox" id="setting_autoAccept" onchange="saveFirebaseSetting('autoAccept', this.checked)"></div>
+        <div class="setting-row"><span>4. High-Value Priority Mode</span><input type="checkbox" id="setting_highPriority" checked onchange="saveFirebaseSetting('highPriority', this.checked)"></div>
+        <div class="setting-row"><span>5. Share Live GPS Telemetry</span><input type="checkbox" id="setting_shareGps" checked onchange="saveFirebaseSetting('shareGps', this.checked)"></div>
+        <div class="setting-row"><span>6. Night Shift Mode</span><input type="checkbox" id="setting_nightShift" onchange="saveFirebaseSetting('nightShift', this.checked)"></div>
+        <div class="setting-row"><span>7. Hindi Audio Prompts</span><input type="checkbox" id="setting_hindiAudio" checked onchange="saveFirebaseSetting('hindiAudio', this.checked)"></div>
+        <div class="setting-row"><span>8. Customer Call Masking</span><input type="checkbox" id="setting_callMasking" checked onchange="saveFirebaseSetting('callMasking', this.checked)"></div>
 
         <div style="margin-top: 15px;">
           <button onclick="logoutSession()" class="btn-outline" style="border-color: var(--danger); color: var(--danger);">Sign Out Session</button>
@@ -557,7 +540,7 @@
 
     <div class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('feedTab', this)"><span>🗺️</span>Live Map</div>
-      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span>⚡</span>Order Stream</div>
+      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span>⚡</span>Finding Orders</div>
       <div class="nav-item" onclick="switchTab('earningsTab', this)"><span>💰</span>Earnings</div>
       <div class="nav-item" onclick="switchTab('profileTab', this)"><span>👤</span>Profile & Settings</div>
     </div>
@@ -567,7 +550,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
@@ -587,12 +570,15 @@
     let loggedInUser = null;
     let temporaryUserPhone = "";
     let activeSyncListener = null;
+    let ordersListenerUnsubscribe = null;
     let leafletMap = null;
-    let liveMarker = null;
+    let partnerMarker = null;
     let currentPendingOrderId = null;
     let currentAssignedOrderId = null;
     let currentLat = 28.6139;
     let currentLng = 77.2090;
+    let watchId = null;
+    let soundAlarmInterval = null;
 
     function showLoader(text = "Processing...") {
       document.getElementById("loadingText").innerText = text;
@@ -603,61 +589,76 @@
       document.getElementById("globalLoader").classList.remove("active");
     }
 
-    // Zomato-style continuous chime and beep alert using Web Audio API
+    // Zomato-style continuous alert chime loop until accepted or rejected
     function playZomatoAlertSound() {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let beepCount = 0;
-        const interval = setInterval(() => {
-          if (beepCount >= 4) {
-            clearInterval(interval);
-            return;
-          }
-          const osc = audioCtx.createOscillator();
+      stopZomatoAlertSound();
+      soundAlarmInterval = setInterval(() => {
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc1 = audioCtx.createOscillator();
+          const osc2 = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
-          osc.type = 'triangle';
-          osc.frequency.setValueAtTime(800 + (beepCount * 150), audioCtx.currentTime);
-          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-          osc.connect(gain);
+
+          osc1.type = 'sine';
+          osc2.type = 'triangle';
+          osc1.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+          osc2.frequency.setValueAtTime(1320, audioCtx.currentTime); // E6
+
+          gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
           gain.connect(audioCtx.destination);
-          osc.start();
-          osc.stop(audioCtx.currentTime + 0.25);
-          beepCount++;
-        }, 350);
-      } catch(e) {}
+
+          osc1.start();
+          osc2.start();
+          osc1.stop(audioCtx.currentTime + 0.6);
+          osc2.stop(audioCtx.currentTime + 0.6);
+        } catch(e) {}
+      }, 1000);
+    }
+
+    function stopZomatoAlertSound() {
+      if (soundAlarmInterval) {
+        clearInterval(soundAlarmInterval);
+        soundAlarmInterval = null;
+      }
     }
 
     window.detectCurrentGeolocation = function(showAlert = false) {
       const locationLabel = document.getElementById("locationText");
-      if (locationLabel) locationLabel.innerText = "Locating...";
+      if (locationLabel) locationLabel.innerText = "Locating GPS...";
 
       if (navigator.geolocation) {
-        navigator.geolocation.watchPosition(
+        // Use watchPosition for real-time live GPS map tracking
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        watchId = navigator.geolocation.watchPosition(
           async (position) => {
             currentLat = position.coords.latitude;
             currentLng = position.coords.longitude;
             
             const geoField = document.getElementById("kycGeoLocation");
             if (geoField) {
-              geoField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)} (GPS Verified)`;
+              geoField.value = `Lat: ${currentLat.toFixed(4)}, Lng: ${currentLng.toFixed(4)} (Live GPS)`;
             }
 
-            // Update live Leaflet marker position
-            if (leafletMap) {
-              if (liveMarker) {
-                liveMarker.setLatLng([currentLat, currentLng]);
-              } else {
-                liveMarker = L.marker([currentLat, currentLng]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Position</b>");
-              }
-              leafletMap.setView([currentLat, currentLng], 15);
-            }
-
-            // Sync partner live GPS to Firebase realtime DB
+            // Sync partner live GPS to Firebase under their specific UID node
             if (loggedInUser) {
               update(ref(db, `live_partners/${loggedInUser.uid}`), {
                 latitude: currentLat,
                 longitude: currentLng
               });
+            }
+
+            // Update Leaflet map marker
+            if (leafletMap) {
+              if (!partnerMarker) {
+                partnerMarker = L.marker([currentLat, currentLng]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Position</b>");
+              } else {
+                partnerMarker.setLatLng([currentLat, currentLng]);
+              }
+              leafletMap.setView([currentLat, currentLng], 15);
             }
 
             try {
@@ -667,15 +668,16 @@
               const areaName = address.suburb || address.neighbourhood || address.city_district || address.city || address.town || "Current Location";
               
               if (locationLabel) locationLabel.innerText = areaName;
-              if (showAlert) alert(`📍 Location updated: ${areaName}`);
+              if (showAlert) alert(`📍 Live GPS updated: ${areaName}`);
             } catch (err) {
-              if (locationLabel) locationLabel.innerText = `${currentLat.toFixed(2)}, ${currentLng.toFixed(2)}`;
+              if (locationLabel) locationLabel.innerText = `${currentLat.toFixed(4)}, ${currentLng.toFixed(4)}`;
             }
           },
           (error) => {
-            if (locationLabel) locationLabel.innerText = "New Delhi (Default)";
+            if (locationLabel) locationLabel.innerText = "New Delhi (GPS Default)";
+            if (showAlert) alert("⚠️ Could not fetch precise GPS. Please check location permissions.");
           },
-          { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+          { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
         );
       } else {
         if (locationLabel) locationLabel.innerText = "GPS Not Supported";
@@ -708,7 +710,7 @@
         maxZoom: 19,
         attribution: '© OpenStreetMap'
       }).addTo(leafletMap);
-      liveMarker = L.marker([currentLat, currentLng]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Position</b>").openPopup();
+      partnerMarker = L.marker([currentLat, currentLng]).addTo(leafletMap).bindPopup("<b>Your Live Telemetry Position</b>").openPopup();
     }
 
     window.addEventListener('DOMContentLoaded', async () => {
@@ -770,7 +772,7 @@
         return;
       }
 
-      showLoader("Syncing partner telemetry profile...");
+      showLoader("Syncing partner profile for " + email + "...");
       const partnerRef = ref(db, `live_partners/${uid}`);
       const snap = await get(partnerRef);
       hideLoader();
@@ -795,25 +797,24 @@
       const uid = loggedInUser.uid;
 
       const name = document.getElementById("kycFullName").value.trim();
-      const phone = document.getElementById("kycPhone").value.trim();
+      const phone = document.getElementById("kycPhone").value.trim() || temporaryUserPhone;
       const skill = document.getElementById("kycSkill").value;
-      const aadharNum = document.getElementById("kycAadhaarNum").value.trim();
       const pan = document.getElementById("kycPan").value.trim();
       const licence = document.getElementById("kycLicence").value.trim();
       const bankAc = document.getElementById("kycBankAc").value.trim();
       const ifsc = document.getElementById("kycIfsc").value.trim();
       const upi = document.getElementById("kycUpi").value.trim();
 
-      if (!name || !phone || !aadharNum || !pan || !licence || !bankAc || !ifsc) {
-        alert("Please fill in all mandatory KYC documentation fields and account numbers.");
+      if (!name || !phone || !pan || !licence || !bankAc || !ifsc) {
+        alert("Please fill in all mandatory KYC and banking fields.");
         return;
       }
 
-      showLoader("Uploading original documents to cloud storage...");
+      showLoader("Saving profile to unique Firebase node...");
       
       const payload = {
         email: loggedInUser.email,
-        name, phone, skill, aadharNum, pan, licence, bankAc, ifsc, upi,
+        name, phone, skill, pan, licence, bankAc, ifsc, upi,
         kycStatus: "pending",
         isOnline: false,
         status: "available",
@@ -822,7 +823,17 @@
         totalEarned: 0,
         floatingCash: 0,
         completedJobs: 0,
-        rating: 4.9
+        rating: 4.9,
+        settings: {
+          pushNotif: true,
+          soundAlerts: true,
+          autoAccept: false,
+          highPriority: true,
+          shareGps: true,
+          nightShift: false,
+          hindiAudio: true,
+          callMasking: true
+        }
       };
 
       await set(ref(db, `live_partners/${uid}`), payload);
@@ -830,7 +841,7 @@
       localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
 
       hideLoader();
-      alert("KYC documents and profile successfully synced to Firebase!");
+      alert("KYC submitted successfully!");
       showScreen('stepWaitScreen');
     };
 
@@ -842,11 +853,11 @@
       hideLoader();
 
       if (data.kycStatus === "approved") {
-        alert("🎉 Admin approved your onboarding! Entering live dashboard.");
+        alert("🎉 Admin approved your onboarding!");
         showScreen('partnerHome');
         attachPartnerRealtimeSync(loggedInUser.uid);
       } else {
-        alert("⏳ Status is still PENDING in Firebase database. Approval required for entry.");
+        alert("⏳ Status is still PENDING in Firebase database.");
       }
     };
 
@@ -864,8 +875,8 @@
         for (const [oId, oData] of Object.entries(records)) {
           html += `
             <div style="background: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px;">
-              <b>Gig:</b> ${oData.category} | <b>Amount:</b> ₹${oData.amount} | <b>Status:</b> <span class="badge badge-pending">${oData.status}</span><br>
-              Payment Mode: <b>${oData.paymentMode || 'Pending'}</b> | Rating: <b>${oData.rating || 'N/A'} ⭐</b>
+              <b>Gig:</b> ${oData.category} | <b>Customer:</b> ${oData.customerName || 'Client'} | <b>Amount:</b> ₹${oData.amount} | <b>Status:</b> <span class="badge badge-pending">${oData.status}</span><br>
+              Location: <b>${oData.address || 'Area'}</b>
             </div>
           `;
         }
@@ -892,8 +903,7 @@
                 📧 Email: <b>${data.email}</b><br>
                 📱 Phone: <b>${data.phone}</b> | UPI: <b>${data.upi || 'N/A'}</b><br>
                 🛠️ Skill: <b>${data.skill}</b><br>
-                🆔 Aadhaar: <b>[Aadhaar Redacted]</b> | PAN: <b>${data.pan}</b><br>
-                💵 Floating Cash: <b>₹${data.floatingCash || 0} / ₹2000 limit</b>
+                💵 Earnings: <b>₹${data.totalEarned || 0}</b> | Floating Cash: <b>₹${data.floatingCash || 0}</b>
               </div>
               <div style="display: flex; gap: 10px;">
                 <button onclick="adminApprovePartner('${uid}')" style="background: var(--success); padding: 8px; font-size: 12px;">Approve ✅</button>
@@ -916,6 +926,9 @@
 
     window.logoutSession = async function() {
       if (activeSyncListener) activeSyncListener();
+      if (ordersListenerUnsubscribe) ordersListenerUnsubscribe();
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      stopZomatoAlertSound();
       localStorage.removeItem('sewaastra_persisted_uid');
       localStorage.removeItem('sewaastra_persisted_email');
       await signOut(auth);
@@ -925,7 +938,9 @@
 
     function attachPartnerRealtimeSync(uid) {
       if (activeSyncListener) activeSyncListener();
+      if (ordersListenerUnsubscribe) ordersListenerUnsubscribe();
 
+      // Sync partner profile data exclusively under this Gmail's UID node
       activeSyncListener = onValue(ref(db, `live_partners/${uid}`), (snap) => {
         const data = snap.val();
         if (!data) return;
@@ -951,7 +966,6 @@
           currentAssignedOrderId = data.currentOrderId;
           orderContainer.style.display = "block";
           document.getElementById("orderDetailsBox").innerHTML = `Assigned Service ID: <b>${data.currentOrderId}</b>`;
-          
           document.getElementById("navMapBtn").href = `https://www.google.com/maps/search/?api=1&query=${currentLat},${currentLng}`;
         } else {
           currentAssignedOrderId = null;
@@ -967,7 +981,7 @@
         
         const alertBox = document.getElementById("floatingCashAlertContainer");
         if (floatingCash >= 2000) {
-          alertBox.innerHTML = `<div class="alert-banner">⚠️ Floating Cash Limit Reached (₹${floatingCash} / ₹2000). Please deposit cash or settle to receive new cash gigs.</div>`;
+          alertBox.innerHTML = `<div class="alert-banner">⚠️ Floating Cash Limit Reached (₹${floatingCash} / ₹2000). Please deposit cash to continue receiving cash gigs.</div>`;
         } else {
           alertBox.innerHTML = "";
         }
@@ -979,28 +993,40 @@
         document.getElementById("profileNameDisplay").innerText = data.name || "Partner";
         document.getElementById("profileAvatarInitial").innerText = (data.name || "P").charAt(0).toUpperCase();
         document.getElementById("profileIdBadge").innerText = `ID: SW-${uid.substring(0,4).toUpperCase()}`;
+
+        // Sync UI toggles with Firebase settings object
+        if (data.settings) {
+          for (const [sKey, sVal] of Object.entries(data.settings)) {
+            const el = document.getElementById(`setting_${sKey}`);
+            if (el) el.checked = sVal;
+          }
+        }
       });
 
-      // Firebase Realtime Order Listener with Zomato-style sound and popup
-      onValue(ref(db, 'live_orders'), (snap) => {
+      // Realtime Orders stream listener with Zomato-style sound & popup
+      ordersListenerUnsubscribe = onValue(ref(db, 'live_orders'), (snap) => {
         if (!snap.exists()) return;
         const orders = snap.val();
         
-        // Check if partner is online before triggering alert
-        const partnerSnapRef = ref(db, `live_partners/${uid}`);
-        get(partnerSnapRef).then((pSnap) => {
-          const partnerData = pSnap.val() || {};
-          if (!partnerData.isOnline) return;
+        // Check if partner is online and currently free
+        get(ref(db, `live_partners/${uid}`)).then((pSnap) => {
+          const pData = pSnap.val() || {};
+          if (!pData.isOnline || pData.status === "busy") return;
 
           for (const [oId, oData] of Object.entries(orders)) {
-            if (oData.status === "pending" && !currentPendingOrderId && !partnerData.currentOrderId) {
+            if (oData.status === "pending" && !currentPendingOrderId) {
               currentPendingOrderId = oId;
-              document.getElementById("modalOrderTitle").innerText = oData.category || "Service Booking";
+              document.getElementById("modalOrderTitle").innerText = oData.category || "Appliance Service Gig";
+              document.getElementById("modalCustomerName").innerText = oData.customerName || "Customer";
+              document.getElementById("modalCustomerAddress").innerText = oData.address || "Local Area";
               document.getElementById("modalOrderPayout").innerText = `₹${oData.amount || 500}`;
               
-              // Trigger Zomato-style bottom sheet popup and sound alert
-              document.getElementById("incomingOrderPopup").classList.add("active");
-              playZomatoAlertSound();
+              document.getElementById("incomingOrderModal").classList.add("active");
+              
+              // Check if sound alerts setting is enabled
+              if (pData.settings && pData.settings.soundAlerts !== false) {
+                playZomatoAlertSound();
+              }
               break;
             }
           }
@@ -1027,7 +1053,8 @@
       });
     };
 
-    window.acceptBroadcastedOrder = async function() {
+    window.acceptRealtimeOrder = async function() {
+      stopZomatoAlertSound();
       if (!loggedInUser || !currentPendingOrderId) return;
       const uid = loggedInUser.uid;
       const completionOtp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -1041,12 +1068,13 @@
       batch[`/live_partners/${uid}/currentOrderId`] = currentPendingOrderId;
 
       await update(ref(db), batch);
-      document.getElementById("incomingOrderPopup").classList.remove("active");
+      document.getElementById("incomingOrderModal").classList.remove("active");
       currentPendingOrderId = null;
     };
 
-    window.rejectBroadcastedOrder = function() {
-      document.getElementById("incomingOrderPopup").classList.remove("active");
+    window.rejectRealtimeOrder = function() {
+      stopZomatoAlertSound();
+      document.getElementById("incomingOrderModal").classList.remove("active");
       currentPendingOrderId = null;
     };
 
@@ -1152,8 +1180,13 @@
       await update(ref(db), updates);
     };
 
-    window.saveSetting = function(settingKey, value) {
-      localStorage.setItem(`sewaastra_setting_${settingKey}`, value);
+    // Save settings directly to Firebase Realtime Database under this user's node
+    window.saveFirebaseSetting = async function(settingKey, value) {
+      if (!loggedInUser) return;
+      const uid = loggedInUser.uid;
+      await update(ref(db, `live_partners/${uid}/settings`), {
+        [settingKey]: value
+      });
     };
   </script>
 </body>
