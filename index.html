@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sewaastra Partner OS - Zomato Delivery Edition</title>
+  <title>Sewaastra Partner OS - Zomato Delivery Edition Pro v3</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     :root {
       --zomato-red: #e23744;
@@ -18,6 +19,15 @@
       --warning: #ffb300;
       --danger: #d32f2f;
       --blue: #1976d2;
+      --purple: #7b1fa2;
+      --dark: #121212;
+    }
+    .dark-theme {
+      --bg-main: #121212;
+      --bg-card: #1e1e1e;
+      --text-main: #f1f1f1;
+      --text-muted: #a0a0a0;
+      --border: #2c2c2c;
     }
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -25,6 +35,7 @@
       padding: 0;
       background-color: var(--bg-main);
       color: var(--text-main);
+      transition: background 0.3s, color 0.3s;
     }
     .screen {
       display: none;
@@ -44,7 +55,7 @@
       align-items: unset;
       max-width: 480px;
       margin: 0 auto;
-      padding-bottom: 75px;
+      padding-bottom: 85px;
     }
     .card {
       background: var(--bg-card);
@@ -71,7 +82,7 @@
     input, select, textarea {
       width: 100%;
       padding: 11px;
-      background: #fff;
+      background: var(--bg-card);
       border: 1px solid var(--border);
       color: var(--text-main);
       border-radius: 8px;
@@ -131,7 +142,7 @@
     }
     .modal-overlay.active { display: flex; }
     .modal-card {
-      background: #fff;
+      background: var(--bg-card);
       border-radius: 14px;
       padding: 20px;
       width: 100%;
@@ -162,7 +173,7 @@
       font-size: 11px;
       font-weight: 700;
       color: var(--zomato-red);
-      max-width: 160px;
+      max-width: 150px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -191,7 +202,7 @@
     .bottom-nav {
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      background: #fff;
+      background: var(--bg-card);
       border-top: 1px solid var(--border);
       display: flex;
       justify-content: space-around;
@@ -216,7 +227,7 @@
       background: linear-gradient(135deg, #e23744, #900c12); color: white; border-radius: 12px; padding: 18px; text-align: center; margin-bottom: 12px;
     }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .stat-box { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+    .stat-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
     .stat-box .val { font-size: 18px; font-weight: 800; color: var(--zomato-red); }
     .stat-box .lbl { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; margin-top: 2px; }
     
@@ -232,7 +243,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 10px 0;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--border);
       font-size: 13px;
     }
     .alert-banner {
@@ -268,26 +279,26 @@
 
   <div id="mobilePopupModal" class="modal-overlay">
     <div class="modal-card">
-      <h3 style="font-size: 16px; color: var(--zomato-red); margin-bottom: 6px;">📱 Partner Mobile Verification</h3>
+      <h3 style="font-size: 16px; color: var(--zomato-red); margin-bottom: 6px;"><i class="fa-solid fa-mobile-screen"></i> Partner Mobile Verification</h3>
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Enter your 10-digit mobile number to setup your cloud profile.</p>
       <div class="form-group">
         <label>Mobile Number:</label>
         <input type="text" id="popupPhoneInput" placeholder="Enter 10-digit number" maxlength="10">
       </div>
-      <button onclick="submitPopupMobileNumber()" style="background: var(--success);">Save & Continue ➔</button>
+      <button onclick="submitPopupMobileNumber()" style="background: var(--success);">Save & Continue <i class="fa-solid fa-arrow-right"></i></button>
     </div>
   </div>
 
   <div id="withdrawModal" class="modal-overlay">
     <div class="modal-card">
-      <h3 style="font-size: 16px; color: var(--success); margin-bottom: 6px;">💸 Instant Payout Withdrawal</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Transfer your available earnings to your registered bank account.</p>
+      <h3 style="font-size: 16px; color: var(--success); margin-bottom: 6px;"><i class="fa-solid fa-money-bill-transfer"></i> Instant Payout Withdrawal</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Transfer your available earnings to your registered bank account or UPI.</p>
       <div class="form-group">
         <label>Withdrawal Amount (₹):</label>
         <input type="number" id="withdrawAmountInput" placeholder="Enter amount">
       </div>
       <div style="display: flex; gap: 10px;">
-        <button onclick="processWithdrawal()" style="background: var(--success); flex: 1;">Confirm Transfer ➔</button>
+        <button onclick="processWithdrawal()" style="background: var(--success); flex: 1;">Confirm Transfer <i class="fa-solid fa-check"></i></button>
         <button onclick="document.getElementById('withdrawModal').classList.remove('active')" class="btn-outline" style="flex: 1;">Cancel</button>
       </div>
     </div>
@@ -295,7 +306,7 @@
 
   <div id="incomingOrderModal" class="modal-overlay">
     <div class="modal-card zomato-alert-card" style="text-align: center;">
-      <span class="badge badge-pending" style="margin-bottom: 8px; font-size: 12px; padding: 4px 10px;">⚡ NEW REALTIME ORDER ALERT!</span>
+      <span class="badge badge-pending" style="margin-bottom: 8px; font-size: 12px; padding: 4px 10px;"><i class="fa-solid fa-bolt"></i> NEW REALTIME ORDER ALERT!</span>
       <h3 id="modalOrderTitle" style="font-size: 18px; margin-bottom: 6px; font-weight: 800;">AC Split Jet Cleaning</h3>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Customer: <b id="modalCustomerName">Client</b></p>
       <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">Location: <b id="modalCustomerAddress">Area</b></p>
@@ -304,8 +315,8 @@
         <span style="font-size: 24px; font-weight: 900; color: var(--zomato-red);" id="modalOrderPayout">₹899</span>
       </div>
       <div style="display: flex; gap: 10px;">
-        <button onclick="acceptRealtimeOrder()" style="background: var(--success); flex: 1; padding: 14px; font-size: 15px;">Accept Gig 👍</button>
-        <button onclick="rejectRealtimeOrder()" class="btn-outline" style="border-color: var(--danger); color: var(--danger); flex: 1; padding: 14px; font-size: 15px;">Decline ❌</button>
+        <button onclick="acceptRealtimeOrder()" style="background: var(--success); flex: 1; padding: 14px; font-size: 15px;">Accept Gig <i class="fa-solid fa-thumbs-up"></i></button>
+        <button onclick="rejectRealtimeOrder()" class="btn-outline" style="border-color: var(--danger); color: var(--danger); flex: 1; padding: 14px; font-size: 15px;">Decline <i class="fa-solid fa-xmark"></i></button>
       </div>
     </div>
   </div>
@@ -313,7 +324,7 @@
   <div id="customerChatModal" class="modal-overlay">
     <div class="modal-card" style="max-width: 400px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="font-size: 15px; color: var(--blue);">💬 Live Customer Support & Chat</h3>
+        <h3 style="font-size: 15px; color: var(--blue);"><i class="fa-solid fa-comments"></i> Live Customer Support & Chat</h3>
         <button onclick="document.getElementById('customerChatModal').classList.remove('active')" class="btn-outline" style="width: auto; padding: 2px 6px; font-size: 10px;">Close X</button>
       </div>
       <div id="chatBoxLog" style="background: #f9f9f9; border: 1px solid var(--border); border-radius: 8px; padding: 10px; height: 140px; overflow-y: auto; font-size: 12px; margin-bottom: 10px;">
@@ -322,18 +333,20 @@
       <div class="form-group" style="margin-bottom: 8px;">
         <input type="text" id="chatMessageInput" placeholder="Type message to customer...">
       </div>
-      <button onclick="sendChatMessage()" style="background: var(--blue); padding: 8px; font-size: 12px;">Send Message ➔</button>
+      <button onclick="sendChatMessage()" style="background: var(--blue); padding: 8px; font-size: 12px;">Send Message <i class="fa-solid fa-paper-plane"></i></button>
     </div>
   </div>
 
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
       <h2 style="color: var(--zomato-red); font-weight: 900; font-size: 26px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
-      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Zomato-Style Dispatch Engine)</p>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Zomato-Style Dispatch Engine Pro)</p>
       
       <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
-        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#fff" d="M12 5c1.6 0 3 .6 4.1 1.6l3.1-3.1C17.3 1.8 14.8 1 12 1 7.4 1 3.5 3.6 1.6 7.4l3.7 2.9C6.2 7.1 8.9 5 12 5zm6.5 7c0-.4-.1-.8-.2-1.2H12v2.4h3.6c-.2 1-.8 1.9-1.7 2.5l2.7 2.1c1.6-1.5 2.7-3.7 2.7-6.3zm-11.8 3.5c-.3-.9-.5-1.9-.5-2.9s.2-2 .5-2.9L3.5 6.6C2.5 8.6 2 10.7 2 13s.5 4.4 1.5 6.4l3.7-2.9Z"/></svg>
-        Sign in with Google (Any Gmail)
+        <i class="fa-brands fa-google"></i> Sign in with Google (Any Gmail)
+      </button>
+      <button onclick="simulateMockLogin()" class="btn-outline" style="padding: 10px; font-size: 13px;">
+        <i class="fa-solid fa-bolt"></i> Quick Demo Login
       </button>
     </div>
   </div>
@@ -341,7 +354,7 @@
   <div id="stepKycScreen" class="screen">
     <div class="card" style="max-width: 480px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="font-size: 15px;">Partner Verification & KYC</h3>
+        <h3 style="font-size: 15px;"><i class="fa-solid fa-id-card"></i> Partner Verification & KYC</h3>
         <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
       </div>
       <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide accurate details for admin approval.</p>
@@ -369,17 +382,18 @@
           <option value="Washing Machine Appliance Tech">Washing Machine Appliance Tech</option>
           <option value="Electrical & Geyser Expert">Electrical & Geyser Expert</option>
           <option value="RO Water Purifier Technician">RO Water Purifier Technician</option>
+          <option value="Multi-Skill Home Handyman">Multi-Skill Home Handyman</option>
         </select>
       </div>
 
       <div style="background: #fafafa; border: 1px dashed var(--border); padding: 12px; border-radius: 8px; margin-bottom: 14px;">
-        <h4 style="font-size: 12px; color: var(--zomato-red); margin-bottom: 8px;">📄 Document & Tax Details</h4>
+        <h4 style="font-size: 12px; color: var(--zomato-red); margin-bottom: 8px;"><i class="fa-solid fa-file-shield"></i> Document & Tax Details</h4>
         <div class="form-group" style="margin-bottom: 10px;">
           <label>PAN Card Number:</label>
           <input type="text" id="kycPan" placeholder="ABCDE1234F">
         </div>
         <div class="form-group" style="margin-bottom: 0;">
-          <label>Driver's License Number:</label>
+          <label>Driver's License / ID Number:</label>
           <input type="text" id="kycLicence" placeholder="DL-1420110012345">
         </div>
       </div>
@@ -397,17 +411,17 @@
         <input type="text" id="kycUpi" placeholder="Enter UPI handle">
       </div>
 
-      <button onclick="submitOnboardingData()" style="background: var(--success);">Submit KYC for Verification</button>
+      <button onclick="submitOnboardingData()" style="background: var(--success);">Submit KYC for Verification <i class="fa-solid fa-check"></i></button>
     </div>
   </div>
 
   <div id="stepWaitScreen" class="screen">
     <div class="card" style="text-align: center;">
-      <div style="font-size: 42px; margin-bottom: 12px;">⏳</div>
+      <div style="font-size: 42px; margin-bottom: 12px;"><i class="fa-solid fa-hourglass-half fa-spin" style="color: var(--warning);"></i></div>
       <h3 style="font-size: 16px; margin-bottom: 6px;">Verification Under Review</h3>
       <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your cloud partner profile is being reviewed by the admin team.</p>
       <div class="form-group">
-        <button onclick="checkAdminApprovalStatus()" class="btn-outline">🔄 Check Status</button>
+        <button onclick="checkAdminApprovalStatus()" class="btn-outline"><i class="fa-solid fa-rotate"></i> Check Status</button>
       </div>
       <button onclick="logoutSession()" style="background: #666; font-size: 12px; padding: 8px;">Switch Account</button>
     </div>
@@ -415,18 +429,18 @@
 
   <div id="adminDashboard" class="screen">
     <div class="app-header" style="background: var(--blue); color: white;">
-      <h3 style="font-size: 14px; font-weight: 900;">Master Admin Portal</h3>
+      <h3 style="font-size: 14px; font-weight: 900;"><i class="fa-solid fa-user-shield"></i> Master Admin Portal</h3>
       <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 4px 8px; font-size: 10px; border-color: white; color: white;">Logout</button>
     </div>
     <div style="padding: 15px 0;">
       <div class="card" style="max-width: 100%; border-left: 5px solid var(--blue); margin-bottom: 15px;">
-        <h4 style="font-size: 13px; margin-bottom: 5px;">Live Realtime Orders Stream</h4>
+        <h4 style="font-size: 13px; margin-bottom: 5px;"><i class="fa-solid fa-broadcast-tower"></i> Live Realtime Orders Stream</h4>
         <div id="adminLiveOrdersQueue">
           <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 10px;">Connecting to Firebase order streams...</p>
         </div>
       </div>
       <div class="card" style="max-width: 100%; border-left: 5px solid var(--success);">
-        <h4 style="font-size: 13px; margin-bottom: 5px;">Partner Verification Queue</h4>
+        <h4 style="font-size: 13px; margin-bottom: 5px;"><i class="fa-solid fa-users-gear"></i> Partner Verification Queue</h4>
         <div id="adminPartnerQueue">
           <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Loading database records...</p>
         </div>
@@ -437,7 +451,7 @@
   <div id="partnerHome" class="screen">
     <div class="app-header">
       <div id="topLocationBadge" class="location-badge" onclick="detectCurrentGeolocation(true)" title="Click to refresh location">
-        📍 <span id="locationText">Detecting GPS...</span>
+        <i class="fa-solid fa-location-dot"></i> <span id="locationText">Detecting GPS...</span>
       </div>
       <div style="display: flex; align-items: center; gap: 6px;">
         <div id="dutyPillContainer" class="duty-pill" onclick="toggleDutyState()">
@@ -452,7 +466,7 @@
 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
         <h3 style="font-size: 15px;">Live Telemetry Radar & Map</h3>
-        <span class="badge badge-success">Firebase Realtime Live ✅</span>
+        <span class="badge badge-success"><i class="fa-solid fa-satellite-dish"></i> Live ✅</span>
       </div>
 
       <div id="liveMap"></div>
@@ -466,9 +480,9 @@
           <div id="orderDetailsBox" style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;"></div>
           
           <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-            <a id="navMapBtn" href="https://maps.google.com" target="_blank" style="flex: 1; text-decoration: none;"><button class="btn-outline" style="font-size: 12px; padding: 8px;">🗺️ Navigate</button></a>
-            <a id="callCustomerBtn" href="tel:+919876543210" style="flex: 1; text-decoration: none;"><button class="btn-outline" style="border-color: var(--success); color: var(--success); font-size: 12px; padding: 8px;">📞 Call Cust</button></a>
-            <button onclick="openChatModal()" class="btn-outline" style="flex: 1; border-color: var(--blue); color: var(--blue); font-size: 12px; padding: 8px;">💬 Chat</button>
+            <a id="navMapBtn" href="https://maps.google.com" target="_blank" style="flex: 1; text-decoration: none;"><button class="btn-outline" style="font-size: 12px; padding: 8px;"><i class="fa-solid fa-map-location-dot"></i> Navigate</button></a>
+            <a id="callCustomerBtn" href="tel:+919876543210" style="flex: 1; text-decoration: none;"><button class="btn-outline" style="border-color: var(--success); color: var(--success); font-size: 12px; padding: 8px;"><i class="fa-solid fa-phone"></i> Call Cust</button></a>
+            <button onclick="openChatModal()" class="btn-outline" style="flex: 1; border-color: var(--blue); color: var(--blue); font-size: 12px; padding: 8px;"><i class="fa-solid fa-comment-dots"></i> Chat</button>
           </div>
 
           <div class="form-group">
@@ -496,9 +510,10 @@
     <div id="ordersTab" class="tab-content" style="padding: 12px 0;">
       <h3 style="font-size: 15px; margin-bottom: 12px;">Realtime Order Dispatch Stream</h3>
       <div class="card" style="max-width: 100%; text-align: center;">
-        <div style="font-size: 32px; margin-bottom: 8px;">📡</div>
+        <div style="font-size: 32px; margin-bottom: 8px; color: var(--zomato-red);"><i class="fa-solid fa-satellite-dish fa-beat"></i></div>
         <h4 style="font-size: 14px; margin-bottom: 6px;">Listening for Incoming Firebase Gigs</h4>
-        <p style="font-size: 12px; color: var(--text-muted);">When you are <b>ON DUTY</b> and a customer places an order, your screen will instantly ring with Zomato-style sound and popup.</p>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">When you are <b>ON DUTY</b> and a customer places an order, your screen will instantly ring with Zomato-style sound and popup.</p>
+        <button onclick="triggerSimulatedIncomingOrder()" class="btn-outline" style="font-size: 12px; border-color: var(--blue); color: var(--blue);">🧪 Trigger Test Incoming Order</button>
       </div>
     </div>
 
@@ -507,14 +522,14 @@
         <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.85;">Available Payout Balance</span>
         <div style="font-size: 34px; font-weight: 900; margin: 8px 0;" id="walletNetBalance">₹0</div>
         <p style="font-size: 12px; margin: 0 0 14px 0; opacity: 0.9;">Instant settlement to registered bank account</p>
-        <button onclick="openWithdrawModal()" style="background: white; color: var(--zomato-red); font-weight: 900; border-radius: 20px; padding: 10px;">Withdraw Funds 💸</button>
+        <button onclick="openWithdrawModal()" style="background: white; color: var(--zomato-red); font-weight: 900; border-radius: 20px; padding: 10px;">Withdraw Funds <i class="fa-solid fa-arrow-up-right-from-square"></i></button>
       </div>
       <div class="grid-2">
         <div class="stat-box"><div class="val" id="completedJobsCount">0</div><div class="lbl">Completed Gigs</div></div>
         <div class="stat-box"><div class="val" id="partnerRatingDisplay">4.9 ⭐</div><div class="lbl">Partner Rating</div></div>
       </div>
       <div class="card" style="max-width: 100%;">
-        <h4 style="font-size: 13px; color: var(--zomato-red); margin-bottom: 8px;">💵 Floating Cash-in-Hand Status</h4>
+        <h4 style="font-size: 13px; color: var(--zomato-red); margin-bottom: 8px;"><i class="fa-solid fa-wallet"></i> Floating Cash-in-Hand Status</h4>
         <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Maximum limit allowed: <b>₹2000</b>. Cash collected from customers reduces payout or requires deposit if limit is breached.</p>
         <div style="font-size: 20px; font-weight: 800; color: var(--warning);" id="floatingCashDisplay">₹0 / ₹2000</div>
       </div>
@@ -530,14 +545,14 @@
           </div>
         </div>
 
-        <h4 style="font-size: 13px; color: var(--zomato-red); margin-bottom: 10px;">⚙️ Firebase Synced Settings</h4>
+        <h4 style="font-size: 13px; color: var(--zomato-red); margin-bottom: 10px;"><i class="fa-solid fa-gears"></i> Firebase Synced Settings</h4>
 
         <div class="setting-row"><span>1. Push Notifications</span><input type="checkbox" id="setting_pushNotif" checked onchange="saveFirebaseSetting('pushNotif', this.checked)"></div>
         <div class="setting-row"><span>2. Zomato Sound Alerts</span><input type="checkbox" id="setting_soundAlerts" checked onchange="saveFirebaseSetting('soundAlerts', this.checked)"></div>
         <div class="setting-row"><span>3. Auto-Accept Nearby Gigs</span><input type="checkbox" id="setting_autoAccept" onchange="saveFirebaseSetting('autoAccept', this.checked)"></div>
         <div class="setting-row"><span>4. High-Value Priority Mode</span><input type="checkbox" id="setting_highPriority" checked onchange="saveFirebaseSetting('highPriority', this.checked)"></div>
         <div class="setting-row"><span>5. Share Live GPS Telemetry</span><input type="checkbox" id="setting_shareGps" checked onchange="saveFirebaseSetting('shareGps', this.checked)"></div>
-        <div class="setting-row"><span>6. Night Shift Mode</span><input type="checkbox" id="setting_nightShift" onchange="saveFirebaseSetting('nightShift', this.checked)"></div>
+        <div class="setting-row"><span>6. Night Shift Mode</span><input type="checkbox" id="setting_nightShift" onchange="toggleDarkMode(this.checked)"></div>
         <div class="setting-row"><span>7. Hindi Audio Prompts</span><input type="checkbox" id="setting_hindiAudio" checked onchange="saveFirebaseSetting('hindiAudio', this.checked)"></div>
         <div class="setting-row"><span>8. Customer Call Masking</span><input type="checkbox" id="setting_callMasking" checked onchange="saveFirebaseSetting('callMasking', this.checked)"></div>
 
@@ -548,18 +563,18 @@
     </div>
 
     <div class="bottom-nav">
-      <div class="nav-item active" onclick="switchTab('feedTab', this)"><span>🗺️</span>Live Map</div>
-      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span>⚡</span>Finding Orders</div>
-      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span>💰</span>Earnings</div>
-      <div class="nav-item" onclick="switchTab('profileTab', this)"><span>👤</span>Profile & Settings</div>
+      <div class="nav-item active" onclick="switchTab('feedTab', this)"><span><i class="fa-solid fa-map">icon</i></span>Live Map</div>
+      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span><i class="fa-solid fa-bolt">icon</i></span>Finding Orders</div>
+      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span><i class="fa-solid fa-wallet">icon</i></span>Earnings</div>
+      <div class="nav-item" onclick="switchTab('profileTab', this)"><span><i class="fa-solid fa-user">icon</i></span>Profile</div>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-    import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
@@ -597,6 +612,15 @@
     function hideLoader() {
       document.getElementById("globalLoader").classList.remove("active");
     }
+
+    window.toggleDarkMode = function(enabled) {
+      if (enabled) {
+        document.body.classList.add("dark-theme");
+      } else {
+        document.body.classList.remove("dark-theme");
+      }
+      saveFirebaseSetting('nightShift', enabled);
+    };
 
     function playZomatoAlertSound() {
       stopZomatoAlertSound();
@@ -754,6 +778,34 @@
       }
     };
 
+    window.simulateMockLogin = async function() {
+      showLoader("Signing in with Demo Account...");
+      try {
+        const result = await signInAnonymously(auth);
+        loggedInUser = { uid: result.user.uid, email: "demo.partner@sewaastra.com" };
+        detectCurrentGeolocation();
+
+        const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
+        const snap = await get(partnerRef);
+
+        hideLoader();
+        if (!snap.exists()) {
+          temporaryUserPhone = "9876543210";
+          showScreen('stepKycScreen');
+          document.getElementById("authEmailDisplay").value = loggedInUser.email;
+          document.getElementById("kycPhone").value = temporaryUserPhone;
+          document.getElementById("kycFullName").value = "Demo Service Partner";
+        } else {
+          localStorage.setItem('sewaastra_persisted_uid', loggedInUser.uid);
+          localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
+          evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
+        }
+      } catch(e) {
+        hideLoader();
+        alert("Demo Login error: " + e.message);
+      }
+    };
+
     window.submitPopupMobileNumber = function() {
       const phoneInput = document.getElementById("popupPhoneInput").value.trim();
       if (!phoneInput || phoneInput.length !== 10) {
@@ -879,7 +931,7 @@
         const records = snap.val();
         for (const [oId, oData] of Object.entries(records)) {
           html += `
-            <div style="background: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px;">
               <b>Gig:</b> ${oData.category} | <b>Customer:</b> ${oData.customerName || 'Client'} | <b>Amount:</b> ₹${oData.amount} | <b>Status:</b> <span class="badge badge-pending">${oData.status}</span><br>
               Location: <b>${oData.address || 'Area'}</b>
             </div>
@@ -899,7 +951,7 @@
         for (const [uid, data] of Object.entries(records)) {
           const badgeClass = data.kycStatus === "approved" ? "badge-success" : (data.kycStatus === "rejected" ? "badge-danger" : "badge-pending");
           html += `
-            <div style="background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--blue); padding: 14px; border-radius: 8px; margin-bottom: 12px;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border); border-left: 5px solid var(--blue); padding: 14px; border-radius: 8px; margin-bottom: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
                 <h4 style="font-size: 14px;">${data.name}</h4>
                 <span class="badge ${badgeClass}">${data.kycStatus.toUpperCase()}</span>
@@ -1004,7 +1056,12 @@
         if (data.settings) {
           for (const [sKey, sVal] of Object.entries(data.settings)) {
             const el = document.getElementById(`setting_${sKey}`);
-            if (el) el.checked = sVal;
+            if (el) {
+              el.checked = sVal;
+              if (sKey === 'nightShift') {
+                toggleDarkMode(sVal);
+              }
+            }
           }
         }
       });
@@ -1065,6 +1122,18 @@
         isOnline: nextState,
         status: nextState ? "available" : "offline"
       });
+    };
+
+    window.triggerSimulatedIncomingOrder = async function() {
+      const newOrderRef = push(ref(db, 'live_orders'));
+      await set(newOrderRef, {
+        category: "AC Split Jet Deep Cleaning",
+        customerName: "Rahul Sharma",
+        address: "Block C, Connaught Place, New Delhi",
+        amount: 899,
+        status: "pending"
+      });
+      alert("✅ Test order created in Firebase! If you are ON DUTY, your popup will trigger instantly.");
     };
 
     window.acceptRealtimeOrder = async function() {
@@ -1148,7 +1217,7 @@
 
       const orderData = orderSnap.val();
       if (enteredOtp !== orderData.completionOtp) {
-        alert(`❌ Incorrect Verification OTP!`);
+        alert(`❌ Incorrect Verification OTP! (Hint: Check Firebase console / order record for test OTP)`);
         return;
       }
 
