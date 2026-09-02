@@ -5,1253 +5,1040 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>SewaAstra Partner – Technician App</title>
 <meta name="theme-color" content="#0b1220">
-
-<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="manifest" href="partner-manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
-<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" onload="this.onload=null;this.rel='stylesheet'">
-<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
-
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
-:root{
-  --primary:#ff6b00; --primary-light:#fff5ed; --success:#15a04a;
-  --card-bg:#ffffff; --bg:#f6f3ef; --text:#1c2333; --border-color:#eee2d5;
-  --dark:#0b1220;
-}
+:root{--pr:#ff6b00;--prl:#fff5ed;--ok:#15a04a;--card:#fff;--bg:#f6f3ef;--tx:#1c2333;--bd:#eee2d5;}
+body.dark{--card:#171e2c;--bg:#0d1320;--tx:#e8ecf4;--bd:#26304a;--prl:#241a10;}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;}
-body{background:var(--bg);color:var(--text);max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:76px;}
+body{background:var(--bg);color:var(--tx);max-width:480px;margin:0 auto;min-height:100vh;padding-bottom:78px;}
+.hide{display:none!important;}
 
-/* ═══ HEADER ═══ */
-.p-head{
-  background:linear-gradient(120deg,#0b1220,#3a1c0a 130%);color:#fff;
-  padding:16px 16px 18px;border-radius:0 0 22px 22px;position:sticky;top:0;z-index:50;
-  box-shadow:0 8px 24px rgba(11,18,32,.25);
-}
-.p-head-row{display:flex;justify-content:space-between;align-items:center;}
-.p-brand{font-size:17px;font-weight:900;letter-spacing:.3px;}
-.p-brand span{color:var(--primary);}
-.p-sub{font-size:10.5px;opacity:.75;margin-top:2px;font-weight:700;}
-.p-online{
-  display:flex;align-items:center;gap:7px;background:rgba(255,255,255,.1);
-  border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:7px 12px;
-  font-size:11px;font-weight:900;cursor:pointer;user-select:none;
-}
-.p-online .dot{width:9px;height:9px;border-radius:50%;background:#777;transition:.2s;}
-.p-online.on .dot{background:#1fc25e;box-shadow:0 0 10px #1fc25e;}
-.p-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:14px;}
-.p-stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px;text-align:center;}
-.p-stat b{font-size:16px;display:block;}
-.p-stat span{font-size:9.5px;opacity:.75;font-weight:800;}
+/* HEADER */
+.hd{background:linear-gradient(120deg,#0b1220,#3a1c0a 130%);color:#fff;padding:15px 15px 17px;border-radius:0 0 22px 22px;position:sticky;top:0;z-index:50;}
+.hd-r{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.hd-b{font-size:16px;font-weight:900;}
+.hd-b span{color:var(--pr);}
+.hd-s{font-size:10px;opacity:.7;font-weight:700;}
+.bell{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;flex:0 0 38px;}
+.bell .bd2{position:absolute;top:-3px;right:-3px;background:#e53935;color:#fff;font-size:9px;font-weight:900;min-width:15px;height:15px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;}
+.onl{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:18px;padding:7px 11px;font-size:10.5px;font-weight:900;cursor:pointer;}
+.onl .dt{width:9px;height:9px;border-radius:50%;background:#777;}
+.onl.on .dt{background:#1fc25e;box-shadow:0 0 9px #1fc25e;}
+.sts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;}
+.st{background:rgba(255,255,255,.08);border-radius:13px;padding:9px;text-align:center;}
+.st b{font-size:15px;display:block;}
+.st span{font-size:9px;opacity:.7;font-weight:800;}
 
-/* ═══ TABS / SECTIONS ═══ */
-.p-body{padding:14px;}
-.p-sec{display:none;}
-.p-sec.act{display:block;animation:fadeUp .25s ease;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.p-title{font-size:13px;font-weight:900;color:#997;letter-spacing:.5px;margin:4px 0 10px;text-transform:uppercase;}
+/* SECTIONS */
+.bo{padding:13px;}
+.sec{display:none;}
+.sec.act{display:block;animation:fu .22s ease;}
+@keyframes fu{from{opacity:0;transform:translateY(8px)}to{opacity:1}}
+.tt{font-size:12px;font-weight:900;color:#997;letter-spacing:.5px;margin:3px 0 9px;text-transform:uppercase;}
 
-/* ═══ ORDER CARDS ═══ */
-.p-card{
-  background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;
-  padding:14px;margin-bottom:12px;box-shadow:0 4px 14px rgba(13,30,60,.06);
-}
-.p-card.new{border:2px solid var(--primary);box-shadow:0 8px 24px rgba(255,107,0,.18);animation:newPulse 2s infinite;}
-@keyframes newPulse{0%,100%{box-shadow:0 8px 24px rgba(255,107,0,.15)}50%{box-shadow:0 8px 32px rgba(255,107,0,.4)}}
-.p-row{display:flex;justify-content:space-between;align-items:center;}
-.p-oid{font-weight:900;color:var(--primary);font-size:14px;}
-.p-chip{padding:3px 10px;border-radius:12px;font-size:10.5px;font-weight:900;}
-.p-meta{font-size:12px;color:#877;margin:5px 0;}
-.p-items{font-size:12.5px;font-weight:800;margin:5px 0;line-height:1.5;}
-.p-addr{font-size:12px;background:var(--primary-light);border-radius:10px;padding:8px 10px;margin:7px 0;line-height:1.5;}
-.p-btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
-.p-btn{
-  flex:1;min-width:74px;border:none;border-radius:10px;padding:10px 6px;
-  font-size:11px;font-weight:900;cursor:pointer;color:#fff;transition:transform .12s;
-}
-.p-btn:active{transform:scale(.94);}
-.p-btn.accept{background:linear-gradient(90deg,#15a04a,#1fc25e);font-size:13px;padding:13px;box-shadow:0 8px 20px rgba(21,160,74,.35);}
-.p-btn.next{background:linear-gradient(90deg,var(--primary),#ff8c2e);}
-.p-btn.blue{background:#0d6efd;} .p-btn.dark{background:#0b1220;}
-.p-btn.wa{background:#25d366;} .p-btn.red{background:#e53935;}
-.p-btn.gold{background:linear-gradient(90deg,#b07800,#d99c1a);animation:glow 1.8s infinite;}
-.p-btn.share{background:#6c3df4;} .p-btn.share.on{background:#1fc25e;animation:glow 1.5s infinite;}
-@keyframes glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
-.p-timeline{display:flex;gap:4px;margin:9px 0 2px;}
-.p-step{flex:1;height:5px;border-radius:3px;background:#eee;}
-.p-step.done{background:var(--success);}
-.p-step.now{background:var(--primary);animation:glow 1.2s infinite;}
+/* CARDS */
+.cd{background:var(--card);border:1px solid var(--bd);border-radius:15px;padding:13px;margin-bottom:11px;box-shadow:0 4px 12px rgba(13,30,60,.06);}
+.cd.nw{border:2px solid var(--pr);animation:np 2s infinite;}
+@keyframes np{0%,100%{box-shadow:0 6px 20px rgba(255,107,0,.15)}50%{box-shadow:0 6px 28px rgba(255,107,0,.4)}}
+.rw{display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;}
+.oid{font-weight:900;color:var(--pr);font-size:13.5px;}
+.ch{padding:3px 9px;border-radius:11px;font-size:10px;font-weight:900;}
+.dch{background:#e8f0ff;color:#0d6efd;padding:3px 8px;border-radius:11px;font-size:9.5px;font-weight:900;}
+.mt{font-size:11.5px;color:#877;margin:4px 0;}
+.it{font-size:12px;font-weight:800;margin:4px 0;line-height:1.5;}
+.ad{font-size:11.5px;background:var(--prl);border-radius:10px;padding:8px 10px;margin:6px 0;line-height:1.5;}
+.bns{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+.bn{flex:1;min-width:70px;border:none;border-radius:10px;padding:10px 5px;font-size:10.5px;font-weight:900;cursor:pointer;color:#fff;text-align:center;text-decoration:none;line-height:1.3;}
+.bn:active{transform:scale(.94);}
+.bn.g{background:linear-gradient(90deg,#15a04a,#1fc25e);}
+.bn.o{background:linear-gradient(90deg,var(--pr),#ff8c2e);}
+.bn.b{background:#0d6efd;}.bn.d{background:#0b1220;}.bn.w{background:#25d366;}
+.bn.r{background:#fdecea;color:#e53935;}.bn.gy{background:#6c757d;}
+.bn.au{background:linear-gradient(90deg,#b07800,#d99c1a);animation:gl 1.8s infinite;}
+.bn.sh{background:#6c3df4;}.bn.sh.on{background:#1fc25e;animation:gl 1.5s infinite;}
+@keyframes gl{50%{filter:brightness(1.28)}}
+.tl{display:flex;gap:4px;margin:8px 0 2px;}
+.tp{flex:1;height:5px;border-radius:3px;background:#eee;}
+.tp.dn{background:var(--ok);}.tp.nx{background:var(--pr);animation:gl 1.2s infinite;}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#aaa;margin-right:4px;}
+.dot.on{background:#1fc25e;box-shadow:0 0 7px #1fc25e;}
 
-/* ═══ EMPTY / SKELETON ═══ */
-.p-empty{text-align:center;padding:44px 16px;color:#998;}
-.p-empty .ic{font-size:50px;display:inline-block;animation:bob 1.8s ease-in-out infinite;}
-@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.sk{position:relative;overflow:hidden;background:#eae2d8;border-radius:12px;}
-.sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);animation:sh 1.1s infinite;}
-@keyframes sh{100%{transform:translateX(100%)}}
-.sk-row{height:88px;margin-bottom:11px;}
+/* EMPTY/SKELETON */
+.em{text-align:center;padding:40px 14px;color:#998;}
+.em .ic{font-size:46px;display:inline-block;animation:bb 1.8s ease-in-out infinite;}
+@keyframes bb{50%{transform:translateY(-8px)}}
+.sk{position:relative;overflow:hidden;background:#eae2d8;border-radius:12px;height:86px;margin-bottom:10px;}
+body.dark .sk{background:#1c2536;}
+.sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);animation:shm 1.1s infinite;}
+@keyframes shm{100%{transform:translateX(100%)}}
 
-/* ═══ BOTTOM NAV ═══ */
-.p-nav{
-  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;
-  background:var(--card-bg);border-top:1px solid var(--border-color);display:flex;z-index:60;
-  box-shadow:0 -8px 24px rgba(13,30,60,.08);padding-bottom:env(safe-area-inset-bottom);
-}
-.p-nav button{
-  flex:1;background:none;border:none;padding:9px 2px 8px;font-size:10px;font-weight:800;
-  color:#998;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;position:relative;
-}
-.p-nav button i{font-size:17px;}
-.p-nav button.act{color:var(--primary);}
-.p-badge{
-  position:absolute;top:4px;right:calc(50% - 20px);background:#e53935;color:#fff;
-  font-size:9px;font-weight:900;min-width:16px;height:16px;border-radius:9px;
-  display:none;align-items:center;justify-content:center;padding:0 4px;
-}
+/* NAV BAR */
+.nv{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--card);border-top:1px solid var(--bd);display:flex;z-index:60;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -6px 20px rgba(13,30,60,.08);}
+.nv button{flex:1;background:none;border:none;padding:9px 2px 7px;font-size:9.5px;font-weight:800;color:#998;cursor:pointer;display:flex;flex-direction:column;gap:3px;align-items:center;position:relative;}
+.nv button i{font-size:16px;}
+.nv button.act{color:var(--pr);}
+.nbg{position:absolute;top:3px;right:calc(50% - 19px);background:#e53935;color:#fff;font-size:9px;font-weight:900;min-width:15px;height:15px;border-radius:8px;display:none;align-items:center;justify-content:center;padding:0 3px;}
 
-/* ═══ AUTH ═══ */
-.ov{position:fixed;inset:0;z-index:9000;display:none;align-items:center;justify-content:center;background:rgba(8,12,24,.65);backdrop-filter:blur(6px);padding:16px;}
-.ov.open{display:flex;}
-#authOv{background:linear-gradient(150deg,#0b1220,#241536 60%,#3a1c0a);display:flex;}
+/* LOGIN */
+#lgOv{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:linear-gradient(150deg,#0b1220,#241536 60%,#3a1c0a);padding:16px;overflow:hidden;}
 .orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5;}
-.o1{width:260px;height:260px;background:#ff6b00;top:-70px;right:-60px;animation:bob 6s ease-in-out infinite;}
-.o2{width:220px;height:220px;background:#6c3df4;bottom:-40px;left:-70px;animation:bob 7s ease-in-out infinite reverse;}
-.auth-card{
-  position:relative;width:100%;max-width:370px;background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.15);border-radius:24px;padding:28px 22px;color:#fff;
-  backdrop-filter:blur(18px);text-align:center;
-}
-.auth-logo{width:74px;height:74px;border-radius:20px;background:linear-gradient(135deg,var(--primary),#ff9a3d);display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto 12px;box-shadow:0 14px 34px rgba(255,107,0,.4);animation:bob 2.4s ease-in-out infinite;}
-.auth-card h2{font-size:20px;font-weight:900;}
-.auth-card .tg{font-size:11.5px;opacity:.75;margin:4px 0 18px;}
-.auth-inp{width:100%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:13px;padding:13px 14px;color:#fff;font-size:14px;font-weight:700;margin-bottom:10px;outline:none;}
-.auth-inp::placeholder{color:rgba(255,255,255,.45);}
-.auth-inp:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(255,107,0,.25);}
-.auth-btn{width:100%;border:none;border-radius:13px;padding:14px;font-size:14px;font-weight:900;cursor:pointer;margin-bottom:9px;}
-.auth-btn.main{background:linear-gradient(90deg,var(--primary),#ff8c2e);color:#fff;box-shadow:0 10px 26px rgba(255,107,0,.4);}
-.auth-btn.g{background:#fff;color:#333;display:flex;align-items:center;justify-content:center;gap:9px;}
+.o1{width:250px;height:250px;background:#ff6b00;top:-60px;right:-60px;animation:bb 6s infinite;}
+.o2{width:210px;height:210px;background:#6c3df4;bottom:-40px;left:-60px;animation:bb 7s infinite reverse;}
+.lgc{position:relative;width:100%;max-width:365px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);border-radius:22px;padding:26px 20px;color:#fff;backdrop-filter:blur(16px);text-align:center;}
+.lgl{width:70px;height:70px;border-radius:19px;background:linear-gradient(135deg,var(--pr),#ff9a3d);display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 10px;box-shadow:0 12px 30px rgba(255,107,0,.4);animation:bb 2.4s infinite;}
+.lgc h2{font-size:19px;font-weight:900;}
+.lgc .tg{font-size:11px;opacity:.75;margin:3px 0 16px;}
+.li{width:100%;background:rgba(255,255,255,.1);border:1.5px solid rgba(255,255,255,.2);border-radius:12px;padding:13px;color:#fff;font-size:14px;font-weight:700;margin-bottom:9px;outline:none;}
+.li::placeholder{color:rgba(255,255,255,.45);}
+.li:focus{border-color:var(--pr);}
+.lb{width:100%;border:none;border-radius:12px;padding:13px;font-size:13.5px;font-weight:900;cursor:pointer;margin-bottom:8px;}
+.lb.m{background:linear-gradient(90deg,var(--pr),#ff8c2e);color:#fff;font-size:15px;padding:15px;box-shadow:0 10px 24px rgba(255,107,0,.4);}
+.lb.s{background:rgba(255,255,255,.12);color:#fff;border:1.5px dashed rgba(255,255,255,.35);}
+.lb.gg{background:#fff;color:#333;display:flex;align-items:center;justify-content:center;gap:8px;}
 
-/* ═══ MODALS / CHAT ═══ */
-.modal-box{width:100%;max-width:400px;max-height:88dvh;overflow-y:auto;background:var(--card-bg);border-radius:20px;animation:pop .35s cubic-bezier(.2,.9,.3,1.2);}
-@keyframes pop{from{transform:scale(.75) translateY(30px);opacity:0}to{transform:none;opacity:1}}
-.modal-head{background:linear-gradient(120deg,#0b1220,#3a1c0a 130%);color:#fff;padding:15px 16px;border-radius:20px 20px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;}
-.modal-head b{font-size:14px;}
-.mx{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;}
-#chatMsgs{padding:14px;min-height:220px;max-height:46dvh;overflow-y:auto;display:flex;flex-direction:column;gap:8px;background:#f4efe9;}
-.msg{max-width:80%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.45;}
-.msg.me{align-self:flex-end;background:linear-gradient(90deg,var(--primary),#ff8c2e);color:#fff;border-bottom-right-radius:4px;}
-.msg.them{align-self:flex-start;background:#fff;border:1px solid #eee;border-bottom-left-radius:4px;}
-.msg .t{display:block;font-size:9px;opacity:.65;margin-top:3px;}
-.chat-inp-row{display:flex;gap:8px;padding:11px;border-top:1px solid var(--border-color);background:var(--card-bg);border-radius:0 0 20px 20px;}
-.chat-inp-row input{flex:1;border:1.5px solid var(--border-color);border-radius:22px;padding:11px 15px;font-size:13px;outline:none;}
-.chat-inp-row button{width:44px;height:44px;border-radius:50%;border:none;background:var(--primary);color:#fff;font-size:15px;cursor:pointer;}
+/* MODALS */
+.ov{position:fixed;inset:0;z-index:8000;display:none;align-items:center;justify-content:center;background:rgba(8,12,24,.65);backdrop-filter:blur(5px);padding:14px;}
+.ov.open{display:flex;}
+.mb{width:100%;max-width:400px;max-height:88dvh;overflow-y:auto;background:var(--card);border-radius:19px;animation:pp .32s cubic-bezier(.2,.9,.3,1.2);}
+@keyframes pp{from{transform:scale(.78) translateY(26px);opacity:0}to{transform:none;opacity:1}}
+.mh{background:linear-gradient(120deg,#0b1220,#3a1c0a 130%);color:#fff;padding:14px 15px;border-radius:19px 19px 0 0;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:5;}
+.mh b{font-size:13.5px;}
+.mx{width:29px;height:29px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;}
 
-/* ═══ TOAST / LOADER ═══ */
-#toast{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(20px);background:#0b1220;color:#fff;padding:11px 20px;border-radius:24px;font-size:12.5px;font-weight:800;opacity:0;transition:.25s;z-index:99999;pointer-events:none;max-width:88vw;text-align:center;}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-#loader{position:fixed;inset:0;z-index:99998;background:rgba(8,12,24,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:#fff;font-weight:800;font-size:13px;}
-.spin{width:44px;height:44px;border:4px solid rgba(255,255,255,.2);border-top-color:var(--primary);border-radius:50%;animation:sp .8s linear infinite;}
-@keyframes sp{to{transform:rotate(360deg)}}
+/* ORDER POPUP */
+#op{position:fixed;inset:0;z-index:8500;display:none;flex-direction:column;justify-content:flex-end;background:rgba(8,12,24,.75);backdrop-filter:blur(6px);}
+#op.open{display:flex;}
+.opc{background:var(--card);border-radius:24px 24px 0 0;padding-bottom:16px;animation:su .32s cubic-bezier(.2,.9,.3,1);max-height:92dvh;overflow-y:auto;}
+@keyframes su{from{transform:translateY(65%)}to{transform:none}}
+.oph{background:linear-gradient(120deg,var(--pr),#ff9a3d);color:#fff;padding:16px;border-radius:24px 24px 0 0;display:flex;justify-content:space-between;align-items:center;}
+.opt{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;background:conic-gradient(#fff var(--p,100%),rgba(255,255,255,.25) 0);position:relative;}
+.opt::after{content:"";position:absolute;inset:5px;border-radius:50%;background:rgba(0,0,0,.25);}
+.opt span{position:relative;z-index:2;}
+.opa{font-size:28px;font-weight:900;color:var(--ok);text-align:center;margin:6px 0 8px;}
+.opb{width:calc(100% - 32px);margin:6px 16px 0;border:none;border-radius:15px;padding:16px;font-size:15px;font-weight:900;color:#fff;background:linear-gradient(90deg,#15a04a,#1fc25e);box-shadow:0 10px 26px rgba(21,160,74,.45);cursor:pointer;animation:gl 1.2s infinite;}
+.opx{width:100%;border:none;background:transparent;color:#998;font-weight:800;font-size:12px;padding:11px;cursor:pointer;}
 
-/* ═══ EARNINGS / REVIEWS / PROFILE ═══ */
-.earn-hero{background:linear-gradient(135deg,#15a04a,#1fc25e);color:#fff;border-radius:18px;padding:20px;text-align:center;margin-bottom:14px;box-shadow:0 12px 30px rgba(21,160,74,.3);}
-.earn-hero b{font-size:34px;display:block;}
-.earn-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
-.earn-cell{background:var(--card-bg);border:1px solid var(--border-color);border-radius:14px;padding:14px;text-align:center;}
-.earn-cell b{font-size:19px;color:var(--primary);display:block;}
-.earn-cell span{font-size:10px;color:#998;font-weight:800;}
-.rev-top{display:flex;gap:16px;align-items:center;background:linear-gradient(120deg,#fff7f0,#ffefe0);border:1px solid #ffd9bb;border-radius:16px;padding:15px;margin-bottom:12px;}
-.rev-avg{font-size:40px;font-weight:900;color:var(--primary);line-height:1;}
-.stars{color:#f5a623;letter-spacing:1px;}
-.prof-card{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:16px;margin-bottom:12px;}
-.prof-av{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#ff9a3d);color:#fff;font-size:32px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;box-shadow:0 10px 26px rgba(255,107,0,.35);}
-.prof-inp{width:100%;border:1.5px solid var(--border-color);border-radius:12px;padding:12px;font-size:13.5px;font-weight:700;margin-top:8px;outline:none;}
-.prof-inp:focus{border-color:var(--primary);}
+/* CHAT */
+#chB{padding:12px;min-height:200px;max-height:44dvh;overflow-y:auto;display:flex;flex-direction:column;gap:7px;background:#f4efe9;}
+body.dark #chB{background:#0d1320;}
+.mg{max-width:80%;padding:8px 12px;border-radius:13px;font-size:12.5px;line-height:1.45;}
+.mg.me{align-self:flex-end;background:linear-gradient(90deg,var(--pr),#ff8c2e);color:#fff;border-bottom-right-radius:4px;}
+.mg.th{align-self:flex-start;background:var(--card);border:1px solid var(--bd);border-bottom-left-radius:4px;}
+.mg .t{display:block;font-size:8.5px;opacity:.65;margin-top:2px;}
+.chr{display:flex;gap:7px;padding:10px;border-top:1px solid var(--bd);}
+.chr input{flex:1;border:1.5px solid var(--bd);border-radius:20px;padding:10px 14px;font-size:13px;outline:none;background:var(--card);color:var(--tx);}
+.chr button{width:42px;height:42px;border-radius:50%;border:none;background:var(--pr);color:#fff;cursor:pointer;}
+
+/* KYC etc */
+.kyg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px;}
+.kyd{border:2px dashed var(--bd);border-radius:13px;padding:9px;text-align:center;cursor:pointer;position:relative;overflow:hidden;}
+.kyd.dn{border-style:solid;border-color:var(--ok);}
+.kyd img{width:100%;height:70px;object-fit:cover;border-radius:8px;}
+.kyd .i2{font-size:24px;padding:14px 0 5px;display:block;}
+.kyd .n2{font-size:10px;font-weight:900;color:#998;padding-bottom:3px;display:block;}
+.kyd .ok2{position:absolute;top:5px;right:5px;background:var(--ok);color:#fff;width:19px;height:19px;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;}
+.kst{padding:4px 11px;border-radius:13px;font-size:10px;font-weight:900;}
+.pcb{height:8px;border-radius:5px;background:#eee;overflow:hidden;margin-top:7px;}
+.pcb span{display:block;height:100%;background:linear-gradient(90deg,var(--pr),#1fc25e);transition:width .5s;}
+.skc{display:inline-block;border:1.5px solid var(--bd);border-radius:15px;padding:6px 12px;font-size:11px;font-weight:800;margin:3px;cursor:pointer;color:#877;}
+.skc.on{background:linear-gradient(90deg,var(--pr),#ff8c2e);color:#fff;border-color:var(--pr);}
+.pi{width:100%;border:1.5px solid var(--bd);border-radius:11px;padding:11px;font-size:13px;font-weight:700;margin-top:7px;outline:none;background:var(--card);color:var(--tx);}
+.srw{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:12.5px;font-weight:700;border-bottom:1px dashed var(--bd);}
+.srw:last-child{border:none;}
+.srw input[type=checkbox]{width:19px;height:19px;accent-color:var(--pr);}
+.aut{display:flex;align-items:center;justify-content:space-between;gap:8px;background:linear-gradient(120deg,#241536,#0b1220);color:#fff;border-radius:13px;padding:10px 13px;margin-bottom:11px;font-size:11.5px;font-weight:800;}
+.asw{width:42px;height:23px;border-radius:12px;background:#555;position:relative;cursor:pointer;flex:0 0 42px;transition:.2s;}
+.asw::after{content:"";position:absolute;top:3px;left:3px;width:17px;height:17px;border-radius:50%;background:#fff;transition:.2s;}
+.asw.on{background:#1fc25e;}
+.asw.on::after{left:22px;}
+.eh{background:linear-gradient(135deg,#15a04a,#1fc25e);color:#fff;border-radius:17px;padding:18px;text-align:center;margin-bottom:12px;}
+.eh b{font-size:31px;display:block;}
+.eg{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;}
+.ec{background:var(--card);border:1px solid var(--bd);border-radius:13px;padding:12px;text-align:center;}
+.ec b{font-size:17px;color:var(--pr);display:block;}
+.ec span{font-size:9.5px;color:#998;font-weight:800;}
+.rvt{display:flex;gap:14px;align-items:center;background:var(--prl);border:1px solid #ffd9bb;border-radius:15px;padding:13px;margin-bottom:11px;}
+.rva{font-size:36px;font-weight:900;color:var(--pr);line-height:1;}
+.strs{color:#f5a623;letter-spacing:1px;}
+.pav{width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--pr),#ff9a3d);color:#fff;font-size:29px;font-weight:900;display:flex;align-items:center;justify-content:center;margin:0 auto 9px;}
+.fdi{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--bd);}
+.fdi .fi{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;flex:0 0 36px;}
+.fdi b{font-size:12px;display:block;}
+.fdi span{font-size:10px;color:#998;font-weight:700;}
+#nvM{height:290px;border-radius:13px;background:#e8e2da;}
+.nvi{display:flex;justify-content:space-around;padding:10px;background:var(--prl);border-radius:11px;margin-top:9px;font-size:10.5px;font-weight:900;text-align:center;}
+
+#tst{position:fixed;bottom:92px;left:50%;transform:translateX(-50%) translateY(16px);background:#0b1220;color:#fff;padding:10px 18px;border-radius:22px;font-size:12px;font-weight:800;opacity:0;transition:.25s;z-index:99999;pointer-events:none;max-width:88vw;text-align:center;}
+#tst.sh{opacity:1;transform:translateX(-50%);}
+#ldr{position:fixed;inset:0;z-index:99998;background:rgba(8,12,24,.55);display:none;align-items:center;justify-content:center;flex-direction:column;gap:10px;color:#fff;font-weight:800;font-size:12.5px;}
+.spn{width:40px;height:40px;border:4px solid rgba(255,255,255,.2);border-top-color:var(--pr);border-radius:50%;animation:rot .8s linear infinite;}
+@keyframes rot{to{transform:rotate(360deg)}}
 </style>
 </head>
 <body>
 
-<!-- ═══════ LOGIN ═══════ -->
-<div id="authOv" class="ov open">
+<!-- LOGIN -->
+<div id="lgOv">
   <span class="orb o1"></span><span class="orb o2"></span>
-  <div class="auth-card">
-    <div class="auth-logo">🧑‍🔧</div>
-    <h2>SewaAstra <span style="color:var(--primary);">Partner</span></h2>
+  <div class="lgc">
+    <div class="lgl">🧑‍🔧</div>
+    <h2>SewaAstra <span style="color:var(--pr);">Partner</span></h2>
     <div class="tg">Technician App — कमाई शुरू करें 🚀</div>
-    <div id="phSec">
-      <input class="auth-inp" type="tel" id="pPhone" placeholder="मोबाइल नंबर (10 अंक)" maxlength="10" inputmode="numeric">
-      <button class="auth-btn main" onclick="pSendOTP()">📲 OTP भेजें</button>
-      <div style="font-size:10.5px;opacity:.6;margin:6px 0 10px;">— या —</div>
-      <button class="auth-btn g" onclick="pGoogleLogin()"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="18" alt="G">Google से लॉगिन</button>
+    <input class="li" type="tel" id="lgPh" placeholder="मोबाइल नंबर (10 अंक)" maxlength="10" inputmode="numeric">
+    <div id="lgP1">
+      <button class="lb m" onclick="sOTP()">📲 OTP भेजें — Login करें</button>
+      <button class="lb gg" onclick="gLogin()"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="17" alt="G">Google से Login</button>
+      <div onclick="diag()" style="font-size:10px;opacity:.6;margin-top:4px;cursor:pointer;text-decoration:underline;">🔍 Login problem? यहाँ जांचें</div>
     </div>
-    <div id="otpSec" style="display:none;">
-      <input class="auth-inp" type="tel" id="pOTP" placeholder="6-अंकों का OTP" maxlength="6" inputmode="numeric" style="text-align:center;letter-spacing:8px;font-size:18px;">
-      <button class="auth-btn main" onclick="pVerifyOTP()">✅ Verify करें</button>
-      <button class="auth-btn" style="background:transparent;color:#fff;border:1px solid rgba(255,255,255,.3);" onclick="pResetAuth()">← नंबर बदलें</button>
+    <div id="lgP2" class="hide">
+      <input class="li" type="tel" id="lgOtp" placeholder="6-अंकों का OTP" maxlength="6" style="text-align:center;letter-spacing:7px;">
+      <button class="lb m" onclick="vOTP()">✅ Verify करें</button>
+      <button class="lb s" onclick="document.getElementById('lgP2').classList.add('hide');document.getElementById('lgP1').classList.remove('hide')">← वापस</button>
     </div>
     <div id="recaptcha-container"></div>
   </div>
 </div>
 
-<!-- ═══════ HEADER ═══════ -->
-<div class="p-head">
-  <div class="p-head-row">
-    <div>
-      <div class="p-brand">🧑‍🔧 SewaAstra <span>Partner</span></div>
-      <div class="p-sub" id="pHello">नमस्ते, Partner!</div>
-    </div>
-    <div class="p-online" id="onlineTgl" onclick="toggleOnline()">
-      <span class="dot"></span><span id="onlineTxt">OFFLINE</span>
-    </div>
+<!-- HEADER -->
+<div class="hd">
+  <div class="hd-r">
+    <div style="flex:1;"><div class="hd-b">🧑‍🔧 SewaAstra <span>Partner</span></div>
+      <div class="hd-s" id="hHi">नमस्ते, Partner!</div></div>
+    <div class="bell" onclick="openFeed()"><i class="fa fa-bell"></i><span class="bd2" id="fBd"></span></div>
+    <div class="onl" id="onT" onclick="togOnl()"><span class="dt"></span><span id="onX">OFFLINE</span></div>
   </div>
-  <div class="p-stats">
-    <div class="p-stat"><b id="stToday">0</b><span>आज के काम</span></div>
-    <div class="p-stat"><b id="stEarn">₹0</b><span>आज की कमाई</span></div>
-    <div class="p-stat"><b id="stRate">—</b><span>⭐ रेटिंग</span></div>
+  <div class="sts">
+    <div class="st"><b id="s1">0</b><span>आज के काम</span></div>
+    <div class="st"><b id="s2">₹0</b><span>आज की कमाई</span></div>
+    <div class="st"><b id="s3">—</b><span>⭐ रेटिंग</span></div>
   </div>
 </div>
 
-<!-- ═══════ BODY ═══════ -->
-<div class="p-body">
-  <div class="p-sec act" id="secNew">
-    <div class="p-title">🆕 नए ऑर्डर — Accept करें</div>
-    <div id="newList"><div class="sk sk-row"></div><div class="sk sk-row"></div></div>
+<div class="bo">
+  <div class="sec act" id="secN">
+    <div class="aut"><span>⚡ Auto-Accept — पास के ऑर्डर अपने आप</span><div class="asw" id="aSw" onclick="togAuto()"></div></div>
+    <div class="tt">🆕 नए ऑर्डर</div>
+    <div id="lsN"><div class="sk"></div><div class="sk"></div></div>
   </div>
-  <div class="p-sec" id="secJobs">
-    <div class="p-title">🛠️ मेरे Active काम</div>
-    <div id="jobsList"><div class="sk sk-row"></div></div>
-  </div>
-  <div class="p-sec" id="secEarn">
-    <div class="p-title">💰 मेरी कमाई</div>
-    <div id="earnBox"><div class="sk sk-row"></div></div>
-  </div>
-  <div class="p-sec" id="secRev">
-    <div class="p-title">⭐ मेरे Reviews</div>
-    <div id="revBox"><div class="sk sk-row"></div></div>
-  </div>
-  <div class="p-sec" id="secProf">
-    <div class="p-title">👤 प्रोफाइल</div>
-    <div class="prof-card" style="text-align:center;">
-      <div class="prof-av" id="profAv">🧑‍🔧</div>
-      <input class="prof-inp" id="profName" placeholder="आपका नाम (customer को दिखेगा)">
-      <div style="font-size:12px;color:#998;font-weight:800;margin-top:8px;" id="profPhone">📱 —</div>
-      <button class="p-btn next" style="width:100%;margin-top:12px;padding:13px;" onclick="saveProfile()">💾 प्रोफाइल Save करें</button>
+  <div class="sec" id="secJ"><div class="tt">🛠️ मेरे Active काम</div><div id="lsJ"><div class="sk"></div></div></div>
+  <div class="sec" id="secE"><div class="tt">💰 मेरी कमाई</div><div id="lsE"><div class="sk"></div></div></div>
+  <div class="sec" id="secR"><div class="tt">⭐ मेरे Reviews</div><div id="lsR"><div class="sk"></div></div></div>
+  <div class="sec" id="secP">
+    <div class="tt">👤 प्रोफाइल</div>
+    <div class="cd" style="text-align:center;">
+      <div class="pav" id="pAv">🧑‍🔧</div>
+      <input class="pi" id="pNm" placeholder="आपका नाम (customer को दिखेगा)">
+      <div style="font-size:11.5px;color:#998;font-weight:800;margin-top:7px;" id="pPh">📱 —</div>
+      <button class="bn o" style="width:100%;margin-top:10px;padding:12px;" onclick="savePr()">💾 Save करें</button>
     </div>
-    <div id="profExtra"></div>
-    <div class="prof-card">
-      <div style="font-size:12px;font-weight:900;margin-bottom:8px;">⚙️ ऐप सेटिंग्स</div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;font-weight:700;">
-        🔔 नए ऑर्डर की आवाज़ <input type="checkbox" id="sndTgl" checked style="width:20px;height:20px;accent-color:var(--primary);">
-      </div>
-      <button class="p-btn red" style="width:100%;margin-top:10px;padding:13px;" onclick="pLogout()">🚪 Logout</button>
+    <div id="pX"></div>
+    <div class="cd">
+      <b style="font-size:12.5px;">⚙️ ऐप सेटिंग्स</b>
+      <div class="srw">🔔 ऑर्डर की आवाज़ <input type="checkbox" id="sndC" checked></div>
+      <div class="srw">🗣️ नया ऑर्डर बोलकर सुनाएँ <input type="checkbox" id="vceC" checked></div>
+      <div class="srw">🌙 Dark Mode <input type="checkbox" id="drkC" onchange="togDark()"></div>
+      <button class="bn o" id="pwaB" style="width:100%;margin-top:8px;padding:11px;" onclick="v41Inst()">📲 Phone में App Install करें</button>
+      <button class="bn r" style="width:100%;margin-top:9px;padding:12px;border:1.5px solid #f5c6c3;" onclick="lgOut()">🚪 Logout</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════ BOTTOM NAV ═══════ -->
-<div class="p-nav">
-  <button class="act" id="nbNew" onclick="goTab('New',this)"><i class="fa fa-bolt"></i>नए ऑर्डर<span class="p-badge" id="bdgNew"></span></button>
-  <button id="nbJobs" onclick="goTab('Jobs',this)"><i class="fa fa-screwdriver-wrench"></i>मेरे काम<span class="p-badge" id="bdgJobs"></span></button>
-  <button id="nbEarn" onclick="goTab('Earn',this)"><i class="fa fa-indian-rupee-sign"></i>कमाई</button>
-  <button id="nbRev" onclick="goTab('Rev',this)"><i class="fa fa-star"></i>रिव्यू</button>
-  <button id="nbProf" onclick="goTab('Prof',this)"><i class="fa fa-user-gear"></i>प्रोफाइल</button>
+<div class="nv">
+  <button class="act" onclick="tab('N',this)"><i class="fa fa-bolt"></i>नए ऑर्डर<span class="nbg" id="bN"></span></button>
+  <button onclick="tab('J',this)"><i class="fa fa-screwdriver-wrench"></i>मेरे काम<span class="nbg" id="bJ"></span></button>
+  <button onclick="tab('E',this)"><i class="fa fa-indian-rupee-sign"></i>कमाई</button>
+  <button onclick="tab('R',this)"><i class="fa fa-star"></i>रिव्यू</button>
+  <button onclick="tab('P',this)"><i class="fa fa-user-gear"></i>प्रोफाइल</button>
 </div>
 
-<!-- ═══════ CHAT MODAL ═══════ -->
-<div class="ov" id="chatOv">
-  <div class="modal-box">
-    <div class="modal-head"><b id="chatTitle">💬 Chat</b><span class="mx" onclick="closeChat()"><i class="fa fa-times"></i></span></div>
-    <div id="chatMsgs"></div>
-    <div class="chat-inp-row">
-      <input id="chatInp" placeholder="मैसेज लिखें..." onkeydown="if(event.key==='Enter')sendChat()">
-      <button onclick="sendChat()"><i class="fa fa-paper-plane"></i></button>
+<!-- ORDER POPUP -->
+<div id="op">
+  <div class="opc">
+    <div class="oph">
+      <div><div style="font-size:15px;font-weight:900;">🔔 नया ऑर्डर!</div><div style="font-size:10.5px;opacity:.9;" id="opI">—</div></div>
+      <div class="opt" id="opT"><span id="opS">30</span></div>
     </div>
+    <div class="opa" id="opA">₹0</div>
+    <div class="it" id="opIt" style="text-align:center;padding:0 14px;"></div>
+    <div class="ad" id="opAd" style="margin:6px 14px;"></div>
+    <div class="mt" id="opM" style="text-align:center;"></div>
+    <button class="opb" onclick="opGo()">✅ ACCEPT — काम पक्का करें</button>
+    <button class="opx" onclick="opNo()">❌ अभी नहीं</button>
   </div>
 </div>
 
-<div id="toast"></div>
-<div id="loader"><div class="spin"></div><span id="loaderTxt">लोड हो रहा है...</span></div>
+<!-- CHAT -->
+<div class="ov" id="chO"><div class="mb">
+  <div class="mh"><b id="chT">💬 Chat</b><span class="mx" onclick="chClose()"><i class="fa fa-times"></i></span></div>
+  <div id="chB"></div>
+  <div class="chr"><input id="chI" placeholder="मैसेज लिखें..." onkeydown="if(event.key==='Enter')chSend()"><button onclick="chSend()"><i class="fa fa-paper-plane"></i></button></div>
+</div></div>
+
+<!-- LIVE NAV -->
+<div class="ov" id="nvO"><div class="mb">
+  <div class="mh"><b id="nvT">🧭 Live Navigation</b><span class="mx" onclick="nvClose()"><i class="fa fa-times"></i></span></div>
+  <div style="padding:13px;">
+    <div id="nvM"></div>
+    <div class="nvi">
+      <div>📏 दूरी<br><b id="nvD" style="color:var(--pr);font-size:13.5px;">—</b></div>
+      <div>⏱️ ETA<br><b id="nvE" style="color:var(--ok);font-size:13.5px;">—</b></div>
+      <div><span class="dot" id="nvDot"></span>Customer<br><b id="nvC" style="font-size:10.5px;">—</b></div>
+    </div>
+    <div class="bns" style="margin-top:9px;">
+      <a class="bn d" id="nvG" style="flex:2;" href="#" target="_blank">🗺️ Google Maps Turn-by-Turn</a>
+      <a class="bn b" id="nvCl" href="#">📞</a>
+    </div>
+  </div>
+</div></div>
+
+<!-- FEED -->
+<div class="ov" id="fdO"><div class="mb">
+  <div class="mh"><b>📰 Activity Feed</b><span class="mx" onclick="document.getElementById('fdO').classList.remove('open')"><i class="fa fa-times"></i></span></div>
+  <div id="fdL" style="padding:5px 15px 15px;max-height:62dvh;overflow-y:auto;"></div>
+</div></div>
+
+<div id="tst"></div>
+<div id="ldr"><div class="spn"></div><span id="ldT">लोड हो रहा है...</span></div>
 
 <script>
-/* ═══════════════ SEWAASTRA PARTNER APP v1.0 ═══════════════ */
+/* ═══════════════════ SEWAASTRA PARTNER — CLEAN BUILD v4.0 ═══════════════════ */
 firebase.initializeApp({
-      apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
-      authDomain: "sewaastra.firebaseapp.com",
-      databaseURL: "https://sewaastra-default-rtdb.firebaseio.com",
-      projectId: "sewaastra",
-      storageBucket: "sewaastra.firebasestorage.app",
-      messagingSenderId: "211091351218",
-      appId: "1:211091351218:web:bb555f4cae275b4f464bab",
-      measurementId: "G-Z08CQVRVQG"
-  });
-const FS = firebase.firestore();
-
-const STATUS_HI = {'Order Placed':'नया ऑर्डर','Accepted':'स्वीकृत','On the Way':'रास्ते में','Working':'काम चालू','Completed':'पूर्ण ✅','Cancelled':'रद्द ❌'};
-const STATUS_CLR = {'Order Placed':'#ff6b00','Accepted':'#0d6efd','On the Way':'#6c3df4','Working':'#b07800','Completed':'#15a04a','Cancelled':'#e53935'};
-const FLOW = ['Order Placed','Accepted','On the Way','Working','Completed'];
-const NEXT_LABEL = {'Accepted':'🛵 रास्ते में हूँ','On the Way':'🔧 काम शुरू किया','Working':'🎉 काम पूरा हुआ'};
-
-function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function toast(m){ const t=document.getElementById('toast'); t.innerHTML=m; t.classList.add('show'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('show'),2600); }
-function loader(m){ document.getElementById('loaderTxt').innerText=m||'लोड हो रहा है...'; document.getElementById('loader').style.display='flex'; }
-function hideLoader(){ document.getElementById('loader').style.display='none'; }
-function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p||[70,40,70]); }catch(e){} }
-
-/* ─── AUTH ─── */
-let confRes = null;
-window.addEventListener('load', ()=>{
-  try{ window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'invisible'}); }catch(e){}
+  apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
+  authDomain: "sewaastra.firebaseapp.com",
+  databaseURL: "https://sewaastra-default-rtdb.firebaseio.com",
+  projectId: "sewaastra",
+  storageBucket: "sewaastra.firebasestorage.app",
+  messagingSenderId: "211091351218",
+  appId: "1:211091351218:web:bb555f4cae275b4f464bab",
+  measurementId: "G-Z08CQVRVQG"
 });
-function myPhone(){ return localStorage.getItem('swp_phone') || ''; }
+var FS = firebase.firestore();
 
-function pSendOTP(){
-  const ph = document.getElementById('pPhone').value.trim();
-  if(ph.length!==10) return toast('❌ सही 10-अंकों का नंबर डालें');
-  loader('OTP भेजा जा रहा है...');
-  firebase.auth().signInWithPhoneNumber('+91'+ph, window.recaptchaVerifier).then(c=>{
-    hideLoader(); confRes=c;
-    localStorage.setItem('swp_phone', ph);
-    document.getElementById('phSec').style.display='none';
-    document.getElementById('otpSec').style.display='block';
-    toast('📩 OTP भेज दिया गया!');
-  }).catch(e=>{ hideLoader(); toast('❌ '+e.message); });
-}
-function pVerifyOTP(){
-  const otp = document.getElementById('pOTP').value.trim();
-  if(otp.length!==6) return toast('❌ 6-अंकों का OTP डालें');
-  loader('Verify हो रहा है...');
-  confRes.confirm(otp).then(()=>{ hideLoader(); afterLogin(); })
-    .catch(()=>{ hideLoader(); toast('❌ गलत OTP'); });
-}
-function pResetAuth(){
-  document.getElementById('phSec').style.display='block';
-  document.getElementById('otpSec').style.display='none';
-}
-function pGoogleLogin(){
-  loader('Google से लॉगिन...');
-  firebase.auth().signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(r=>{
-    hideLoader();
-    if(!myPhone()){
-      const ph = prompt('अपना 10-अंकों का मोबाइल नंबर डालें (ऑर्डर इसी से जुड़ेंगे):');
-      if(ph && ph.trim().length===10) localStorage.setItem('swp_phone', ph.trim());
-    }
-    afterLogin(r.user);
-  }).catch(e=>{ hideLoader(); toast('❌ '+e.message); });
-}
-function pLogout(){
-  setOnline(false).finally(()=>{
-    firebase.auth().signOut(); localStorage.removeItem('swp_logged'); location.reload();
-  });
-}
-function afterLogin(gUser){
-  localStorage.setItem('swp_logged','1');
-  document.getElementById('authOv').classList.remove('open');
-  const ph = myPhone();
-  const u = firebase.auth().currentUser;
-  FS.collection('partners').doc(ph||((u&&u.email)||'partner')).set({
-    phone: ph||null, email:(u&&u.email)||null,
-    name:(u&&u.displayName)||localStorage.getItem('swp_name')||'SewaAstra Partner',
-    photo:(u&&u.photoURL)||null, lastLogin: Date.now(), online:true
-  },{merge:true}).catch(()=>{});
-  initApp();
-}
-firebase.auth().onAuthStateChanged(u=>{
-  if(u && localStorage.getItem('swp_logged')){
-    document.getElementById('authOv').classList.remove('open');
-    initApp();
-  }
-});
+var SH = {'Order Placed':'नया','Accepted':'स्वीकृत','On the Way':'रास्ते में','Working':'काम चालू','Completed':'पूर्ण ✅','Cancelled':'रद्द ❌'};
+var SC = {'Order Placed':'#ff6b00','Accepted':'#0d6efd','On the Way':'#6c3df4','Working':'#b07800','Completed':'#15a04a','Cancelled':'#e53935'};
+var FLOW = ['Order Placed','Accepted','On the Way','Working','Completed'];
+var NXT = {'Accepted':'🛵 रास्ते में हूँ','On the Way':'🔧 काम शुरू किया','Working':'🎉 काम पूरा हुआ'};
+var KDOCS = [{k:'aadhaarF',n:'आधार Front',i:'🪪'},{k:'aadhaarB',n:'आधार Back',i:'🪪'},{k:'pan',n:'PAN Card',i:'💳'},{k:'selfie',n:'Selfie',i:'🤳'}];
+var SKILLS = ['AC','RO','Fridge','Washing Machine','Electrician','Plumber','Geyser','Microwave','TV','CCTV'];
 
-/* ─── ONLINE TOGGLE ─── */
-let isOnline = false;
-function setOnline(v){
-  isOnline = v;
-  const tg = document.getElementById('onlineTgl');
-  tg.classList.toggle('on', v);
-  document.getElementById('onlineTxt').innerText = v?'ONLINE':'OFFLINE';
-  const ph = myPhone(); if(!ph) return Promise.resolve();
-  return FS.collection('partners').doc(ph).set({online:v, onlineAt:Date.now()},{merge:true}).catch(()=>{});
-}
-function toggleOnline(){ setOnline(!isOnline); toast(isOnline?'🟢 आप ONLINE हैं — नए ऑर्डर मिलेंगे':'⚫ आप OFFLINE हैं'); }
-
-/* ─── TABS ─── */
-function goTab(t, btn){
-  document.querySelectorAll('.p-sec').forEach(s=>s.classList.remove('act'));
-  document.getElementById('sec'+t).classList.add('act');
-  document.querySelectorAll('.p-nav button').forEach(b=>b.classList.remove('act'));
-  btn.classList.add('act');
-  if(t==='Earn') renderEarnings();
-  if(t==='Rev') loadReviews();
-}
-
-/* ─── ORDERS REALTIME ─── */
-let ALL = [], inited=false, firstSnap=true;
-function initApp(){
-  if(inited) return; inited=true;
-  const ph = myPhone();
-  document.getElementById('profPhone').innerText = '📱 +91 ' + (ph||'—');
-  FS.collection('partners').doc(ph||'x').get().then(d=>{
-    if(d.exists){
-      const p=d.data();
-      if(p.name){ document.getElementById('pHello').innerText='नमस्ते, '+p.name+'!'; document.getElementById('profName').value=p.name; document.getElementById('profAv').innerText=p.name[0].toUpperCase(); }
-      if(p.avgRating) document.getElementById('stRate').innerText=p.avgRating;
-      if(p.online) setOnline(true);
-    }
-  }).catch(()=>{});
-  FS.collection('orders').onSnapshot(snap=>{
-    /* naya order aaya? — sound + vibrate */
-    if(!firstSnap){
-      snap.docChanges().forEach(ch=>{
-        const o = ch.doc.data();
-        if(ch.type==='added' && o.status==='Order Placed'){
-          vib([120,60,120,60,200]); beep(); showOrderPopup(o);
-        }
-      });
-    }
-    firstSnap=false;
-    ALL = snap.docs.map(d=>d.data());
-    renderAll();
-  }, e=>{ document.getElementById('newList').innerHTML='<div class="p-empty">⚠️ '+esc(e.message)+'<br><span style="font-size:11px;">Firestore enable करें</span></div>'; });
-}
+/* helpers */
+function $(i){ return document.getElementById(i); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function toast(m){ var t=$('tst'); t.innerHTML=m; t.classList.add('sh'); clearTimeout(t._x); t._x=setTimeout(function(){t.classList.remove('sh');},2600); }
+function ldr(m){ $('ldT').innerText=m||'...'; $('ldr').style.display='flex'; }
+function ldrX(){ $('ldr').style.display='none'; }
+function vib(p){ try{ navigator.vibrate && navigator.vibrate(p||[70,40,70]); }catch(e){} }
 function beep(){
-  if(!document.getElementById('sndTgl').checked) return;
+  if(!$('sndC').checked) return;
   try{
-    const ctx = new (window.AudioContext||window.webkitAudioContext)();
-    [0,0.22].forEach(t=>{
-      const o=ctx.createOscillator(), g=ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.frequency.value=880; g.gain.setValueAtTime(.4,ctx.currentTime+t);
-      g.gain.exponentialRampToValueAtTime(.01,ctx.currentTime+t+.18);
-      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+.2);
-    });
+    var c = new (window.AudioContext||window.webkitAudioContext)();
+    var o=c.createOscillator(), g=c.createGain();
+    o.connect(g); g.connect(c.destination); o.frequency.value=880;
+    g.gain.setValueAtTime(.4,c.currentTime); g.gain.exponentialRampToValueAtTime(.01,c.currentTime+.2);
+    o.start(); o.stop(c.currentTime+.22);
   }catch(e){}
 }
+function ago(ts){ var m=Math.floor((Date.now()-ts)/60000); return m<1?'अभी':m<60?m+' min पहले':m<1440?Math.floor(m/60)+' घंटे पहले':Math.floor(m/1440)+' दिन पहले'; }
+function hav(a,b){ if(!a||!b)return null; var R=6371,dA=(b.lat-a.lat)*Math.PI/180,dO=(b.lon-a.lon)*Math.PI/180; var x=Math.sin(dA/2)*Math.sin(dA/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dO/2)*Math.sin(dO/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
+function me(){ return localStorage.getItem('swp_phone')||''; }
 
-function renderAll(){
-  const me = myPhone();
-  const news = ALL.filter(o=>o.status==='Order Placed').sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  const jobs = ALL.filter(o=>['Accepted','On the Way','Working'].includes(o.status) && (!o.partnerPhone || o.partnerPhone===me)).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  const done = ALL.filter(o=>o.status==='Completed' && (!o.partnerPhone || o.partnerPhone===me));
-
-  /* badges + stats */
-  bdg('bdgNew', news.length); bdg('bdgJobs', jobs.length);
-  const today = new Date().toDateString();
-  const tOrders = ALL.filter(o=>new Date(o.createdAt||0).toDateString()===today);
-  document.getElementById('stToday').innerText = tOrders.length;
-  document.getElementById('stEarn').innerText = '₹' + done.filter(o=>new Date(o.createdAt||0).toDateString()===today).reduce((s,o)=>s+(o.total||0),0).toLocaleString('en-IN');
-
-  /* NEW ORDERS */
-  document.getElementById('newList').innerHTML = news.length ? news.map(o=>`
-    <div class="p-card new">
-      <div class="p-row"><span class="p-oid">${esc(o.id)}</span>
-        <span class="p-chip" style="background:#fff5ed;color:#ff6b00;">₹${o.total} • ${esc(o.mode||'')}${payTag(o)}</span></div>
-      <div class="p-meta">📅 ${esc(o.date)} ⏰ ${esc(o.time)} • 👤 ${esc(o.mobile||'')}</div>
-      <div class="p-items">🛠️ ${(o.items||[]).map(i=>esc(i.n)+' ×'+(i.qty||1)).join(', ')}</div>
-      <div class="p-addr">📍 ${esc(o.address)}</div>
-      <div class="p-btns">
-        <button class="p-btn accept" onclick="acceptOrder('${esc(o.id)}')">✅ ORDER ACCEPT करें</button>
-      </div>
-    </div>`).join('') : `<div class="p-empty"><span class="ic">📭</span><br><b>अभी कोई नया ऑर्डर नहीं</b><br><span style="font-size:11px;">ONLINE रहें — ऑर्डर आते ही आवाज़ आएगी 🔔</span></div>`;
-
-  /* MY JOBS */
-  document.getElementById('jobsList').innerHTML = jobs.length ? jobs.map(o=>{
-    const idx = FLOW.indexOf(o.status);
-    const steps = FLOW.slice(1).map((s,i)=>`<div class="p-step ${i+1<idx?'done':(i+1===idx?'now':'')}"></div>`).join('');
-    const sharing = !!watchers[o.id];
-    return `
-    <div class="p-card">
-      <div class="p-row"><span class="p-oid">${esc(o.id)}</span>
-        <span class="p-chip" style="background:${STATUS_CLR[o.status]}22;color:${STATUS_CLR[o.status]};">${STATUS_HI[o.status]}${payTag(o)}</span></div>
-      <div class="p-timeline">${steps}</div>
-      <div class="p-meta">💰 <b style="color:#15a04a;">₹${o.total}</b> (${esc(o.mode||'')}) • 📅 ${esc(o.date)} ⏰ ${esc(o.time)}</div>
-      <div class="p-items">🛠️ ${(o.items||[]).map(i=>esc(i.n)+' ×'+(i.qty||1)).join(', ')}</div>
-      <div class="p-addr">📍 ${esc(o.address)}${o.remark?'<br>📝 '+esc(o.remark):''}</div>
-      <div class="p-btns">
-        ${NEXT_LABEL[o.status] ? `<button class="p-btn next" style="flex:2;font-size:12.5px;" onclick="advanceOrder('${esc(o.id)}','${o.status}')">${NEXT_LABEL[o.status]}</button>` : ''}
-        <button class="p-btn share ${sharing?'on':''}" onclick="shareLoc('${esc(o.id)}')">${sharing?'📡 LIVE':'📡 Location'}</button>
-      </div>
-      <div class="p-btns">
-        <a class="p-btn dark" style="text-align:center;text-decoration:none;line-height:1.4;" href="${o.maps && o.maps!=='Not Provided' ? esc(o.maps) : 'https://www.google.com/maps/search/'+encodeURIComponent(o.address||'')}" target="_blank">🗺️ रास्ता</a>
-        <a class="p-btn blue" style="text-align:center;text-decoration:none;line-height:1.4;" href="tel:+91${esc(o.mobile||'')}">📞 Call</a>
-        <a class="p-btn wa" style="text-align:center;text-decoration:none;line-height:1.4;" href="https://wa.me/91${esc(o.mobile||'')}" target="_blank">💬 WA</a>
-        <button class="p-btn" style="background:#6c757d;" onclick="openChat('${esc(o.id)}')">💬 Chat</button>
-      </div>
-      ${o.payment && !o.payment.verified && /verifying/i.test(o.payment.status||'') ? `<button class="p-btn gold" style="width:100%;margin-top:8px;" onclick="verifyPay('${esc(o.id)}','${esc(o.payment.ref||'')}')">💜 UTR: ${esc(o.payment.ref||'—')} — Payment VERIFY करें</button>` : ''}
-      <button class="p-btn red" style="width:100%;margin-top:8px;background:#fdecea;color:#e53935;" onclick="cancelOrder('${esc(o.id)}')">❌ ऑर्डर Cancel करें</button>
-    </div>`;}).join('') : `<div class="p-empty"><span class="ic">🛠️</span><br><b>कोई active काम नहीं</b><br><span style="font-size:11px;">नए ऑर्डर tab से Accept करें</span></div>`;
+/* ═══ LOGIN ═══ */
+var confR = null;
+function aerr(e){
+  var c=(e&&e.code)||'', h=location.hostname||'(file)';
+  var M={'auth/unauthorized-domain':'🌐 Domain allowed नहीं!\nConsole → Authentication → Settings → Authorized domains में add करें:\n👉 '+h,
+  'auth/billing-not-enabled':'💳 SMS के लिए Blaze plan चाहिए।\n✅ FREE: Console → Auth → Phone → "Phone numbers for testing" में नंबर+OTP डालें।',
+  'auth/invalid-app-credential':'🤖 reCAPTCHA fail — reload करें, domain check करें।',
+  'auth/too-many-requests':'⏳ बहुत कोशिशें — बाद में करें या test number use करें।',
+  'auth/operation-not-allowed':'⚙️ Console में यह provider enable नहीं है।',
+  'auth/network-request-failed':'📶 Internet problem।'};
+  return (M[c]||('❌ '+(e.message||e)))+'\n\n(code: '+c+')\n\n🔍 नीचे "Login problem?" link से जांच करें।';
 }
-function bdg(id,n){ const b=document.getElementById(id); b.style.display=n?'flex':'none'; b.innerText=n; }
-function payTag(o){
-  if(!o.payment) return '';
-  if(o.payment.verified || /^paid/i.test(o.payment.status||'')) return ' ✅PAID';
-  if(/verifying/i.test(o.payment.status||'')) return ' ⏳UTR';
-  return '';
+function sOTP(){
+  var ph=$('lgPh').value.trim();
+  if(!/^\d{10}$/.test(ph)) return toast('❌ पहले नंबर डालें');
+  if(!window.rcv){ try{ window.rcv=new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'invisible'}); }catch(e){ return alert(aerr(e)); } }
+  ldr('OTP भेजा जा रहा है...');
+  firebase.auth().signInWithPhoneNumber('+91'+ph, window.rcv).then(function(c){
+    ldrX(); confR=c; localStorage.setItem('swp_phone',ph);
+    $('lgP1').classList.add('hide'); $('lgP2').classList.remove('hide');
+    toast('📩 OTP भेज दिया!');
+  }).catch(function(e){ ldrX(); try{window.rcv.clear();window.rcv=null;}catch(x){} alert(aerr(e)); });
 }
-
-/* ─── ACTIONS ─── */
-function acceptOrder(oid){
-  const ph = myPhone();
-  const nm = document.getElementById('profName').value.trim() || 'SewaAstra Partner';
-  loader('Accept हो रहा है...');
-  FS.collection('orders').doc(oid).update({
-    status:'Accepted', partnerPhone: ph, partnerName: nm, acceptedAt: Date.now()
-  }).then(()=>{ hideLoader(); toast('✅ ऑर्डर आपका! अब रास्ते में जाएँ 🛵'); vib(); })
-    .catch(e=>{ hideLoader(); toast('❌ '+e.message); });
+function vOTP(){
+  var o=$('lgOtp').value.trim();
+  if(o.length!==6) return toast('❌ 6-अंकों का OTP');
+  ldr('Verify...');
+  confR.confirm(o).then(function(){ ldrX(); localStorage.setItem('swp_logged','1'); enter(); })
+    .catch(function(){ ldrX(); toast('❌ गलत OTP'); });
 }
-function advanceOrder(oid, cur){
-  const nxt = FLOW[FLOW.indexOf(cur)+1];
-  if(!nxt) return;
-  if(nxt==='Completed' && !confirm('काम पूरा हो गया? Customer को bill + rating popup जाएगा।')) return;
-  FS.collection('orders').doc(oid).update({status:nxt, ['t_'+nxt.replace(/\s/g,'')]: Date.now()})
-    .then(()=>{
-      toast('📌 ' + STATUS_HI[nxt]);
-      if(nxt==='Completed'){ stopShare(oid); vib([80,50,80,50,160]); }
-    }).catch(e=>toast('❌ '+e.message));
-}
-function cancelOrder(oid){
-  const r = prompt('Cancel करने का कारण लिखें:');
-  if(r===null) return;
-  FS.collection('orders').doc(oid).update({status:'Cancelled', cancelReason:r||'Partner cancelled', cancelledBy:'partner'})
-    .then(()=>toast('❌ ऑर्डर cancel')).catch(e=>toast(e.message));
-}
-function verifyPay(oid, ref){
-  if(!confirm('PhonePe Business में UTR check कर लिया?\nUTR: '+ref+'\n\nPayment VERIFY करें?')) return;
-  FS.collection('orders').doc(oid).update({'payment.verified':true,'payment.status':'PAID (Partner Verified)','payment.verifiedAt':Date.now()})
-    .then(()=>{ toast('✅ Payment Verified!'); vib(); }).catch(e=>toast(e.message));
-}
-
-/* ─── LIVE LOCATION SHARE ─── */
-const watchers = {};
-function shareLoc(oid){
-  if(watchers[oid]) return stopShare(oid, true);
-  if(!navigator.geolocation) return toast('❌ GPS उपलब्ध नहीं');
-  let last = 0;
-  watchers[oid] = navigator.geolocation.watchPosition(pos=>{
-    const now = Date.now();
-    if(now - last < 4000) return;
-    last = now;
-    FS.collection('orders').doc(oid).update({
-      partnerLoc:{lat:pos.coords.latitude, lon:pos.coords.longitude, ts:now}, sharing:true
-    }).catch(()=>{});
-  }, ()=>toast('❌ Location अनुमति दें'), {enableHighAccuracy:true, maximumAge:3000});
-  toast('📡 LIVE location share चालू — customer map पर आपको देखेगा');
-  renderAll();
-}
-function stopShare(oid, notify){
-  if(watchers[oid]){ navigator.geolocation.clearWatch(watchers[oid]); delete watchers[oid]; }
-  FS.collection('orders').doc(oid).update({sharing:false}).catch(()=>{});
-  if(notify) toast('📴 Location share बंद');
-  renderAll();
-}
-
-/* ─── CHAT ─── */
-let chatOid=null, chatUnsub=null;
-function openChat(oid){
-  chatOid = oid;
-  document.getElementById('chatTitle').innerText = '💬 ' + oid + ' — Customer';
-  document.getElementById('chatOv').classList.add('open');
-  const box = document.getElementById('chatMsgs');
-  box.innerHTML = '<div class="sk sk-row" style="height:40px;"></div>';
-  if(chatUnsub) chatUnsub();
-  chatUnsub = FS.collection('orders').doc(oid).collection('chats').orderBy('ts').onSnapshot(s=>{
-    box.innerHTML = s.docs.map(d=>{
-      const m = d.data();
-      const me = m.sender==='partner'||m.sender==='admin';
-      return `<div class="msg ${me?'me':'them'}">${esc(m.text)}<span class="t">${new Date(m.ts).toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit'})}</span></div>`;
-    }).join('') || '<div style="text-align:center;color:#998;font-size:12px;padding:20px;">कोई मैसेज नहीं — पहला मैसेज भेजें 👋</div>';
-    box.scrollTop = box.scrollHeight;
+function gLogin(){
+  ldr('Google login...');
+  var p=new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(p).then(function(r){
+    ldrX();
+    if(!me()){ var ph=prompt('10-अंकों का मोबाइल नंबर डालें:'); if(ph&&/^\d{10}$/.test(ph.trim())) localStorage.setItem('swp_phone',ph.trim()); }
+    localStorage.setItem('swp_logged','1'); enter();
+  }).catch(function(e){
+    ldrX();
+    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/web-storage-unsupported'].indexOf(e.code)>-1){
+      toast('Redirect से login...'); firebase.auth().signInWithRedirect(p).catch(function(e2){alert(aerr(e2));});
+    } else alert(aerr(e));
   });
 }
-function sendChat(){
-  const inp = document.getElementById('chatInp');
-  const t = inp.value.trim(); if(!t||!chatOid) return;
-  inp.value='';
-  FS.collection('orders').doc(chatOid).collection('chats').add({text:t, sender:'partner', ts:Date.now()}).catch(e=>toast(e.message));
+firebase.auth().getRedirectResult().then(function(r){
+  if(r&&r.user){ if(!me()){var ph=prompt('मोबाइल नंबर:'); if(ph&&/^\d{10}$/.test(ph.trim()))localStorage.setItem('swp_phone',ph.trim());} localStorage.setItem('swp_logged','1'); enter(); }
+}).catch(function(){});
+function diag(){
+  alert('🌐 '+location.protocol+'//'+(location.hostname||'(file)')+'\n📶 Internet: '+(navigator.onLine?'✅':'❌')+'\n🔥 Firebase: '+(window.firebase&&firebase.apps.length?'✅':'❌')+'\n\n'+(location.protocol==='file:'?'❗ file:// से खोला — hosting पर खोलें!':'👉 Authorized domains में add करें: '+location.hostname)+'\n\n✅ बिना SMS: Console → Auth → Phone → test numbers में +91 7869969190 / OTP 123456 डालें');
 }
-function closeChat(){ document.getElementById('chatOv').classList.remove('open'); if(chatUnsub){chatUnsub(); chatUnsub=null;} }
+function lgOut(){ localStorage.removeItem('swp_logged'); try{firebase.auth().signOut();}catch(e){} location.reload(); }
 
-/* ─── EARNINGS ─── */
-function renderEarnings(){
-  const me = myPhone();
-  const done = ALL.filter(o=>o.status==='Completed' && (!o.partnerPhone || o.partnerPhone===me));
-  const now = new Date(), today = now.toDateString();
-  const wk = Date.now() - 7*864e5;
-  const sum = a=>a.reduce((s,o)=>s+(o.total||0),0);
-  const tD = done.filter(o=>new Date(o.createdAt||0).toDateString()===today);
-  const wD = done.filter(o=>(o.createdAt||0)>wk);
-  document.getElementById('earnBox').innerHTML = `
-    <div class="earn-hero"><span style="font-size:11px;font-weight:800;opacity:.9;">कुल कमाई (All Time)</span>
-      <b>₹${sum(done).toLocaleString('en-IN')}</b>
-      <span style="font-size:11px;opacity:.9;">${done.length} काम पूरे 🎉</span></div>
-    <div class="earn-grid">
-      <div class="earn-cell"><b>₹${sum(tD).toLocaleString('en-IN')}</b><span>आज (${tD.length} काम)</span></div>
-      <div class="earn-cell"><b>₹${sum(wD).toLocaleString('en-IN')}</b><span>इस हफ्ते (${wD.length} काम)</span></div>
-    </div>
-    <div class="p-title">📜 पूरे किए काम</div>
-    ${done.sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,25).map(o=>`
-      <div class="p-card" style="padding:11px 13px;">
-        <div class="p-row"><span class="p-oid" style="font-size:12.5px;">${esc(o.id)}</span>
-          <b style="color:#15a04a;">+₹${o.total}${payTag(o)}</b></div>
-        <div class="p-meta" style="margin:3px 0 0;">${(o.items||[]).map(i=>esc(i.n)).join(', ')} • ${esc(o.date)}${o.rating?' • ⭐'+o.rating:''}</div>
-      </div>`).join('') || '<div class="p-empty"><span class="ic">💰</span><br>अभी कोई काम पूरा नहीं</div>'}`;
+/* ═══ ENTER APP ═══ */
+var booted=false;
+function enter(){
+  $('lgOv').style.display='none';
+  if(booted) return; booted=true;
+  $('pPh').innerText='📱 +91 '+(me()||'—');
+  if(localStorage.getItem('swp_dark')){ $('drkC').checked=true; document.body.classList.add('dark'); }
+  if(localStorage.getItem('swp_auto')==='1') $('aSw').classList.add('on');
+  var nm=localStorage.getItem('swp_name');
+  if(nm){ $('hHi').innerText='नमस्ते, '+nm+'!'; $('pNm').value=nm; $('pAv').innerText=nm[0].toUpperCase(); }
+  listenPartner(); listenOrders(); listenUsers(); startGps();
+  toast('🧑‍🔧 Partner app तैयार!');
+}
+/* 🔐 REAL AUTH SESSION — Firebase ही तय करेगा कौन logged-in है */
+firebase.auth().onAuthStateChanged(function(u){
+  if(!u) return;
+  if(u.phoneNumber && /^\+91\d{10}$/.test(u.phoneNumber)) localStorage.setItem('swp_phone', u.phoneNumber.slice(3));
+  if(!me()){ var ph=prompt('10-अंकों का मोबाइल नंबर डालें:'); if(ph&&/^\d{10}$/.test(ph.trim())) localStorage.setItem('swp_phone',ph.trim()); }
+  localStorage.setItem('swp_logged','1');
+  enter();
+  var ph2=me();
+  if(ph2) FS.collection('partners').doc(ph2).set({phone:ph2,uid:u.uid,email:u.email||'',lastLogin:Date.now()},{merge:true}).catch(function(){});
+});
+/* 💓 LIVE HEARTBEAT — हर 30s Firebase में lastSeen + online (turant sync) */
+setInterval(function(){
+  var ph=me(); if(ph&&booted) FS.collection('partners').doc(ph).set({lastSeen:Date.now(),online:onl},{merge:true}).catch(function(){});
+},30000);
+document.addEventListener('visibilitychange',function(){
+  var ph=me(); if(ph&&booted) FS.collection('partners').doc(ph).set({lastSeen:Date.now()},{merge:true}).catch(function(){});
+});
+
+/* ═══ PARTNER DOC (realtime) ═══ */
+var P={}, kyc={};
+function listenPartner(){
+  var ph=me(); if(!ph) return;
+  FS.collection('partners').doc(ph).onSnapshot(function(d){
+    if(d.exists) P=d.data()||{};
+    if(P.name){ $('hHi').innerText='नमस्ते, '+P.name+'!'; if(!$('pNm').value)$('pNm').value=P.name; $('pAv').innerText=P.name[0].toUpperCase(); }
+    if(P.avgRating) $('s3').innerText=P.avgRating;
+    if(P.online && !onl){ onl=true; $('onT').classList.add('on'); $('onX').innerText='ONLINE'; }
+    if(P.kycStatus==='Approved' && !localStorage.getItem('swp_kyc_ok')){ localStorage.setItem('swp_kyc_ok','1'); toast('🎉 KYC APPROVED — verified partner!'); vib([90,50,90,50,180]); }
+    drawProfile();
+  }, function(e){ console.log('partner listen:', e.message); });
+  FS.collection('partners').doc(ph).collection('kyc').get().then(function(s){
+    s.docs.forEach(function(d){ kyc[d.id]=d.data().img; });
+    drawProfile();
+  }).catch(function(){});
 }
 
-/* ─── REVIEWS ─── */
-function loadReviews(){
-  const ph = myPhone();
-  const box = document.getElementById('revBox');
-  box.innerHTML = '<div class="sk sk-row"></div><div class="sk sk-row"></div>';
+/* ═══ ONLINE ═══ */
+var onl=false;
+function togOnl(){
+  onl=!onl;
+  $('onT').classList.toggle('on',onl); $('onX').innerText=onl?'ONLINE':'OFFLINE';
+  toast(onl?'🟢 ONLINE — ऑर्डर मिलेंगे':'⚫ OFFLINE');
+  var ph=me(); if(ph) FS.collection('partners').doc(ph).set({online:onl,onlineAt:Date.now()},{merge:true}).catch(function(){});
+}
+
+/* ═══ TABS ═══ */
+function tab(t,btn){
+  ['N','J','E','R','P'].forEach(function(x){ $('sec'+x).classList.remove('act'); });
+  $('sec'+t).classList.add('act');
+  document.querySelectorAll('.nv button').forEach(function(b){ b.classList.remove('act'); });
+  btn.classList.add('act');
+  if(t==='E') drawEarn();
+  if(t==='R') drawRev();
+}
+
+/* ═══ ORDERS realtime ═══ */
+var ALL=[], first=true;
+function listenOrders(){
+  FS.collection('orders').onSnapshot(function(s){
+    if(!first){
+      s.docChanges().forEach(function(ch){
+        var o=ch.doc.data();
+        if(ch.type==='added' && o.status==='Order Placed'){ vib([120,60,120,60,200]); beep(); popup(o); }
+      });
+    }
+    first=false;
+    ALL=s.docs.map(function(d){ return d.data(); });
+    draw();
+  }, function(e){
+    $('lsN').innerHTML='<div class="em">⚠️ '+esc(e.message)+'<br><span style="font-size:11px;">Console → Firestore Database बनाएँ + Rules open करें</span></div>';
+  });
+}
+
+/* ═══ PRESENCE ═══ */
+var uLive={};
+function listenUsers(){
+  FS.collection('users').onSnapshot(function(s){
+    uLive={};
+    s.docs.forEach(function(d){
+      var u=d.data(), on=u.online!==false && (Date.now()-(u.lastSeen||0))<150000;
+      uLive[d.id]=on; if(u.phone)uLive[u.phone]=on;
+    });
+    draw();
+  }, function(){});
+}
+function dotHtml(m){ return '<span class="dot '+(uLive[m]?'on':'')+'"></span>'; }
+function onTxt(m){ return uLive[m]?'🟢 Online':'⚫ Offline'; }
+
+/* ═══ GPS ═══ */
+var loc=null, gw=null, rT=null;
+function startGps(){
+  if(gw||!navigator.geolocation) return;
+  gw=navigator.geolocation.watchPosition(function(p){
+    loc={lat:p.coords.latitude,lon:p.coords.longitude};
+    clearTimeout(rT); rT=setTimeout(draw,4000);
+  },function(){},{enableHighAccuracy:true,maximumAge:8000});
+}
+function dch(o){
+  var d=(o.loc&&loc)?hav(loc,o.loc):null;
+  return d==null?'':'<span class="dch">📍 '+(d<1?Math.round(d*1000)+' m':d.toFixed(1)+' km')+'</span>';
+}
+
+/* ═══ RENDER ═══ */
+function payTag(o){
+  if(!o.payment)return'';
+  if(o.payment.verified||/^paid/i.test(o.payment.status||''))return' ✅PAID';
+  if(/verifying/i.test(o.payment.status||''))return' ⏳UTR';
+  return'';
+}
+function bd(id,n){ var b=$(id); b.style.display=n?'flex':'none'; b.innerText=n; }
+function draw(){
+  var m=me();
+  var news=ALL.filter(function(o){return o.status==='Order Placed';}).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);});
+  var jobs=ALL.filter(function(o){return ['Accepted','On the Way','Working'].indexOf(o.status)>-1&&(!o.partnerPhone||o.partnerPhone===m);}).sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);});
+  var done=ALL.filter(function(o){return o.status==='Completed'&&(!o.partnerPhone||o.partnerPhone===m);});
+  bd('bN',news.length); bd('bJ',jobs.length);
+  var td=new Date().toDateString();
+  $('s1').innerText=ALL.filter(function(o){return new Date(o.createdAt||0).toDateString()===td;}).length;
+  $('s2').innerText='₹'+done.filter(function(o){return new Date(o.createdAt||0).toDateString()===td;}).reduce(function(s,o){return s+(o.total||0);},0).toLocaleString('en-IN');
+  var seen=parseInt(localStorage.getItem('swp_feed_seen')||'0');
+  var fr=ALL.filter(function(o){return (o.createdAt||0)>seen;}).length;
+  var fb=$('fBd'); fb.style.display=fr?'flex':'none'; fb.innerText=fr;
+
+  $('lsN').innerHTML = news.length ? news.map(function(o){
+    return '<div class="cd nw"><div class="rw"><span class="oid">'+esc(o.id)+'</span><span>'+dch(o)+'<span class="ch" style="background:#fff5ed;color:#ff6b00;">₹'+o.total+' • '+esc(o.mode||'')+payTag(o)+'</span></span></div>'+
+    '<div class="mt">'+dotHtml(o.mobile)+'📅 '+esc(o.date)+' ⏰ '+esc(o.time)+' • 👤 '+esc(o.mobile||'')+' • '+onTxt(o.mobile)+'</div>'+
+    '<div class="it">🛠️ '+(o.items||[]).map(function(i){return esc(i.n)+' ×'+(i.qty||1);}).join(', ')+'</div>'+
+    '<div class="ad">📍 '+esc(o.address||'')+'</div>'+
+    '<div class="bns"><button class="bn g" style="font-size:13px;padding:13px;" onclick="acc(\''+esc(o.id)+'\')">✅ ACCEPT करें</button></div></div>';
+  }).join('') : '<div class="em"><span class="ic">📭</span><br><b>अभी कोई नया ऑर्डर नहीं</b><br><span style="font-size:11px;">ONLINE रहें — आते ही आवाज़ आएगी 🔔</span></div>';
+
+  $('lsJ').innerHTML = jobs.length ? jobs.map(function(o){
+    var ix=FLOW.indexOf(o.status);
+    var tl=FLOW.slice(1).map(function(s,i){return '<div class="tp '+(i+1<ix?'dn':(i+1===ix?'nx':''))+'"></div>';}).join('');
+    var shr=!!W[o.id];
+    return '<div class="cd"><div class="rw"><span class="oid">'+esc(o.id)+'</span><span class="ch" style="background:'+SC[o.status]+'22;color:'+SC[o.status]+';">'+SH[o.status]+payTag(o)+'</span></div>'+
+    '<div class="tl">'+tl+'</div>'+
+    '<div class="mt">'+dotHtml(o.mobile)+'💰 <b style="color:#15a04a;">₹'+o.total+'</b> ('+esc(o.mode||'')+') • '+onTxt(o.mobile)+' '+dch(o)+'</div>'+
+    '<div class="it">🛠️ '+(o.items||[]).map(function(i){return esc(i.n)+' ×'+(i.qty||1);}).join(', ')+'</div>'+
+    '<div class="ad">📍 '+esc(o.address||'')+(o.remark?'<br>📝 '+esc(o.remark):'')+'</div>'+
+    '<button class="bn d" style="width:100%;margin:3px 0;padding:12px;font-size:12px;background:linear-gradient(90deg,#0b1220,#26364f);" onclick="nvOpen(\''+esc(o.id)+'\')">🧭 LIVE NAVIGATION</button>'+
+    '<div class="bns">'+(NXT[o.status]?'<button class="bn o" style="flex:2;font-size:12px;" onclick="adv(\''+esc(o.id)+'\',\''+o.status+'\')">'+NXT[o.status]+'</button>':'')+
+    '<button class="bn sh '+(shr?'on':'')+'" onclick="shr(\''+esc(o.id)+'\')">'+(shr?'📡 LIVE':'📡 Location')+'</button></div>'+
+    '<div class="bns"><a class="bn b" href="tel:+91'+esc(o.mobile||'')+'">📞 Call</a>'+
+    '<a class="bn w" href="https://wa.me/91'+esc(o.mobile||'')+'" target="_blank">💬 WA</a>'+
+    '<button class="bn gy" onclick="chOpen(\''+esc(o.id)+'\')">💬 Chat</button></div>'+
+    (o.payment&&!o.payment.verified&&/verifying/i.test(o.payment.status||'')?'<button class="bn au" style="width:100%;margin-top:7px;" onclick="vPay(\''+esc(o.id)+'\',\''+esc(o.payment.ref||'')+'\')">💜 UTR: '+esc(o.payment.ref||'—')+' — VERIFY करें</button>':'')+
+    '<button class="bn r" style="width:100%;margin-top:7px;border:1.5px dashed #f5c6c3;" onclick="cnl(\''+esc(o.id)+'\')">❌ Cancel</button></div>';
+  }).join('') : '<div class="em"><span class="ic">🛠️</span><br><b>कोई active काम नहीं</b></div>';
+
+  autoAssign(news);
+}
+
+/* ═══ AUTO ASSIGN ═══ */
+var tried={};
+function togAuto(){
+  var on=localStorage.getItem('swp_auto')!=='1';
+  localStorage.setItem('swp_auto',on?'1':'');
+  $('aSw').classList.toggle('on',on);
+  toast(on?'⚡ Auto-Accept ON':'Auto-Accept OFF');
+}
+function autoAssign(news){
+  if(localStorage.getItem('swp_auto')!=='1'||!onl||!loc) return;
+  var rad=P.radiusKm||8;
+  news.forEach(function(o){
+    if(tried[o.id]||o.partnerPhone||!o.loc) return;
+    var d=hav(loc,o.loc);
+    if(d==null||d>rad) return;
+    tried[o.id]=1;
+    toast('⚡ '+d.toFixed(1)+' km दूर ऑर्डर — 3 sec में AUTO-ACCEPT');
+    setTimeout(function(){
+      FS.collection('orders').doc(o.id).get().then(function(x){
+        if(x.exists&&x.data().status==='Order Placed'&&!x.data().partnerPhone){ acc(o.id); opClose(); toast('⚡ AUTO-ASSIGNED: '+o.id+' 🎉'); }
+      });
+    },3000);
+  });
+}
+
+/* ═══ POPUP ═══ */
+var opInt=null, opOid=null, rej=JSON.parse(sessionStorage.getItem('swp_rej')||'{}');
+function popup(o){
+  toast('🔔 नया ऑर्डर ₹'+o.total);
+  if(rej[o.id]||$('op').classList.contains('open')) return;
+  opOid=o.id;
+  $('opI').innerText=o.id+' • '+(o.mode||'')+payTag(o);
+  $('opA').innerText='₹'+o.total;
+  $('opIt').innerHTML='🛠️ '+(o.items||[]).map(function(i){return esc(i.n)+' ×'+(i.qty||1);}).join(', ');
+  $('opAd').innerHTML='📍 '+esc(o.address||'');
+  $('opM').innerText='📅 '+(o.date||'')+' ⏰ '+(o.time||'')+' • 👤 '+(o.mobile||'');
+  $('op').classList.add('open');
+  var s=30; $('opS').innerText=s; $('opT').style.setProperty('--p','100%');
+  clearInterval(opInt);
+  opInt=setInterval(function(){
+    s--; $('opS').innerText=s; $('opT').style.setProperty('--p',(s/30*100)+'%');
+    if(s%2===0&&s>0)beep();
+    if(s<=0)opClose();
+  },1000);
+}
+function opClose(){ clearInterval(opInt); $('op').classList.remove('open'); opOid=null; }
+function opGo(){ if(opOid)acc(opOid); opClose(); }
+function opNo(){ if(opOid){rej[opOid]=1;sessionStorage.setItem('swp_rej',JSON.stringify(rej));} opClose(); toast('Tab में फिर भी मिलेगा'); }
+
+/* ═══ ACTIONS ═══ */
+function acc(oid){
+  var nm=$('pNm').value.trim()||P.name||'SewaAstra Partner';
+  ldr('Accept...');
+  FS.collection('orders').doc(oid).update({status:'Accepted',partnerPhone:me(),partnerName:nm,acceptedAt:Date.now()})
+    .then(function(){ ldrX(); toast('✅ ऑर्डर आपका! 🛵'); vib(); })
+    .catch(function(e){ ldrX(); alert('❌ '+e.message); });
+}
+function adv(oid,cur){
+  var nx=FLOW[FLOW.indexOf(cur)+1]; if(!nx)return;
+  if(nx==='Completed'&&!confirm('काम पूरा? Customer को bill+rating popup जाएगा।'))return;
+  var u={status:nx}; u['t_'+nx.replace(/\s/g,'')]=Date.now();
+  FS.collection('orders').doc(oid).update(u).then(function(){
+    toast('📌 '+SH[nx]);
+    if(nx==='Completed'){ shrStop(oid); vib([80,50,80,50,160]); }
+  }).catch(function(e){toast('❌ '+e.message);});
+}
+function cnl(oid){
+  var r=prompt('Cancel का कारण:'); if(r===null)return;
+  FS.collection('orders').doc(oid).update({status:'Cancelled',cancelReason:r||'Partner cancelled',cancelledBy:'partner'})
+    .then(function(){toast('❌ Cancel हो गया');}).catch(function(e){toast(e.message);});
+}
+function vPay(oid,ref){
+  if(!confirm('PhonePe में UTR check किया?\nUTR: '+ref+'\n\nVERIFY करें?'))return;
+  FS.collection('orders').doc(oid).update({'payment.verified':true,'payment.status':'PAID (Partner Verified)','payment.verifiedAt':Date.now()})
+    .then(function(){toast('✅ Payment Verified!');vib();}).catch(function(e){toast(e.message);});
+}
+
+/* ═══ LOCATION SHARE ═══ */
+var W={};
+function shr(oid){
+  if(W[oid])return shrStop(oid,true);
+  if(!navigator.geolocation)return toast('❌ GPS नहीं');
+  var last=0;
+  W[oid]=navigator.geolocation.watchPosition(function(p){
+    var n=Date.now(); if(n-last<4000)return; last=n;
+    FS.collection('orders').doc(oid).update({partnerLoc:{lat:p.coords.latitude,lon:p.coords.longitude,ts:n},sharing:true}).catch(function(){});
+  },function(){toast('❌ Location अनुमति दें');},{enableHighAccuracy:true,maximumAge:3000});
+  toast('📡 LIVE share चालू — customer map पर देखेगा');
+  draw();
+}
+function shrStop(oid,n){
+  if(W[oid]){navigator.geolocation.clearWatch(W[oid]);delete W[oid];}
+  FS.collection('orders').doc(oid).update({sharing:false}).catch(function(){});
+  if(n)toast('📴 Share बंद');
+  draw();
+}
+
+/* ═══ CHAT ═══ */
+var chO2=null,chU=null;
+function chOpen(oid){
+  chO2=oid; $('chT').innerText='💬 '+oid;
+  $('chO').classList.add('open');
+  $('chB').innerHTML='<div class="sk" style="height:36px;"></div>';
+  if(chU)chU();
+  chU=FS.collection('orders').doc(oid).collection('chats').orderBy('ts').onSnapshot(function(s){
+    $('chB').innerHTML=s.docs.map(function(d){
+      var m=d.data(),mine=m.sender==='partner'||m.sender==='admin';
+      return '<div class="mg '+(mine?'me':'th')+'">'+esc(m.text)+'<span class="t">'+new Date(m.ts).toLocaleTimeString('hi-IN',{hour:'2-digit',minute:'2-digit'})+'</span></div>';
+    }).join('')||'<div style="text-align:center;color:#998;font-size:12px;padding:18px;">पहला मैसेज भेजें 👋</div>';
+    $('chB').scrollTop=$('chB').scrollHeight;
+  });
+}
+function chSend(){
+  var t=$('chI').value.trim(); if(!t||!chO2)return;
+  $('chI').value='';
+  FS.collection('orders').doc(chO2).collection('chats').add({text:t,sender:'partner',ts:Date.now()}).catch(function(e){toast(e.message);});
+}
+function chClose(){ $('chO').classList.remove('open'); if(chU){chU();chU=null;} }
+
+/* ═══ LIVE NAV ═══ */
+var nvMap=null,nvMk={},nvI=null,nvOrd=null;
+function leaf(){
+  if(window.L)return Promise.resolve();
+  return new Promise(function(res,rej){
+    var c=document.createElement('link');c.rel='stylesheet';c.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';document.head.appendChild(c);
+    var s=document.createElement('script');s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+function nvOpen(oid){
+  nvOrd=null;
+  for(var i=0;i<ALL.length;i++)if(ALL[i].id===oid)nvOrd=ALL[i];
+  if(!nvOrd)return;
+  var o=nvOrd;
+  $('nvT').innerText='🧭 '+oid;
+  $('nvC').innerText=onTxt(o.mobile);
+  $('nvDot').className='dot '+(uLive[o.mobile]?'on':'');
+  $('nvG').href=o.loc?'https://www.google.com/maps/dir/?api=1&destination='+o.loc.lat+','+o.loc.lon+'&travelmode=driving':'https://www.google.com/maps/dir/?api=1&destination='+encodeURIComponent(o.address||'');
+  $('nvCl').href='tel:+91'+(o.mobile||'');
+  $('nvO').classList.add('open');
+  ldr('Map...');
+  leaf().then(function(){
+    ldrX();
+    if(nvMap){nvMap.remove();nvMap=null;}
+    var c=o.loc?[o.loc.lat,o.loc.lon]:(loc?[loc.lat,loc.lon]:[23.2599,77.4126]);
+    nvMap=L.map('nvM').setView(c,14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(nvMap);
+    nvMk={};
+    if(o.loc)nvMk.c=L.marker([o.loc.lat,o.loc.lon]).addTo(nvMap).bindPopup('🏠 Customer');
+    nvUpd(); clearInterval(nvI); nvI=setInterval(nvUpd,4000);
+  }).catch(function(){ldrX();toast('❌ Map नहीं — Google Maps button use करें');});
+}
+function nvUpd(){
+  if(!nvMap||!nvOrd)return;
+  var o=nvOrd;
+  if(loc){
+    var ic=L.divIcon({html:'<div style="font-size:25px;">🛵</div>',className:'',iconSize:[30,30]});
+    if(nvMk.p)nvMk.p.setLatLng([loc.lat,loc.lon]); else nvMk.p=L.marker([loc.lat,loc.lon],{icon:ic}).addTo(nvMap);
+    if(o.loc){
+      var pts=[[loc.lat,loc.lon],[o.loc.lat,o.loc.lon]];
+      if(nvMk.l)nvMk.l.setLatLngs(pts); else nvMk.l=L.polyline(pts,{color:'#ff6b00',weight:4,dashArray:'8,7'}).addTo(nvMap);
+      nvMap.fitBounds(pts,{padding:[34,34]});
+      var d=hav(loc,o.loc);
+      $('nvD').innerText=d<1?Math.round(d*1000)+' m':d.toFixed(1)+' km';
+      $('nvE').innerText='~'+Math.max(1,Math.round(d/25*60))+' min';
+    }
+  }
+  $('nvC').innerText=onTxt(o.mobile);
+  $('nvDot').className='dot '+(uLive[o.mobile]?'on':'');
+}
+function nvClose(){ $('nvO').classList.remove('open'); clearInterval(nvI); if(nvMap){nvMap.remove();nvMap=null;} }
+
+/* ═══ FEED ═══ */
+function openFeed(){
+  localStorage.setItem('swp_feed_seen',String(Date.now()));
+  $('fBd').style.display='none';
+  $('fdO').classList.add('open');
+  var ev=[];
+  ALL.forEach(function(o){
+    if(o.createdAt)ev.push({ts:o.createdAt,ic:'🆕',bg:'#fff5ed',t:'नया ऑर्डर ₹'+o.total,s:o.id+' • '+(o.address||'').slice(0,40)});
+    if(o.t_Completed)ev.push({ts:o.t_Completed,ic:'🎉',bg:'#e6f7ed',t:'काम पूरा — ₹'+o.total+' कमाए!',s:o.id});
+    if(o.status==='Cancelled')ev.push({ts:(o.createdAt||0)+1,ic:'❌',bg:'#fdecea',t:'Cancel — '+o.id,s:o.cancelReason||''});
+    if(o.payment&&o.payment.verifiedAt)ev.push({ts:o.payment.verifiedAt,ic:'💜',bg:'#f3e8ff',t:'Payment verified ₹'+o.total,s:'UTR: '+(o.payment.ref||'')});
+    if(o.rating)ev.push({ts:(o.t_Completed||o.createdAt||0)+2,ic:'⭐',bg:'#fff8e6',t:o.rating+'★ rating मिली!',s:o.id});
+  });
+  ev.sort(function(a,b){return b.ts-a.ts;});
+  $('fdL').innerHTML=ev.length?ev.slice(0,40).map(function(e){
+    return '<div class="fdi"><div class="fi" style="background:'+e.bg+';">'+e.ic+'</div><div style="flex:1;min-width:0;"><b>'+esc(e.t)+'</b><span>'+esc(e.s)+' • '+ago(e.ts)+'</span></div></div>';
+  }).join(''):'<div class="em"><span class="ic">📰</span><br>कोई activity नहीं</div>';
+}
+
+/* ═══ EARNINGS ═══ */
+function drawEarn(){
+  var m=me();
+  var done=ALL.filter(function(o){return o.status==='Completed'&&(!o.partnerPhone||o.partnerPhone===m);});
+  var td=new Date().toDateString(), wk=Date.now()-7*864e5;
+  function sum(a){return a.reduce(function(s,o){return s+(o.total||0);},0);}
+  var tD=done.filter(function(o){return new Date(o.createdAt||0).toDateString()===td;});
+  var wD=done.filter(function(o){return (o.createdAt||0)>wk;});
+  $('lsE').innerHTML='<div class="eh"><span style="font-size:10.5px;font-weight:800;opacity:.9;">कुल कमाई</span><b>₹'+sum(done).toLocaleString('en-IN')+'</b><span style="font-size:10.5px;opacity:.9;">'+done.length+' काम पूरे 🎉</span></div>'+
+  '<div class="eg"><div class="ec"><b>₹'+sum(tD).toLocaleString('en-IN')+'</b><span>आज ('+tD.length+')</span></div><div class="ec"><b>₹'+sum(wD).toLocaleString('en-IN')+'</b><span>इस हफ्ते ('+wD.length+')</span></div></div>'+
+  '<div class="tt">📜 पूरे किए काम</div>'+
+  (done.sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}).slice(0,25).map(function(o){
+    return '<div class="cd" style="padding:10px 12px;"><div class="rw"><span class="oid" style="font-size:12px;">'+esc(o.id)+'</span><b style="color:#15a04a;">+₹'+o.total+payTag(o)+'</b></div><div class="mt" style="margin:2px 0 0;">'+(o.items||[]).map(function(i){return esc(i.n);}).join(', ')+' • '+esc(o.date)+(o.rating?' • ⭐'+o.rating:'')+'</div></div>';
+  }).join('')||'<div class="em"><span class="ic">💰</span><br>अभी कोई काम पूरा नहीं</div>');
+}
+
+/* ═══ REVIEWS ═══ */
+function drawRev(){
+  var ph=me();
+  $('lsR').innerHTML='<div class="sk"></div>';
   Promise.all([
     FS.collection('partners').doc(ph).get(),
     FS.collection('partners').doc(ph).collection('reviews').orderBy('ts','desc').limit(30).get()
-  ]).then(([pd, snap])=>{
-    const p = pd.exists?pd.data():{};
-    const revs = snap.docs.map(d=>d.data());
-    const avg = p.avgRating || 0, cnt = p.ratingCount || revs.length;
-    if(avg) document.getElementById('stRate').innerText = avg;
-    if(!revs.length && !cnt) return box.innerHTML = '<div class="p-empty"><span class="ic">🌟</span><br><b>अभी कोई review नहीं</b><br><span style="font-size:11px;">काम पूरा करते ही customer rating देगा</span></div>';
-    box.innerHTML = `
-      <div class="rev-top">
-        <div style="text-align:center;"><div class="rev-avg">${avg||'—'}</div>
-          <div class="stars">${'★'.repeat(Math.round(avg))}<span style="color:#ddd;">${'★'.repeat(5-Math.round(avg))}</span></div>
-          <div style="font-size:10px;color:#998;font-weight:800;">${cnt} reviews</div></div>
-        <div style="flex:1;font-size:12px;color:#877;font-weight:700;">आपकी rating customer app के हर service card पर दिखती है — अच्छा काम = ज़्यादा ऑर्डर! 🚀</div>
-      </div>
-      ${revs.map(r=>`
-        <div class="p-card" style="padding:11px 13px;">
-          <div class="p-row"><span class="stars">${'★'.repeat(r.rating||0)}<span style="color:#ddd;">${'★'.repeat(5-(r.rating||0))}</span></span>
-            <span style="font-size:10px;color:#999;">${esc(r.at||'')}</span></div>
-          ${r.comment?`<div style="font-size:12.5px;margin-top:5px;line-height:1.5;">${esc(r.comment)}</div>`:''}
-          <div style="font-size:10px;color:#999;margin-top:4px;font-weight:700;">${esc(r.orderId||'')}</div>
-        </div>`).join('')}`;
-  }).catch(e=>{ box.innerHTML='<div class="p-empty">⚠️ '+esc(e.message)+'</div>'; });
+  ]).then(function(r){
+    var p=r[0].exists?r[0].data():{};
+    var rv=r[1].docs.map(function(d){return d.data();});
+    var avg=p.avgRating||0,cnt=p.ratingCount||rv.length;
+    if(avg)$('s3').innerText=avg;
+    if(!rv.length&&!cnt)return $('lsR').innerHTML='<div class="em"><span class="ic">🌟</span><br><b>अभी review नहीं</b><br><span style="font-size:11px;">काम पूरा होते ही मिलेंगे</span></div>';
+    $('lsR').innerHTML='<div class="rvt"><div style="text-align:center;"><div class="rva">'+avg+'</div><div class="strs">'+'★'.repeat(Math.round(avg))+'<span style="color:#ddd;">'+'★'.repeat(5-Math.round(avg))+'</span></div><div style="font-size:9.5px;color:#998;font-weight:800;">'+cnt+' reviews</div></div><div style="flex:1;font-size:11.5px;color:#877;font-weight:700;">अच्छी rating = customer app में ज़्यादा भरोसा = ज़्यादा ऑर्डर! 🚀</div></div>'+
+    rv.map(function(x){
+      return '<div class="cd" style="padding:10px 12px;"><div class="rw"><span class="strs">'+'★'.repeat(x.rating||0)+'<span style="color:#ddd;">'+'★'.repeat(5-(x.rating||0))+'</span></span><span style="font-size:9.5px;color:#999;">'+esc(x.at||'')+'</span></div>'+(x.comment?'<div style="font-size:12px;margin-top:4px;line-height:1.5;">'+esc(x.comment)+'</div>':'')+'<div style="font-size:9.5px;color:#999;margin-top:3px;font-weight:700;">'+esc(x.orderId||'')+'</div></div>';
+    }).join('');
+  }).catch(function(e){ $('lsR').innerHTML='<div class="em">⚠️ '+esc(e.message)+'</div>'; });
 }
 
-/* ─── PROFILE ─── */
-function saveProfile(){
-  const nm = document.getElementById('profName').value.trim();
-  if(!nm) return toast('❌ नाम लिखें');
-  const ph = myPhone();
-  localStorage.setItem('swp_name', nm);
-  FS.collection('partners').doc(ph).set({name:nm, phone:ph},{merge:true}).then(()=>{
-    document.getElementById('pHello').innerText='नमस्ते, '+nm+'!';
-    document.getElementById('profAv').innerText=nm[0].toUpperCase();
-    toast('💾 प्रोफाइल save — customer को अब "'+nm+'" दिखेगा');
-  }).catch(e=>toast(e.message));
+/* ═══ PROFILE: KYC + BANK + SKILLS ═══ */
+function drawProfile(){
+  var host=$('pX'); if(!host)return;
+  var st=P.kycStatus||(Object.keys(kyc).length>=4?'Submitted':'Pending');
+  var stC=st==='Approved'?'<span class="kst" style="background:#e6f7ed;color:#0f7a37;">✅ APPROVED</span>':st==='Submitted'?'<span class="kst" style="background:#fff8e6;color:#b07800;">⏳ REVIEW में</span>':'<span class="kst" style="background:#fdecea;color:#e53935;">❗ PENDING</span>';
+  var pts=0;
+  if(P.name)pts++; if((P.skills||[]).length)pts++;
+  if(P.bank&&P.bank.upi)pts++; if(P.bank&&P.bank.acc)pts++;
+  KDOCS.forEach(function(d){if(kyc[d.k])pts++;});
+  var pc=Math.round(pts/8*100);
+  var b=P.bank||{};
+  host.innerHTML=
+  '<div class="cd"><div class="rw"><b style="font-size:12.5px;">📋 Profile Completion</b><b style="color:var(--pr);">'+pc+'%</b></div><div class="pcb"><span style="width:'+pc+'%;"></span></div><div style="font-size:10px;color:#998;font-weight:700;margin-top:5px;">'+(pc<100?'100% = ज़्यादा ऑर्डर! KYC + Bank पूरा करें 🚀':'🎉 Profile पूरी — verified partner!')+'</div></div>'+
+  '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🪪 KYC Documents</b>'+stC+'</div><div class="kyg">'+
+  KDOCS.map(function(d){
+    var im=kyc[d.k];
+    return '<div class="kyd '+(im?'dn':'')+'" onclick="document.getElementById(\'kf'+d.k+'\').click()">'+(im?'<img src="'+im+'"><span class="ok2"><i class="fa fa-check"></i></span>':'<span class="i2">'+d.i+'</span>')+'<span class="n2">'+d.n+(im?' ✓':' — टैप करें')+'</span><input type="file" id="kf'+d.k+'" accept="image/*" style="display:none;" onchange="upKyc(\''+d.k+'\',this)"></div>';
+  }).join('')+'</div>'+
+  (st!=='Approved'?'<button class="bn o" style="width:100%;margin-top:9px;padding:11px;" onclick="subKyc()">📤 KYC Submit करें</button>':'')+'</div>'+
+  '<div class="cd"><b style="font-size:12.5px;">🏦 Bank / Payout</b>'+
+  '<input class="pi" id="bH" placeholder="Account Holder नाम" value="'+esc(b.holder||'')+'">'+
+  '<input class="pi" id="bA" placeholder="Account Number" value="'+esc(b.acc||'')+'">'+
+  '<input class="pi" id="bI" placeholder="IFSC" style="text-transform:uppercase;" value="'+esc(b.ifsc||'')+'">'+
+  '<input class="pi" id="bU" placeholder="UPI ID (payout यहीं आएगा)" value="'+esc(b.upi||'')+'">'+
+  '<button class="bn o" style="width:100%;margin-top:9px;padding:11px;" onclick="savBk()">💾 Save</button></div>'+
+  '<div class="cd"><b style="font-size:12.5px;">🛠️ Skills</b><div style="margin-top:7px;">'+
+  SKILLS.map(function(s){var on=(P.skills||[]).indexOf(s)>-1;return '<span class="skc '+(on?'on':'')+'" onclick="togSk(this,\''+s+'\')">'+s+'</span>';}).join('')+'</div>'+
+  '<div class="srw" style="margin-top:7px;"><span>📍 Radius</span><span><input type="range" min="2" max="25" value="'+(P.radiusKm||8)+'" style="width:120px;accent-color:var(--pr);" oninput="document.getElementById(\'rV\').innerText=this.value" onchange="savRad(this.value)"> <b id="rV" style="color:var(--pr);">'+(P.radiusKm||8)+'</b> km</span></div></div>'+
+  '<div class="cd"><b style="font-size:12.5px;">🆘 Help</b><div class="bns" style="margin-top:8px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190" target="_blank">💬 WhatsApp</a></div></div>';
 }
-
-console.log('%c SewaAstra PARTNER APP v1.0 🧑‍🔧 ready ', 'background:#ff6b00;color:#fff;font-weight:bold;padding:4px;');
-</script>
-<style id="partnerV2css">
-/* ═══ PARTNER v2 — Zomato-style ═══ */
-body.dark{--card-bg:#171e2c;--bg:#0d1320;--text:#e8ecf4;--border-color:#26304a;--primary-light:#241a10;}
-body.dark .p-addr{background:#241a10;}
-body.dark #chatMsgs{background:#0d1320;}
-body.dark .msg.them{background:#1c2536;border-color:#26304a;color:#e8ecf4;}
-body.dark .sk{background:#1c2536;}
-body.dark .rev-top{background:linear-gradient(120deg,#241a10,#1c1712);border-color:#3a2d20;}
-
-/* fullscreen order popup */
-#ordPop{position:fixed;inset:0;z-index:99000;display:none;flex-direction:column;justify-content:flex-end;background:rgba(8,12,24,.75);backdrop-filter:blur(6px);}
-#ordPop.open{display:flex;}
-.op-card{background:var(--card-bg);border-radius:26px 26px 0 0;padding:0 0 18px;animation:opUp .35s cubic-bezier(.2,.9,.3,1);max-height:92dvh;overflow-y:auto;}
-@keyframes opUp{from{transform:translateY(70%)}to{transform:none}}
-.op-head{background:linear-gradient(120deg,#ff6b00,#ff9a3d);color:#fff;padding:18px;border-radius:26px 26px 0 0;display:flex;justify-content:space-between;align-items:center;}
-.op-timer{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:17px;background:conic-gradient(#fff var(--pct,100%),rgba(255,255,255,.25) 0);position:relative;}
-.op-timer::after{content:"";position:absolute;inset:5px;border-radius:50%;background:rgba(0,0,0,.25);}
-.op-timer span{position:relative;z-index:2;}
-.op-body{padding:16px;}
-.op-amt{font-size:30px;font-weight:900;color:var(--success);text-align:center;margin:4px 0 10px;}
-.op-accept{width:100%;border:none;border-radius:16px;padding:17px;font-size:16px;font-weight:900;color:#fff;background:linear-gradient(90deg,#15a04a,#1fc25e);box-shadow:0 12px 30px rgba(21,160,74,.45);cursor:pointer;animation:glow 1.2s infinite;}
-.op-reject{width:100%;border:none;background:transparent;color:#998;font-weight:800;font-size:12.5px;padding:12px;cursor:pointer;}
-
-/* KYC */
-.kyc-status{padding:5px 12px;border-radius:14px;font-size:10.5px;font-weight:900;}
-.kyc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
-.kyc-doc{border:2px dashed var(--border-color);border-radius:14px;padding:10px;text-align:center;cursor:pointer;position:relative;overflow:hidden;transition:.15s;}
-.kyc-doc:active{transform:scale(.96);}
-.kyc-doc.done{border-style:solid;border-color:#15a04a;}
-.kyc-doc img{width:100%;height:74px;object-fit:cover;border-radius:9px;}
-.kyc-doc .ic{font-size:26px;padding:16px 0 6px;display:block;}
-.kyc-doc .nm{font-size:10.5px;font-weight:900;color:#998;padding-bottom:4px;display:block;}
-.kyc-doc .ok{position:absolute;top:6px;right:6px;background:#15a04a;color:#fff;width:20px;height:20px;border-radius:50%;font-size:10px;display:flex;align-items:center;justify-content:center;}
-.pc-wrap{background:var(--card-bg);border:1px solid var(--border-color);border-radius:16px;padding:13px 15px;margin-bottom:12px;}
-.pc-bar{height:9px;border-radius:5px;background:#eee;overflow:hidden;margin-top:8px;}
-.pc-bar span{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,#ff6b00,#1fc25e);transition:width .5s;}
-.skill-chip{display:inline-block;border:1.5px solid var(--border-color);border-radius:16px;padding:7px 13px;font-size:11.5px;font-weight:800;margin:3px;cursor:pointer;user-select:none;color:#877;}
-.skill-chip.on{background:linear-gradient(90deg,#ff6b00,#ff8c2e);color:#fff;border-color:#ff6b00;}
-.set-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;font-size:13px;font-weight:700;border-bottom:1px dashed var(--border-color);}
-.set-row:last-child{border:none;}
-.set-row input[type=checkbox]{width:20px;height:20px;accent-color:var(--primary);}
-.set-row input[type=range]{width:130px;accent-color:var(--primary);}
-</style>
-
-<!-- ═══ FULLSCREEN NEW ORDER POPUP ═══ -->
-<div id="ordPop">
-  <div class="op-card">
-    <div class="op-head">
-      <div><div style="font-size:16px;font-weight:900;">🔔 नया ऑर्डर!</div>
-        <div style="font-size:11px;opacity:.9;" id="opId">—</div></div>
-      <div class="op-timer" id="opTimer"><span id="opSec">30</span></div>
-    </div>
-    <div class="op-body">
-      <div class="op-amt" id="opAmt">₹0</div>
-      <div class="p-items" id="opItems" style="text-align:center;"></div>
-      <div class="p-addr" id="opAddr"></div>
-      <div class="p-meta" id="opMeta" style="text-align:center;"></div>
-      <button class="op-accept" id="opAccept">✅ ACCEPT — काम पक्का करें</button>
-      <button class="op-reject" id="opReject">❌ अभी नहीं (Reject)</button>
-    </div>
-  </div>
-</div>
-
-<script>
-/* ═══════════════ PARTNER v2 — ZOMATO-STYLE + KYC ═══════════════ */
-
-/* ---------- 1. FULLSCREEN ORDER POPUP + 30s TIMER ---------- */
-var opTimerInt = null, opCurOid = null;
-var rejected = JSON.parse(sessionStorage.getItem('swp_rejected') || '{}');
-
-function showOrderPopup(o){
-  toast('🔔 नया ऑर्डर — ₹' + o.total);
-  if (rejected[o.id]) return;
-  if (document.getElementById('ordPop').classList.contains('open')) return;
-  opCurOid = o.id;
-  document.getElementById('opId').innerText = o.id + ' • ' + (o.mode||'') + payTag(o);
-  document.getElementById('opAmt').innerText = '₹' + o.total;
-  document.getElementById('opItems').innerHTML = '🛠️ ' + (o.items||[]).map(function(i){ return esc(i.n) + ' ×' + (i.qty||1); }).join(', ');
-  document.getElementById('opAddr').innerHTML = '📍 ' + esc(o.address||'');
-  document.getElementById('opMeta').innerText = '📅 ' + (o.date||'') + ' ⏰ ' + (o.time||'') + ' • 👤 ' + (o.mobile||'');
-  document.getElementById('ordPop').classList.add('open');
-  var sec = 30;
-  var tEl = document.getElementById('opTimer'), sEl = document.getElementById('opSec');
-  sEl.innerText = sec; tEl.style.setProperty('--pct','100%');
-  clearInterval(opTimerInt);
-  opTimerInt = setInterval(function(){
-    sec--;
-    sEl.innerText = sec;
-    tEl.style.setProperty('--pct', (sec/30*100) + '%');
-    if (sec % 2 === 0 && sec > 0) beep();
-    if (sec <= 0) closeOrdPop();
-  }, 1000);
-}
-function closeOrdPop(){
-  clearInterval(opTimerInt);
-  document.getElementById('ordPop').classList.remove('open');
-  opCurOid = null;
-}
-document.getElementById('opAccept').onclick = function(){
-  if (opCurOid) acceptOrder(opCurOid);
-  closeOrdPop();
-};
-document.getElementById('opReject').onclick = function(){
-  if (opCurOid){ rejected[opCurOid] = 1; sessionStorage.setItem('swp_rejected', JSON.stringify(rejected)); }
-  closeOrdPop();
-  toast('ऑर्डर "नए ऑर्डर" tab में फिर भी मिलेगा');
-};
-
-/* ---------- 2. KYC + BANK + SKILLS + SUPPORT (Profile me) ---------- */
-var KYC_DOCS = [
-  { k:'aadhaarF', nm:'आधार (Front)', ic:'🪪' },
-  { k:'aadhaarB', nm:'आधार (Back)', ic:'🪪' },
-  { k:'pan', nm:'PAN Card', ic:'💳' },
-  { k:'selfie', nm:'Selfie फोटो', ic:'🤳' }
-];
-var SKILLS = ['AC','RO / Water Purifier','Fridge','Washing Machine','Electrician','Plumber','Geyser','Microwave','TV','CCTV'];
-var kycData = {}, partnerDoc = {};
-
-function renderProfExtra(){
-  var host = document.getElementById('profExtra');
-  if (!host) return;
-  var st = partnerDoc.kycStatus || (Object.keys(kycData).length >= 4 ? 'Submitted' : 'Pending');
-  var stChip = st === 'Approved'
-    ? '<span class="kyc-status" style="background:#e6f7ed;color:#0f7a37;">✅ APPROVED</span>'
-    : st === 'Submitted'
-    ? '<span class="kyc-status" style="background:#fff8e6;color:#b07800;">⏳ UNDER REVIEW</span>'
-    : '<span class="kyc-status" style="background:#fdecea;color:#e53935;">❗ PENDING</span>';
-
-  /* profile completion % */
-  var pts = 0, tot = 8;
-  if (partnerDoc.name) pts++;
-  if ((partnerDoc.skills||[]).length) pts++;
-  if (partnerDoc.bank && partnerDoc.bank.upi) pts++;
-  if (partnerDoc.bank && partnerDoc.bank.acc) pts++;
-  KYC_DOCS.forEach(function(d){ if (kycData[d.k]) pts++; });
-  var pc = Math.round(pts/tot*100);
-
-  var b = partnerDoc.bank || {};
-  host.innerHTML =
-    '<div class="pc-wrap"><div class="p-row"><b style="font-size:13px;">📋 Profile Completion</b><b style="color:var(--primary);">' + pc + '%</b></div>' +
-      '<div class="pc-bar"><span style="width:' + pc + '%;"></span></div>' +
-      (pc < 100 ? '<div style="font-size:10.5px;color:#998;font-weight:700;margin-top:6px;">100% profile = ज़्यादा ऑर्डर! KYC + Bank पूरा करें 🚀</div>' : '<div style="font-size:10.5px;color:#0f7a37;font-weight:800;margin-top:6px;">🎉 Profile पूरी! आप verified partner हैं</div>') +
-    '</div>' +
-
-    '<div class="prof-card"><div class="p-row"><b style="font-size:13px;">🪪 KYC Documents</b>' + stChip + '</div>' +
-      '<div class="kyc-grid">' + KYC_DOCS.map(function(d){
-        var img = kycData[d.k];
-        return '<div class="kyc-doc ' + (img?'done':'') + '" onclick="document.getElementById(\'kf_' + d.k + '\').click()">' +
-          (img ? '<img src="' + img + '"><span class="ok"><i class="fa fa-check"></i></span>' : '<span class="ic">' + d.ic + '</span>') +
-          '<span class="nm">' + d.nm + (img?' ✓':' — टैप करें') + '</span>' +
-          '<input type="file" id="kf_' + d.k + '" accept="image/*" capture="environment" style="display:none;" onchange="uploadKyc(\'' + d.k + '\', this)">' +
-        '</div>';
-      }).join('') + '</div>' +
-      (st !== 'Approved' ? '<button class="p-btn next" style="width:100%;margin-top:10px;padding:12px;" onclick="submitKyc()">📤 KYC Submit करें (Review के लिए)</button>' : '') +
-    '</div>' +
-
-    '<div class="prof-card"><b style="font-size:13px;">🏦 Bank / Payout Details</b>' +
-      '<input class="prof-inp" id="bkName" placeholder="Account Holder का नाम" value="' + esc(b.holder||'') + '">' +
-      '<input class="prof-inp" id="bkAcc" placeholder="Account Number" inputmode="numeric" value="' + esc(b.acc||'') + '">' +
-      '<input class="prof-inp" id="bkIfsc" placeholder="IFSC Code" style="text-transform:uppercase;" value="' + esc(b.ifsc||'') + '">' +
-      '<input class="prof-inp" id="bkUpi" placeholder="UPI ID (payout इसी पर आएगा)" value="' + esc(b.upi||'') + '">' +
-      '<button class="p-btn next" style="width:100%;margin-top:10px;padding:12px;" onclick="saveBank()">💾 Bank Details Save करें</button>' +
-    '</div>' +
-
-    '<div class="prof-card"><b style="font-size:13px;">🛠️ मेरे काम (Skills) — जो आते हैं चुनें</b><div style="margin-top:8px;">' +
-      SKILLS.map(function(s){
-        var on = (partnerDoc.skills||[]).indexOf(s) > -1;
-        return '<span class="skill-chip ' + (on?'on':'') + '" onclick="togSkill(this,\'' + s + '\')">' + s + '</span>';
-      }).join('') + '</div>' +
-      '<div class="set-row" style="margin-top:8px;"><span>📍 Service Radius</span><span><input type="range" id="radKm" min="2" max="25" value="' + (partnerDoc.radiusKm||8) + '" oninput="document.getElementById(\'radV\').innerText=this.value" onchange="saveRadius(this.value)"> <b id="radV" style="color:var(--primary);">' + (partnerDoc.radiusKm||8) + '</b> km</span></div>' +
-    '</div>' +
-
-    '<div class="prof-card"><b style="font-size:13px;">🆘 Help & Support</b>' +
-      '<div class="p-btns" style="margin-top:10px;">' +
-        '<a class="p-btn blue" style="text-align:center;text-decoration:none;line-height:1.4;" href="tel:+917869969190">📞 Admin को Call</a>' +
-        '<a class="p-btn wa" style="text-align:center;text-decoration:none;line-height:1.4;" href="https://wa.me/917869969190?text=Partner%20Help%20चाहिए" target="_blank">💬 WhatsApp</a>' +
-      '</div>' +
-      '<div style="font-size:11px;color:#998;font-weight:700;margin-top:9px;" id="dutyTxt">⏱️ आज की duty: 0 min</div>' +
-    '</div>';
-  paintDuty();
-}
-
-/* KYC upload: compress → base64 → Firestore */
-function compressImg(file){
-  return new Promise(function(res, rej){
-    var rd = new FileReader();
-    rd.onload = function(e){
-      var im = new Image();
-      im.onload = function(){
-        var mx = 800, w = im.width, h = im.height;
-        if (w > mx){ h = h*mx/w; w = mx; }
-        if (h > mx){ w = w*mx/h; h = mx; }
-        var cv = document.createElement('canvas');
-        cv.width = w; cv.height = h;
-        cv.getContext('2d').drawImage(im, 0, 0, w, h);
-        res(cv.toDataURL('image/jpeg', 0.55));
-      };
-      im.onerror = rej;
-      im.src = e.target.result;
+function upKyc(k,inp){
+  var f=inp.files&&inp.files[0]; if(!f)return;
+  ldr('📤 Upload...');
+  var rd=new FileReader();
+  rd.onload=function(e){
+    var im=new Image();
+    im.onload=function(){
+      var mx=800,w=im.width,h=im.height;
+      if(w>mx){h=h*mx/w;w=mx;} if(h>mx){w=w*mx/h;h=mx;}
+      var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+      cv.getContext('2d').drawImage(im,0,0,w,h);
+      var b64=cv.toDataURL('image/jpeg',.55);
+      if(b64.length>700000){ldrX();return toast('❌ फोटो बड़ी है — दोबारा लें');}
+      FS.collection('partners').doc(me()).collection('kyc').doc(k).set({img:b64,ts:Date.now(),at:new Date().toLocaleString('en-IN')})
+        .then(function(){kyc[k]=b64;ldrX();toast('✅ Save हो गया');vib();drawProfile();})
+        .catch(function(er){ldrX();alert('❌ '+er.message);});
     };
-    rd.onerror = rej;
-    rd.readAsDataURL(file);
-  });
-}
-function uploadKyc(k, inp){
-  var f = inp.files && inp.files[0];
-  if (!f) return;
-  loader('📤 Document upload हो रहा है...');
-  compressImg(f).then(function(b64){
-    if (b64.length > 700000){ hideLoader(); return toast('❌ फोटो बहुत बड़ी है — दोबारा लें'); }
-    return FS.collection('partners').doc(myPhone()).collection('kyc').doc(k)
-      .set({ img: b64, ts: Date.now(), at: new Date().toLocaleString('en-IN') })
-      .then(function(){
-        kycData[k] = b64;
-        hideLoader(); toast('✅ Document save हो गया'); vib();
-        renderProfExtra();
-      });
-  }).catch(function(e){ hideLoader(); toast('❌ ' + (e.message||'upload fail')); });
-}
-function submitKyc(){
-  var missing = KYC_DOCS.filter(function(d){ return !kycData[d.k]; });
-  if (missing.length) return toast('❌ पहले upload करें: ' + missing.map(function(d){ return d.nm; }).join(', '));
-  FS.collection('partners').doc(myPhone()).set({ kycStatus:'Submitted', kycAt: Date.now() }, {merge:true}).then(function(){
-    partnerDoc.kycStatus = 'Submitted';
-    toast('📤 KYC submit! Admin जल्द approve करेंगे ✅'); vib();
-    renderProfExtra();
-  });
-}
-function saveBank(){
-  var bank = {
-    holder: document.getElementById('bkName').value.trim(),
-    acc: document.getElementById('bkAcc').value.trim(),
-    ifsc: document.getElementById('bkIfsc').value.trim().toUpperCase(),
-    upi: document.getElementById('bkUpi').value.trim()
+    im.src=e.target.result;
   };
-  if (!bank.upi && !bank.acc) return toast('❌ कम से कम UPI ID या Account No. डालें');
-  FS.collection('partners').doc(myPhone()).set({ bank: bank }, {merge:true}).then(function(){
-    partnerDoc.bank = bank;
-    toast('💾 Bank details save — payout इसी पर आएगा 🏦');
-    renderProfExtra();
-  }).catch(function(e){ toast(e.message); });
+  rd.readAsDataURL(f);
 }
-function togSkill(el, s){
+function subKyc(){
+  var miss=KDOCS.filter(function(d){return !kyc[d.k];});
+  if(miss.length)return toast('❌ पहले upload करें: '+miss.map(function(d){return d.n;}).join(', '));
+  FS.collection('partners').doc(me()).set({kycStatus:'Submitted',kycAt:Date.now()},{merge:true}).then(function(){
+    P.kycStatus='Submitted'; toast('📤 KYC submit — admin approve करेंगे ✅'); vib(); drawProfile();
+  });
+}
+function savBk(){
+  var bank={holder:$('bH').value.trim(),acc:$('bA').value.trim(),ifsc:$('bI').value.trim().toUpperCase(),upi:$('bU').value.trim()};
+  if(!bank.upi&&!bank.acc)return toast('❌ UPI या Account No. डालें');
+  FS.collection('partners').doc(me()).set({bank:bank},{merge:true}).then(function(){P.bank=bank;toast('💾 Bank save 🏦');drawProfile();}).catch(function(e){toast(e.message);});
+}
+function togSk(el,s){
   el.classList.toggle('on');
-  var sk = partnerDoc.skills || [];
-  if (el.classList.contains('on')){ if (sk.indexOf(s) < 0) sk.push(s); }
-  else sk = sk.filter(function(x){ return x !== s; });
-  partnerDoc.skills = sk;
-  FS.collection('partners').doc(myPhone()).set({ skills: sk }, {merge:true});
-  toast('🛠️ ' + sk.length + ' skills selected');
+  var sk=P.skills||[];
+  if(el.classList.contains('on')){if(sk.indexOf(s)<0)sk.push(s);}else sk=sk.filter(function(x){return x!==s;});
+  P.skills=sk;
+  FS.collection('partners').doc(me()).set({skills:sk},{merge:true});
 }
-function saveRadius(v){
-  partnerDoc.radiusKm = +v;
-  FS.collection('partners').doc(myPhone()).set({ radiusKm: +v }, {merge:true});
+function savRad(v){ P.radiusKm=+v; FS.collection('partners').doc(me()).set({radiusKm:+v},{merge:true}); }
+function savePr(){
+  var nm=$('pNm').value.trim(); if(!nm)return toast('❌ नाम लिखें');
+  localStorage.setItem('swp_name',nm);
+  FS.collection('partners').doc(me()).set({name:nm,phone:me()},{merge:true}).then(function(){
+    $('hHi').innerText='नमस्ते, '+nm+'!'; $('pAv').innerText=nm[0].toUpperCase(); toast('💾 Save!');
+  }).catch(function(e){toast(e.message);});
+}
+function togDark(){
+  var on=$('drkC').checked;
+  document.body.classList.toggle('dark',on);
+  localStorage.setItem('swp_dark',on?'1':'');
 }
 
-/* ---------- 3. DUTY TIME (Zomato jaisa) ---------- */
-var dutyStart = null;
-function dutyKey(){ return 'swp_duty_' + new Date().toDateString(); }
-function dutyMins(){ return parseInt(localStorage.getItem(dutyKey()) || '0') + (dutyStart ? Math.floor((Date.now()-dutyStart)/60000) : 0); }
-function paintDuty(){
-  var el = document.getElementById('dutyTxt');
-  if (!el) return;
-  var m = dutyMins();
-  el.innerText = '⏱️ आज की duty: ' + Math.floor(m/60) + 'h ' + (m%60) + 'm' + (dutyStart ? ' 🟢 (चालू)' : '');
-}
+console.log('%c SEWAASTRA PARTNER v4.0 CLEAN BUILD ✅ ', 'background:#15a04a;color:#fff;font-weight:bold;padding:4px;');
+
+/* ═══════════════ v4.1 FEATURE PACK ═══════════════ */
+
+/* 📴 Internet banner */
 (function(){
-  var _so = setOnline;
-  window.setOnline = function(v){
-    if (v && !dutyStart) dutyStart = Date.now();
-    if (!v && dutyStart){
-      localStorage.setItem(dutyKey(), String(dutyMins()));
-      dutyStart = null;
-    }
-    paintDuty();
-    return _so(v);
-  };
-  setInterval(paintDuty, 60000);
+  var b=document.createElement('div'); b.id='netB';
+  b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:9999;background:#e53935;color:#fff;text-align:center;font-size:11.5px;font-weight:800;padding:6px;display:none;';
+  b.innerText='📴 Internet नहीं है — connection check करें';
+  document.body.appendChild(b);
+  window.addEventListener('offline',function(){ b.style.display='block'; });
+  window.addEventListener('online',function(){ b.style.display='none'; toast('✅ Internet वापस आ गया'); });
 })();
 
-/* ---------- 4. DARK MODE ---------- */
-function togDark(cb){
-  document.body.classList.toggle('dark', cb.checked);
-  localStorage.setItem('swp_dark', cb.checked ? '1' : '');
+/* 🔔 Browser Notifications (background tab में भी) */
+setTimeout(function(){
+  try{ if('Notification' in window && Notification.permission==='default' && localStorage.getItem('swp_logged')==='1') Notification.requestPermission(); }catch(e){}
+},2500);
+function v41Notify(o){
+  try{
+    if(!('Notification' in window)||Notification.permission!=='granted') return;
+    var n=new Notification('🔔 नया ऑर्डर — ₹'+(o.total||0),{
+      body:(o.items||[]).map(function(i){return i.n;}).join(', ')+'\n📍 '+(o.address||'').slice(0,60),
+      icon:'icon-192.png', tag:o.id||'ord', renotify:true
+    });
+    n.onclick=function(){ try{window.focus();}catch(e){} this.close(); };
+  }catch(e){}
 }
+
+/* 🗣️ Voice announcement (Hindi) */
+function v41Say(o){
+  try{
+    if(localStorage.getItem('swp_voice')==='0'||!window.speechSynthesis) return;
+    var u=new SpeechSynthesisUtterance('नया ऑर्डर आया है, '+(o.total||0)+' रुपये का। जल्दी accept करें!');
+    u.lang='hi-IN'; u.rate=.95;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  }catch(e){}
+}
+if($('vceC')){
+  $('vceC').checked=localStorage.getItem('swp_voice')!=='0';
+  $('vceC').onchange=function(){ localStorage.setItem('swp_voice',this.checked?'1':'0'); toast(this.checked?'🗣️ Voice ON':'🔇 Voice OFF'); };
+}
+
+/* hook: नए order popup पर notification + voice भी */
+var _popup=popup;
+popup=function(o){ _popup(o); v41Notify(o); v41Say(o); };
+
+/* 🔎 मेरे काम — search filter */
+var jQ='';
 (function(){
-  /* app settings card me dark mode row jodo */
-  var snd = document.getElementById('sndTgl');
-  if (snd){
-    var card = snd.closest('.prof-card');
-    var row = document.createElement('div');
-    row.className = 'set-row';
-    row.innerHTML = '🌙 Dark Mode <input type="checkbox" id="darkTgl" onchange="togDark(this)" style="width:20px;height:20px;accent-color:var(--primary);">';
-    card.insertBefore(row, card.querySelector('.p-btn.red'));
-    if (localStorage.getItem('swp_dark')){ document.getElementById('darkTgl').checked = true; document.body.classList.add('dark'); }
+  var s=document.createElement('input');
+  s.id='jSrch'; s.placeholder='🔎 Order ID / नाम / address खोजें...';
+  s.style.cssText='width:100%;padding:9px 12px;border:1.5px solid var(--bd);border-radius:10px;margin:0 0 8px;font-size:12px;background:var(--card);color:var(--tx);outline:none;';
+  s.oninput=function(){ jQ=this.value.toLowerCase(); v41Filter(); };
+  var lj=$('lsJ'); if(lj&&lj.parentNode) lj.parentNode.insertBefore(s,lj);
+})();
+function v41Filter(){
+  var lj=$('lsJ'); if(!lj) return;
+  Array.prototype.forEach.call(lj.children,function(c){
+    c.style.display=(!jQ||c.textContent.toLowerCase().indexOf(jQ)>-1)?'':'none';
+  });
+}
+var _draw=draw;
+draw=function(){ _draw(); if(jQ) v41Filter(); };
+
+/* 📊 EARNINGS PRO: 7-दिन chart + 🎯 target + 💸 withdraw + 📄 CSV */
+var _drawEarn=drawEarn;
+drawEarn=function(){ _drawEarn(); v41Earn(); };
+function v41Done(){
+  var m=me();
+  return ALL.filter(function(o){ return o.status==='Completed'&&(!o.partnerPhone||o.partnerPhone===m); });
+}
+function v41Earn(){
+  var done=v41Done();
+  function s(a){ return a.reduce(function(x,o){return x+(o.total||0);},0); }
+  var days=[], mx=1, DN=['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'];
+  for(var i=6;i>=0;i--){
+    var d=new Date(Date.now()-i*864e5), ds=d.toDateString();
+    var amt=s(done.filter(function(o){ return new Date(o.createdAt||0).toDateString()===ds; }));
+    if(amt>mx)mx=amt;
+    days.push({n:DN[d.getDay()],a:amt,td:i===0});
   }
-})();
-
-/* ---------- 5. REALTIME partner doc + KYC load ---------- */
-function loadPartnerV2(){
-  var ph = myPhone(); if (!ph) return;
-  FS.collection('partners').doc(ph).onSnapshot(function(d){
-    if (d.exists) partnerDoc = d.data();
-    renderProfExtra();
-    if (partnerDoc.avgRating) document.getElementById('stRate').innerText = partnerDoc.avgRating;
-    /* admin approve kare to turant celebration */
-    if (partnerDoc.kycStatus === 'Approved' && !localStorage.getItem('swp_kyc_celebrated')){
-      localStorage.setItem('swp_kyc_celebrated', '1');
-      toast('🎉 बधाई हो! आपका KYC APPROVE हो गया — अब आप verified partner हैं!');
-      vib([100,60,100,60,200]);
-    }
-  }, function(){});
-  FS.collection('partners').doc(ph).collection('kyc').get().then(function(s){
-    s.docs.forEach(function(d){ kycData[d.id] = d.data().img; });
-    renderProfExtra();
-  }).catch(function(){});
+  var tgt=parseInt(localStorage.getItem('swp_target')||'1000',10);
+  var tdE=days[6].a, pc=Math.min(100,Math.round(tdE/tgt*100));
+  var old=document.getElementById('v41E'); if(old) old.remove();
+  var host=document.createElement('div'); host.id='v41E';
+  host.innerHTML=
+   '<div class="cd"><b style="font-size:12.5px;">📊 पिछले 7 दिन की कमाई</b>'+
+   '<div style="display:flex;align-items:flex-end;gap:6px;height:96px;margin-top:10px;">'+
+   days.map(function(d){
+     var h=Math.max(4,Math.round(d.a/mx*68));
+     return '<div style="flex:1;text-align:center;"><div style="font-size:8.5px;font-weight:800;color:var(--pr);height:12px;">'+(d.a?'₹'+d.a:'')+'</div><div style="height:'+h+'px;border-radius:6px 6px 0 0;background:'+(d.td?'var(--pr)':'#ffd2ad')+';"></div><div style="font-size:9px;font-weight:800;color:#998;margin-top:3px;">'+(d.td?'आज':d.n)+'</div></div>';
+   }).join('')+'</div></div>'+
+   '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🎯 आज का Target</b><b style="color:var(--pr);cursor:pointer;" onclick="v41Tgt()">₹'+tgt.toLocaleString('en-IN')+' ✏️</b></div>'+
+   '<div class="pcb"><span style="width:'+pc+'%;"></span></div>'+
+   '<div style="font-size:10.5px;font-weight:800;margin-top:5px;color:'+(pc>=100?'#15a04a':'#998')+';">'+(pc>=100?'🎉 Target पूरा! शानदार काम!':'₹'+tdE.toLocaleString('en-IN')+' / ₹'+tgt.toLocaleString('en-IN')+' ('+pc+'%) — लगे रहो! 💪')+'</div></div>'+
+   '<div class="cd"><b style="font-size:12.5px;">💸 Payout / Withdraw</b>'+
+   '<div id="v41W" style="font-size:10.5px;color:#998;font-weight:700;margin-top:4px;">balance निकाल रहे हैं...</div>'+
+   '<div class="bns" style="margin-top:9px;"><button class="bn g" style="flex:1;" onclick="v41Wd()">🏦 Withdraw Request</button><button class="bn b" style="flex:1;" onclick="v41Csv()">📄 CSV Statement</button></div>'+
+   '<div id="v41WL"></div></div>';
+  $('lsE').appendChild(host);
+  v41Bal();
 }
-(function(){
-  var _ia = initApp;
-  window.initApp = function(){
-    _ia();
-    setTimeout(loadPartnerV2, 800);
-  };
-  /* agar pehle se init ho chuka (auth persisted) */
-  if (typeof inited !== 'undefined' && inited) setTimeout(loadPartnerV2, 800);
-})();
-
-console.log('%c PARTNER v2.0 🚀 zomato-style popup | KYC | bank | skills | duty ', 'background:#6c3df4;color:#fff;font-weight:bold;padding:4px;');
-</script>
-
-<style id="partnerV3css">
-/* ═══ v3: NAV / FEED / DIST ═══ */
-.dist-chip{background:#e8f0ff;color:#0d6efd;padding:3px 9px;border-radius:12px;font-size:10px;font-weight:900;margin-left:5px;}
-.cust-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#999;margin-right:4px;vertical-align:middle;}
-.cust-dot.on{background:#1fc25e;box-shadow:0 0 7px #1fc25e;animation:glow 1.5s infinite;}
-.auto-chip{
-  display:flex;align-items:center;justify-content:space-between;gap:8px;
-  background:linear-gradient(120deg,#241536,#0b1220);color:#fff;border-radius:14px;
-  padding:11px 14px;margin-bottom:12px;font-size:12px;font-weight:800;border:1px solid rgba(255,255,255,.12);
+var v41BalAmt=0;
+function v41Bal(){
+  var ph=me(); if(!ph) return;
+  FS.collection('partners').doc(ph).collection('withdrawals').orderBy('ts','desc').get().then(function(sn){
+    var wd=sn.docs.map(function(d){return d.data();});
+    var wsum=wd.reduce(function(x,w){return x+(w.amt||0);},0);
+    var earned=v41Done().reduce(function(x,o){return x+(o.total||0);},0);
+    v41BalAmt=Math.max(0,earned-wsum);
+    if($('v41W')) $('v41W').innerHTML='उपलब्ध balance: <b style="color:#15a04a;font-size:13px;">₹'+v41BalAmt.toLocaleString('en-IN')+'</b>'+(wsum?' &nbsp;•&nbsp; अब तक निकाले: ₹'+wsum.toLocaleString('en-IN'):'');
+    if($('v41WL')) $('v41WL').innerHTML=wd.slice(0,6).map(function(w){
+      return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+esc(w.upi||'')+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
+    }).join('');
+  }).catch(function(){ if($('v41W')) $('v41W').innerText='balance load नहीं हुआ'; });
 }
-.auto-sw{width:44px;height:24px;border-radius:13px;background:#555;position:relative;cursor:pointer;transition:.2s;flex:0 0 44px;}
-.auto-sw::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s;}
-.auto-sw.on{background:#1fc25e;}
-.auto-sw.on::after{left:23px;}
-.p-bell{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;position:relative;margin-right:9px;}
-.p-bell .bd{position:absolute;top:-3px;right:-3px;background:#e53935;color:#fff;font-size:9px;font-weight:900;min-width:16px;height:16px;border-radius:9px;display:none;align-items:center;justify-content:center;padding:0 4px;}
-.feed-item{display:flex;gap:11px;padding:11px 0;border-bottom:1px dashed var(--border-color);}
-.feed-item .fi{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:17px;flex:0 0 38px;}
-.feed-item b{font-size:12.5px;display:block;}
-.feed-item span{font-size:10.5px;color:#998;font-weight:700;}
-#navMap{height:300px;border-radius:14px;background:#e8e2da;}
-.nav-info{display:flex;justify-content:space-around;padding:11px;background:var(--primary-light);border-radius:12px;margin-top:10px;font-size:11px;font-weight:900;text-align:center;}
-</style>
-
-<!-- ═══ LIVE NAV MODAL ═══ -->
-<div class="ov" id="navOv">
-  <div class="modal-box">
-    <div class="modal-head"><b id="navTitle">🧭 Live Navigation</b><span class="mx" onclick="closeNav()"><i class="fa fa-times"></i></span></div>
-    <div style="padding:14px;">
-      <div id="navMap"></div>
-      <div class="nav-info">
-        <div>📏 दूरी<br><b id="navDist" style="color:var(--primary);font-size:14px;">—</b></div>
-        <div>⏱️ ETA<br><b id="navEta" style="color:#15a04a;font-size:14px;">—</b></div>
-        <div><span class="cust-dot" id="navDot"></span>Customer<br><b id="navCust" style="font-size:11px;">—</b></div>
-      </div>
-      <div class="p-btns" style="margin-top:10px;">
-        <a class="p-btn dark" id="navGBtn" style="flex:2;text-align:center;text-decoration:none;line-height:1.5;font-size:12.5px;" href="#" target="_blank">🗺️ Google Maps Turn-by-Turn शुरू करें</a>
-        <a class="p-btn blue" id="navCallBtn" style="text-align:center;text-decoration:none;line-height:1.5;" href="#">📞</a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ FEED MODAL ═══ -->
-<div class="ov" id="feedOv">
-  <div class="modal-box">
-    <div class="modal-head"><b>📰 Activity Feed</b><span class="mx" onclick="document.getElementById('feedOv').classList.remove('open')"><i class="fa fa-times"></i></span></div>
-    <div id="feedList" style="padding:6px 16px 16px;max-height:64dvh;overflow-y:auto;"></div>
-  </div>
-</div>
-
-<script>
-/* ═══════════════ PARTNER v3 — AUTO-ASSIGN | LIVE NAV | PRESENCE | FEED ═══════════════ */
-
-/* ---------- GPS: apni live location ---------- */
-var myLoc = null, gpsWatch = null, rrT = null;
-function startGps(){
-  if (gpsWatch || !navigator.geolocation) return;
-  gpsWatch = navigator.geolocation.watchPosition(function(p){
-    myLoc = { lat: p.coords.latitude, lon: p.coords.longitude };
-    clearTimeout(rrT); rrT = setTimeout(function(){ try{ renderAll(); }catch(e){} }, 4000);
-  }, function(){}, { enableHighAccuracy: true, maximumAge: 8000 });
+function v41Wd(){
+  var ph=me(); if(!ph) return;
+  var upi=(P.bank&&P.bank.upi)||'';
+  if(!upi) return alert('❗ पहले प्रोफ़ाइल में Bank/UPI save करें — payout वहीं भेजा जाएगा।');
+  var a=prompt('कितने ₹ निकालने हैं?\n(उपलब्ध balance: ₹'+v41BalAmt+')');
+  if(!a) return;
+  a=parseInt(a,10);
+  if(!(a>0)) return toast('❌ सही amount डालें');
+  if(a>v41BalAmt) return toast('❌ balance से ज़्यादा नहीं निकाल सकते');
+  ldr('💸 Request भेज रहे हैं...');
+  FS.collection('partners').doc(ph).collection('withdrawals').add({
+    amt:a, upi:upi, name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
+    status:'Requested', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+  }).then(function(){
+    ldrX(); vib([80,40,80]); toast('✅ Withdraw request भेज दी! Admin जल्द payout करेंगे'); v41Bal();
+  }).catch(function(e){ ldrX(); alert('❌ '+e.message); });
 }
-window.addEventListener('load', function(){ setTimeout(startGps, 2500); });
-function hav(a, b){
-  if (!a || !b) return null;
-  var R = 6371, dLa = (b.lat-a.lat)*Math.PI/180, dLo = (b.lon-a.lon)*Math.PI/180;
-  var x = Math.sin(dLa/2)*Math.sin(dLa/2) + Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLo/2)*Math.sin(dLo/2);
-  return R*2*Math.atan2(Math.sqrt(x), Math.sqrt(1-x));
+function v41Tgt(){
+  var t=prompt('आज का कमाई target ₹ में:',localStorage.getItem('swp_target')||'1000');
+  if(t&&parseInt(t,10)>0){ localStorage.setItem('swp_target',String(parseInt(t,10))); drawEarn(); toast('🎯 Target set!'); }
 }
-function kmTxt(o){
-  var d = (o.loc && myLoc) ? hav(myLoc, o.loc) : null;
-  return d == null ? '' : '<span class="dist-chip">📍 ' + (d < 1 ? Math.round(d*1000) + ' m' : d.toFixed(1) + ' km') + '</span>';
+function v41Csv(){
+  var done=v41Done();
+  if(!done.length) return toast('❌ अभी कोई पूरा काम नहीं');
+  var rows=[['Order ID','Date','Items','Amount (Rs)','Payment','Rating']].concat(
+    done.sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}).map(function(o){
+      return [o.id,o.date||'',(o.items||[]).map(function(i){return i.n;}).join(' | '),o.total||0,(o.payment&&o.payment.status)||'',o.rating||''];
+    }));
+  var csv='\ufeff'+rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='SewaAstra-Kamai-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('📄 CSV download हो गई!');
 }
 
-/* ---------- CUSTOMER ONLINE/OFFLINE (presence) ---------- */
-var usersLive = {};
-FS.collection('users').onSnapshot(function(s){
-  usersLive = {};
-  s.docs.forEach(function(d){
-    var u = d.data();
-    var ts = u.lastSeen || 0, on = u.online !== false && (Date.now() - ts) < 150000;
-    usersLive[d.id] = on;
-    if (u.phone) usersLive[u.phone] = on;
-  });
-  try{ renderAll(); }catch(e){}
-}, function(){});
-function custDot(mob){
-  var on = usersLive[mob];
-  return '<span class="cust-dot ' + (on ? 'on' : '') + '" title="' + (on ? 'Online' : 'Offline') + '"></span>';
-}
-function custOnTxt(mob){ return usersLive[mob] ? '🟢 Online' : '⚫ Offline'; }
-
-/* ---------- AUTO-ASSIGN (nearby) ---------- */
-var autoTried = {};
-function autoOn(){ return localStorage.getItem('swp_auto') === '1'; }
-function togAuto(){
-  localStorage.setItem('swp_auto', autoOn() ? '' : '1');
-  document.querySelectorAll('.auto-sw').forEach(function(s){ s.classList.toggle('on', autoOn()); });
-  toast(autoOn() ? '⚡ Auto-Accept ON — पास के ऑर्डर अपने आप मिलेंगे' : 'Auto-Accept OFF');
-  try{ renderAll(); }catch(e){}
-}
-function tryAutoAssign(news){
-  if (!autoOn() || !isOnline || !myLoc) return;
-  var rad = partnerDoc.radiusKm || 8;
-  news.forEach(function(o){
-    if (autoTried[o.id] || o.partnerPhone || !o.loc) return;
-    var d = hav(myLoc, o.loc);
-    if (d == null || d > rad) return;
-    autoTried[o.id] = 1;
-    toast('⚡ ' + d.toFixed(1) + ' km दूर ऑर्डर — 3 sec में AUTO-ACCEPT...');
-    setTimeout(function(){
-      FS.collection('orders').doc(o.id).get().then(function(x){
-        if (x.exists && x.data().status === 'Order Placed' && !x.data().partnerPhone){
-          acceptOrder(o.id);
-          toast('⚡ AUTO-ASSIGNED: ' + o.id + ' (' + d.toFixed(1) + ' km) आपको मिला! 🎉');
-          closeOrdPop();
-        }
-      });
-    }, 3000);
-  });
-}
-
-/* ---------- LIVE NAVIGATION (in-app map + Google turn-by-turn) ---------- */
-var navMapObj = null, navMk = {}, navInt = null, navOrder = null;
-function ensureLeaf(){
-  if (window.L) return Promise.resolve();
-  return new Promise(function(res, rej){
-    var c = document.createElement('link'); c.rel='stylesheet'; c.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(c);
-    var s = document.createElement('script'); s.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s);
-  });
-}
-function openNav(oid){
-  navOrder = ALL.find(function(o){ return o.id === oid; });
-  if (!navOrder) return;
-  var o = navOrder;
-  document.getElementById('navTitle').innerText = '🧭 ' + oid;
-  document.getElementById('navCust').innerText = custOnTxt(o.mobile);
-  document.getElementById('navDot').className = 'cust-dot ' + (usersLive[o.mobile] ? 'on' : '');
-  var dest = o.loc ? (o.loc.lat + ',' + o.loc.lon) : encodeURIComponent(o.address || '');
-  document.getElementById('navGBtn').href = o.loc
-    ? 'https://www.google.com/maps/dir/?api=1&destination=' + dest + '&travelmode=driving'
-    : 'https://www.google.com/maps/dir/?api=1&destination=' + dest;
-  document.getElementById('navCallBtn').href = 'tel:+91' + (o.mobile || '');
-  document.getElementById('navOv').classList.add('open');
-  loader('Map लोड हो रहा है...');
-  ensureLeaf().then(function(){
-    hideLoader();
-    if (navMapObj){ navMapObj.remove(); navMapObj = null; }
-    var ctr = o.loc ? [o.loc.lat, o.loc.lon] : (myLoc ? [myLoc.lat, myLoc.lon] : [23.2599, 77.4126]);
-    navMapObj = L.map('navMap').setView(ctr, 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(navMapObj);
-    navMk = {};
-    if (o.loc) navMk.c = L.marker([o.loc.lat, o.loc.lon]).addTo(navMapObj).bindPopup('🏠 Customer');
-    updNav();
-    clearInterval(navInt);
-    navInt = setInterval(updNav, 4000);
-  }).catch(function(){ hideLoader(); toast('❌ Map load नहीं हुआ — Google Maps button use करें'); });
-}
-function updNav(){
-  if (!navMapObj || !navOrder) return;
-  var o = navOrder;
-  if (myLoc){
-    var ico = L.divIcon({ html: '<div style="font-size:26px;filter:drop-shadow(0 3px 5px rgba(0,0,0,.4));">🛵</div>', className: '', iconSize: [30,30] });
-    if (navMk.p) navMk.p.setLatLng([myLoc.lat, myLoc.lon]);
-    else navMk.p = L.marker([myLoc.lat, myLoc.lon], { icon: ico }).addTo(navMapObj).bindPopup('🛵 आप');
-    if (o.loc){
-      var pts = [[myLoc.lat, myLoc.lon], [o.loc.lat, o.loc.lon]];
-      if (navMk.l) navMk.l.setLatLngs(pts);
-      else navMk.l = L.polyline(pts, { color: '#ff6b00', weight: 4, dashArray: '8,7' }).addTo(navMapObj);
-      navMapObj.fitBounds(pts, { padding: [36, 36] });
-      var d = hav(myLoc, o.loc);
-      document.getElementById('navDist').innerText = d < 1 ? Math.round(d*1000) + ' m' : d.toFixed(1) + ' km';
-      document.getElementById('navEta').innerText = '~' + Math.max(1, Math.round(d/25*60)) + ' min';
-    }
+/* 📲 PWA Install */
+window.v41IP=null;
+window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); window.v41IP=e; });
+function v41Inst(){
+  if(window.v41IP){
+    window.v41IP.prompt();
+    window.v41IP.userChoice.then(function(r){ if(r&&r.outcome==='accepted'){ toast('🎉 App install हो गई!'); window.v41IP=null; } });
+  } else {
+    alert('📲 Install करने के लिए:\n\nChrome menu (⋮) → "Add to Home screen" / "App install करें"\n\niPhone: Share → "Add to Home Screen"');
   }
-  document.getElementById('navCust').innerText = custOnTxt(o.mobile);
-  document.getElementById('navDot').className = 'cust-dot ' + (usersLive[o.mobile] ? 'on' : '');
 }
-function closeNav(){
-  document.getElementById('navOv').classList.remove('open');
-  clearInterval(navInt);
-  if (navMapObj){ navMapObj.remove(); navMapObj = null; }
-}
-
-/* ---------- FEED (activity timeline) ---------- */
-var myRevs = [];
-function openFeed(){
-  localStorage.setItem('swp_feed_seen', String(Date.now()));
-  document.getElementById('feedBd').style.display = 'none';
-  var box = document.getElementById('feedList');
-  box.innerHTML = '<div class="sk sk-row" style="height:50px;"></div>';
-  document.getElementById('feedOv').classList.add('open');
-  FS.collection('partners').doc(myPhone()).collection('reviews').orderBy('ts','desc').limit(10).get()
-    .then(function(s){ myRevs = s.docs.map(function(d){ return d.data(); }); renderFeed(); })
-    .catch(function(){ renderFeed(); });
-}
-function renderFeed(){
-  var ev = [];
-  ALL.forEach(function(o){
-    if (o.createdAt) ev.push({ ts: o.createdAt, ic: '🆕', bg: '#fff5ed', t: 'नया ऑर्डर ₹' + o.total + ' — ' + (o.items||[]).map(function(i){return i.n;}).join(', ').slice(0,40), s: o.id + ' • ' + (o.address||'').slice(0,42) });
-    if (o.t_Completed) ev.push({ ts: o.t_Completed, ic: '🎉', bg: '#e6f7ed', t: 'काम पूरा — ₹' + o.total + ' कमाए!', s: o.id });
-    if (o.status === 'Cancelled') ev.push({ ts: o.createdAt+1, ic: '❌', bg: '#fdecea', t: 'ऑर्डर cancel — ' + o.id, s: o.cancelReason || '' });
-    if (o.payment && o.payment.verifiedAt) ev.push({ ts: o.payment.verifiedAt, ic: '💜', bg: '#f3e8ff', t: 'Payment verified ₹' + o.total, s: 'UTR: ' + (o.payment.ref||'') });
-  });
-  myRevs.forEach(function(r){
-    ev.push({ ts: r.ts, ic: '⭐', bg: '#fff8e6', t: r.rating + '★ नया review मिला!', s: (r.comment||'').slice(0,50) + ' • ' + (r.orderId||'') });
-  });
-  ev.sort(function(a,b){ return b.ts - a.ts; });
-  document.getElementById('feedList').innerHTML = ev.length ? ev.slice(0, 40).map(function(e){
-    return '<div class="feed-item"><div class="fi" style="background:' + e.bg + ';">' + e.ic + '</div>' +
-      '<div style="flex:1;min-width:0;"><b>' + esc(e.t) + '</b><span>' + esc(e.s) + ' • ' + timeAgo(e.ts) + '</span></div></div>';
-  }).join('') : '<div class="p-empty"><span class="ic">📰</span><br>अभी कोई activity नहीं</div>';
-}
-function timeAgo(ts){
-  var m = Math.floor((Date.now()-ts)/60000);
-  if (m < 1) return 'अभी';
-  if (m < 60) return m + ' min पहले';
-  if (m < 1440) return Math.floor(m/60) + ' घंटे पहले';
-  return Math.floor(m/1440) + ' दिन पहले';
-}
-
-/* ---------- UI: header bell + auto chip + enhanced render ---------- */
-(function(){
-  var tg = document.getElementById('onlineTgl');
-  var bell = document.createElement('div');
-  bell.className = 'p-bell';
-  bell.innerHTML = '<i class="fa fa-bell"></i><span class="bd" id="feedBd"></span>';
-  bell.onclick = openFeed;
-  tg.parentElement.insertBefore(bell, tg);
-  /* auto-accept chip New Orders tab me */
-  document.getElementById('secNew').insertAdjacentHTML('afterbegin',
-    '<div class="auto-chip"><span>⚡ Auto-Accept — पास (radius में) आए ऑर्डर अपने आप मिलें</span><div class="auto-sw ' + (autoOn()?'on':'') + '" onclick="togAuto()"></div></div>');
-})();
-
-/* renderAll ENHANCED: distance + presence + nav + auto-assign */
-(function(){
-  var _ra = renderAll;
-  window.renderAll = function(){
-    _ra();
-    try{
-      var me = myPhone();
-      var news = ALL.filter(function(o){ return o.status === 'Order Placed'; });
-      /* feed badge */
-      var seen = parseInt(localStorage.getItem('swp_feed_seen') || '0');
-      var fresh = ALL.filter(function(o){ return (o.createdAt||0) > seen || (o.t_Completed||0) > seen; }).length;
-      var bd = document.getElementById('feedBd');
-      if (bd){ bd.style.display = fresh ? 'flex' : 'none'; bd.innerText = fresh; }
-      /* NEW cards: distance + presence inject */
-      var nl = document.getElementById('newList').querySelectorAll('.p-card');
-      var sortedNews = news.sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
-      nl.forEach(function(card, i){
-        var o = sortedNews[i]; if (!o) return;
-        var chip = card.querySelector('.p-chip');
-        if (chip && kmTxt(o)) chip.insertAdjacentHTML('afterend', kmTxt(o));
-        var meta = card.querySelector('.p-meta');
-        if (meta) meta.innerHTML = custDot(o.mobile) + meta.innerHTML + ' • ' + custOnTxt(o.mobile);
-      });
-      /* JOB cards: nav button + presence */
-      var jobs = ALL.filter(function(o){ return ['Accepted','On the Way','Working'].indexOf(o.status) > -1 && (!o.partnerPhone || o.partnerPhone === me); }).sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
-      var jl = document.getElementById('jobsList').querySelectorAll('.p-card');
-      jl.forEach(function(card, i){
-        var o = jobs[i]; if (!o) return;
-        var meta = card.querySelector('.p-meta');
-        if (meta && !card.dataset.v3){
-          card.dataset.v3 = '1';
-          meta.innerHTML = custDot(o.mobile) + meta.innerHTML + ' • Customer ' + custOnTxt(o.mobile) + (kmTxt(o) || '');
-          var firstBtns = card.querySelector('.p-btns');
-          if (firstBtns) firstBtns.insertAdjacentHTML('beforebegin',
-            '<button class="p-btn" style="width:100%;background:linear-gradient(90deg,#0b1220,#26364f);margin-bottom:2px;padding:12px;font-size:12.5px;" onclick="openNav(\'' + esc(o.id) + '\')">🧭 LIVE NAVIGATION — customer तक जाएँ</button>');
-        }
-      });
-      tryAutoAssign(news);
-    }catch(e){ console.log('v3 render', e); }
-  };
-})();
-
-console.log('%c PARTNER v3.0 🧭 auto-assign | live-nav | presence | feed ', 'background:#1fc25e;color:#000;font-weight:bold;padding:4px;');
 </script>
-
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a34e4fd92b9fda6e',t:'MTc4ODM3MDk1Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
