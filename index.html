@@ -382,8 +382,8 @@ function gLogin(){
   var p=new firebase.auth.GoogleAuthProvider();
   firebase.auth().signInWithPopup(p).then(function(r){
     ldrX();
-    if(!me()){ var ph=prompt('10-अंकों का मोबाइल नंबर डालें:'); if(ph&&/^\d{10}$/.test(ph.trim())) localStorage.setItem('swp_phone',ph.trim()); }
     localStorage.setItem('swp_logged','1'); enter();
+    if(!me()) toast('📱 KYC form में मोबाइल नंबर भरें');
   }).catch(function(e){
     ldrX();
     if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/web-storage-unsupported'].indexOf(e.code)>-1){
@@ -392,7 +392,7 @@ function gLogin(){
   });
 }
 firebase.auth().getRedirectResult().then(function(r){
-  if(r&&r.user){ if(!me()){var ph=prompt('मोबाइल नंबर:'); if(ph&&/^\d{10}$/.test(ph.trim()))localStorage.setItem('swp_phone',ph.trim());} localStorage.setItem('swp_logged','1'); enter(); }
+  if(r&&r.user){ localStorage.setItem('swp_logged','1'); enter(); if(!me()) toast('📱 KYC form में मोबाइल नंबर भरें'); }
 }).catch(function(){});
 function diag(){
   alert('🌐 '+location.protocol+'//'+(location.hostname||'(file)')+'\n📶 Internet: '+(navigator.onLine?'✅':'❌')+'\n🔥 Firebase: '+(window.firebase&&firebase.apps.length?'✅':'❌')+'\n\n'+(location.protocol==='file:'?'❗ file:// से खोला — hosting पर खोलें!':'👉 Authorized domains में add करें: '+location.hostname)+'\n\n✅ बिना SMS: Console → Auth → Phone → test numbers में +91 7869969190 / OTP 123456 डालें');
@@ -425,15 +425,18 @@ function enter(){
 firebase.auth().onAuthStateChanged(function(u){
   if(!u){ localStorage.removeItem('swp_logged'); $('lgOv').style.display='flex'; return; }
   if(u.phoneNumber && /^\+91\d{10}$/.test(u.phoneNumber)) localStorage.setItem('swp_phone', u.phoneNumber.slice(3));
-  if(!me()){ var ph=prompt('10-अंकों का मोबाइल नंबर डालें:'); if(ph&&/^\d{10}$/.test(ph.trim())) localStorage.setItem('swp_phone',ph.trim()); }
   localStorage.setItem('swp_logged','1');
   enter();
+  if(!me()) toast('📱 KYC form में मोबाइल नंबर भरें');
   var ph2=me();
   if(ph2) FS.collection('partners').doc(ph2).set({phone:ph2,uid:u.uid,email:u.email||'',lastLogin:Date.now()},{merge:true}).catch(function(){});
 });
-/* 💓 LIVE HEARTBEAT — हर 30s Firebase में lastSeen + online (turant sync) */
+/* 💓 LIVE HEARTBEAT — हर 30s Firebase में lastSeen + online + LIVE LOCATION (admin tracking) */
 setInterval(function(){
-  var ph=me(); if(ph&&booted) FS.collection('partners').doc(ph).set({lastSeen:Date.now(),online:onl},{merge:true}).catch(function(){});
+  var ph=me(); if(!(ph&&booted)) return;
+  var o={lastSeen:Date.now(),online:onl};
+  var l=(window.gpsLive||loc); if(l&&l.lat) o.loc={lat:l.lat,lon:l.lon,ts:Date.now()};
+  FS.collection('partners').doc(ph).set(o,{merge:true}).catch(function(){});
 },30000);
 document.addEventListener('visibilitychange',function(){
   var ph=me(); if(ph&&booted) FS.collection('partners').doc(ph).set({lastSeen:Date.now()},{merge:true}).catch(function(){});
@@ -982,7 +985,7 @@ function v41Earn(){
    '<div style="font-size:10.5px;font-weight:800;margin-top:5px;color:'+(pc>=100?'#15a04a':'#998')+';">'+(pc>=100?'🎉 Target पूरा! शानदार काम!':'₹'+tdE.toLocaleString('en-IN')+' / ₹'+tgt.toLocaleString('en-IN')+' ('+pc+'%) — लगे रहो! 💪')+'</div></div>'+
    '<div class="cd"><b style="font-size:12.5px;">💸 Payout / Withdraw</b>'+
    '<div id="v41W" style="font-size:10.5px;color:#998;font-weight:700;margin-top:4px;">balance निकाल रहे हैं...</div>'+
-   '<div class="bns" style="margin-top:9px;"><button class="bn g" style="flex:1;" onclick="v41Wd()">🏦 Withdraw Request</button><button class="bn b" style="flex:1;" onclick="v41Csv()">📄 CSV Statement</button></div>'+
+   '<div class="bns" style="margin-top:9px;"><button class="bn g" style="flex:1;" onclick="v41Wd()">🏦 Withdraw Request</buttck="v41Csv()">📄 CSV Statement</button></div>'+
    '<div id="v41WL"></div></div>';
   $('lsE').appendChild(host);
   v41Bal();
@@ -1375,7 +1378,7 @@ subKyc=function(){
   var miss=KDOCS.filter(function(d){return !kyc[d.k];});
   _subKyc();
   if(!miss.length && me()==='7869969190'){
-    setTimeout(function(){ FS.collection('partners').doc(me()).set({kycStatus:'Approved'},{merge:true}).catch(function(){}); },1200);
+    setTimeout(function(){ FS.collection('partners').doc(me()).set({kycStatus:'Approved'},{merge:true}).catchet({kycStatus:'Approved'},{merge:true}).catch(function(){}); },1200);
   }
 };
 
@@ -1790,7 +1793,8 @@ function v47Kyc(){
   '<div style="font-size:11.5px;color:#988;line-height:1.6;">काम शुरू करने के लिए <b>पूरी जानकारी + documents</b> भरें।<br>Admin approve करेंगे, फिर training — उसके बाद app। 🚀</div></div>'+
   '<div class="cd"><b style="font-size:12.5px;">👤 निजी जानकारी</b>'+
   '<input class="pi" id="kNm" placeholder="पूरा नाम *" value="'+esc(P.name||localStorage.getItem('swp_name')||'')+'">'+
-  '<input class="pi" value="📱 +91 '+me()+' (login verified ✓)" readonly style="opacity:.65;">'+
+  (me()?'<input class="pi" value="📱 +91 '+me()+' (login verified ✓)" readonly style="opacity:.65;">'
+       :'<input class="pi" id="kPh" type="tel" maxlength="10" inputmode="numeric" placeholder="📱 मोबाइल नंबर (10 अंक) *">')+
   '<input class="pi" id="kFa" placeholder="पिता का नाम *" value="'+esc(ki.father||'')+'">'+
   '<div class="srw" style="margin-top:6px;">🎂 जन्म तिथि <input type="date" id="kDb" class="pi" style="width:150px;margin:0;" value="'+esc(ki.dob||'')+'"></div></div>'+
   '<div class="cd"><b style="font-size:12.5px;">🏠 पता</b>'+
@@ -1824,6 +1828,11 @@ function v47Sub(){
   var nm=$('kNm').value.trim(), fa=$('kFa').value.trim(), db=$('kDb').value,
       ad=$('kAd').value.trim(), ct=$('kCt').value.trim(), pn=$('kPn').value.trim(),
       aa=$('kAa').value.trim(), pa=$('kPa').value.trim().toUpperCase(), sk=$('kSk').value;
+  var ph=me();
+  if(!ph){
+    var pe=document.getElementById('kPh'); ph=pe?pe.value.trim():'';
+    if(!/^\d{10}$/.test(ph)) return toast('❌ 10-अंकों का मोबाइल नंबर डालें');
+  }
   if(nm.length<3) return toast('❌ पूरा नाम लिखें');
   if(fa.length<3) return toast('❌ पिता का नाम लिखें');
   if(!db) return toast('❌ जन्म तिथि चुनें');
@@ -1834,13 +1843,15 @@ function v47Sub(){
   var miss=KDOCS.filter(function(d){return !kyc[d.k];});
   if(miss.length) return toast('❌ Photos बाकी: '+miss.map(function(d){return d.n;}).join(', '));
   ldr('📤 KYC submit...');
-  FS.collection('partners').doc(me()).set({
-    name:nm, phone:me(),
+  FS.collection('partners').doc(ph).set({
+    name:nm, phone:ph,
     kycInfo:{father:fa,dob:db,address:ad,city:ct,pin:pn,aadhaar:aa,pan:pa,mainSkill:sk},
     skills:firebase.firestore.FieldValue.arrayUnion(sk),
     kycStatus:'Submitted', kycAt:Date.now()
   },{merge:true}).then(function(){
+    localStorage.setItem('swp_phone',ph);
     localStorage.setItem('swp_name',nm);
+    try{ listenPartner(); }catch(e){}
     P.name=nm; P.kycStatus='Submitted'; P.kycInfo={father:fa,dob:db,address:ad,city:ct,pin:pn,aadhaar:aa,pan:pa,mainSkill:sk};
     ldrX(); vib([90,50,90,50,180]);
     sAlert('आपकी पूरी जानकारी + चारों documents admin के पास पहुँच गए!\n\nApprove होते ही app अपने आप खुल जाएगा। ⏳','KYC Submitted! 📤','✅');
@@ -2158,6 +2169,47 @@ function v50Card(){
   $('lsE').appendChild(host);
 }
 console.log('%c 💰 v5.0 — GIG-LOCK + FLOAT ₹2000 + INCENTIVES ✅ ','background:#ff6b00;color:#fff;font-weight:bold;padding:3px;');
+
+/* ═══════════════ v5.1 — ADMIN BLOCK ENFORCEMENT ═══════════════ */
+function v51Blk(){
+  var o=$('obOv'), x=$('obX'); o.style.display='block';
+  x.innerHTML='<div style="text-align:center;padding:70px 16px;">'+
+    '<div style="font-size:64px;">⛔</div>'+
+    '<h2 style="font-size:19px;margin:14px 0 8px;color:#e53935;">आपका account BLOCK है</h2>'+
+    '<div style="font-size:12px;color:#988;line-height:1.7;">Admin ने आपका account temporarily block किया है।<br>वजह जानने और unblock के लिए संपर्क करें।</div>'+
+    '<div class="bns" style="margin-top:18px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190?text=Unblock%20request%20-%20'+me()+'" target="_blank">💬 WhatsApp</a></div>'+
+    '<button class="bn d" style="width:100%;margin-top:12px;padding:11px;" onclick="lgOut()">🚪 Logout</button></div>';
+}
+var _gate51=v43Gate;
+v43Gate=function(){
+  if(booted&&P.blocked) return v51Blk();
+  _gate51();
+};
+var _popup51=popup;
+popup=function(o){ if(P.blocked) return; _popup51(o); };
+var _acc51=acc;
+acc=function(oid){ if(P.blocked) return v51Blk(); _acc51(oid); };
+console.log('%c ⛔ v5.1 — BLOCK ENFORCEMENT ✅ ','background:#333;color:#ff8a80;font-weight:bold;');
+
+/* ═══ v5.2 — GMAIL LOGIN: मोबाइल नंबर KYC FORM में ═══ */
+/* Photo upload से पहले भी नंबर पकड़ लो (partner doc नंबर पर ही बनता है) */
+var _upKyc52=upKyc;
+upKyc=function(k,inp){
+  if(!me()){
+    var pe=document.getElementById('kPh');
+    var ph=pe?pe.value.trim():'';
+    if(!/^\d{10}$/.test(ph)){ try{inp.value='';}catch(e){} return toast('❌ पहले ऊपर 10-अंकों का मोबाइल नंबर भरें'); }
+    localStorage.setItem('swp_phone',ph);
+    try{ listenPartner(); }catch(e){}
+    toast('✅ नंबर save — अब photo upload हो रही है');
+  }
+  _upKyc52(k,inp);
+};
+console.log('%c 📱 v5.2 — GMAIL→KYC PHONE ✅ ','background:#1976d2;color:#fff;font-weight:bold;');
+</script>
+</body>
+</html>
+nt-weight:bold;');
 </script>
 </body>
 </html>
