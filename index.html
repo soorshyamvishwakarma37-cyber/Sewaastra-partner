@@ -1,9 +1,9 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sewaastra Partner OS - Fast Dispatch Pro</title>
+  <title>Sewaastra Partner OS - Live Zomato Dispatch Pro</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
@@ -19,6 +19,8 @@
       --warning: #ffb300;
       --danger: #d32f2f;
       --blue: #1976d2;
+      --purple: #7b1fa2;
+      --dark: #121212;
     }
     .dark-theme {
       --bg-main: #121212;
@@ -31,48 +33,30 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: var(--bg-main);
+      background: linear-gradient(135deg, rgba(226, 55, 68, 0.05), rgba(0,0,0,0.05)), var(--bg-main);
       color: var(--text-main);
       transition: background 0.3s, color 0.3s;
       position: relative;
-      min-height: 100vh;
-      overflow-x: hidden;
     }
-    
-    .bg-stickers-container {
+    /* Sewaastra Background Logo Watermark */
+    body::before {
+      content: "SEWAASTRA";
       position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-      opacity: 0.08;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(4, 1fr);
-      gap: 20px;
-      padding: 20px;
-    }
-    .sticker-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-30deg);
+      font-size: 80vw;
       font-weight: 900;
-      font-size: 14px;
-      text-transform: uppercase;
-      text-align: center;
-      transform: rotate(-15deg);
-      color: var(--text-main);
+      color: rgba(226, 55, 68, 0.02);
+      z-index: -1;
+      pointer-events: none;
+      white-space: nowrap;
     }
-    .sticker-item i { font-size: 28px; margin-bottom: 4px; }
-
     .screen {
       display: none;
       min-height: 100vh;
       padding: 12px;
       box-sizing: border-box;
-      position: relative;
-      z-index: 10;
     }
     .screen.active {
       display: flex;
@@ -95,11 +79,9 @@
       border-radius: 12px;
       width: 100%;
       max-width: 440px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.06);
       box-sizing: border-box;
       margin-bottom: 12px;
-      position: relative;
-      z-index: 2;
     }
     h1, h2, h3, h4 { margin: 0; }
     .form-group { margin-bottom: 14px; }
@@ -137,32 +119,10 @@
     }
     button:hover { background-color: var(--zomato-hover); }
     .btn-outline { background: transparent; border: 1px solid var(--zomato-red); color: var(--zomato-red); }
-    .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-google { background: #4285F4; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
     .btn-google:hover { background: #3367D6; }
-    
-    .loading-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.4);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      flex-direction: column;
-      gap: 12px;
-      color: white;
-      font-weight: bold;
-      pointer-events: none;
-    }
-    .loading-overlay.active { display: flex; pointer-events: auto; }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid rgba(255,255,255,0.3);
-      border-top: 3px solid #fff;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .btn-phone { background: var(--success); display: flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-phone:hover { background: #1e7d34; }
 
     .modal-overlay {
       position: fixed;
@@ -306,35 +266,25 @@
 </head>
 <body>
 
-  <div class="bg-stickers-container">
-    <div class="sticker-item"><i class="fa-solid fa-bolt"></i> Sewaastra</div>
-    <div class="sticker-item"><i class="fa-solid fa-screwdriver-wrench"></i> Technician</div>
-    <div class="sticker-item"><i class="fa-solid fa-shield-halved"></i> Verified</div>
-    <div class="sticker-item"><i class="fa-solid fa-bolt"></i> Sewaastra</div>
-    <div class="sticker-item"><i class="fa-solid fa-screwdriver-wrench"></i> Technician</div>
-    <div class="sticker-item"><i class="fa-solid fa-shield-halved"></i> Verified</div>
-    <div class="sticker-item"><i class="fa-solid fa-bolt"></i> Sewaastra</div>
-    <div class="sticker-item"><i class="fa-solid fa-screwdriver-wrench"></i> Technician</div>
-    <div class="sticker-item"><i class="fa-solid fa-shield-halved"></i> Verified</div>
-    <div class="sticker-item"><i class="fa-solid fa-bolt"></i> Sewaastra</div>
-    <div class="sticker-item"><i class="fa-solid fa-screwdriver-wrench"></i> Technician</div>
-    <div class="sticker-item"><i class="fa-solid fa-shield-halved"></i> Verified</div>
-  </div>
+  <!-- Hidden Recaptcha Container for Phone Auth -->
+  <div id="recaptcha-container"></div>
 
-  <div id="globalLoader" class="loading-overlay">
-    <div class="spinner"></div>
-    <span id="loadingText">Background syncing profile...</span>
-  </div>
-
-  <div id="mobilePopupModal" class="modal-overlay">
+  <!-- Phone Number Modal -->
+  <div id="phoneLoginModal" class="modal-overlay">
     <div class="modal-card">
-      <h3 style="font-size: 16px; color: var(--zomato-red); margin-bottom: 6px;"><i class="fa-solid fa-mobile-screen"></i> Partner Mobile Verification</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Enter your 10-digit mobile number to link with your account.</p>
-      <div class="form-group">
+      <h3 style="font-size: 16px; color: var(--zomato-red); margin-bottom: 6px;"><i class="fa-solid fa-phone"></i> Mobile OTP Login</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Enter your 10-digit mobile number with country code (+91).</p>
+      <div class="form-group" id="phoneInputGroup">
         <label>Mobile Number:</label>
-        <input type="text" id="popupPhoneInput" placeholder="Enter 10-digit number" maxlength="10">
+        <input type="text" id="loginPhoneNumber" placeholder="+91 9876543210" value="+91">
+        <button onclick="requestPhoneOtp()" style="margin-top: 10px; background: var(--success);">Send OTP <i class="fa-solid fa-paper-plane"></i></button>
       </div>
-      <button onclick="submitPopupMobileNumber()" style="background: var(--success);">Save & Continue <i class="fa-solid fa-arrow-right"></i></button>
+      <div class="form-group" id="otpInputGroup" style="display:none;">
+        <label>Enter 6-digit OTP:</label>
+        <input type="text" id="loginOtpCode" placeholder="123456" maxlength="6">
+        <button onclick="verifyPhoneOtp()" style="margin-top: 10px; background: var(--success);">Verify & Login <i class="fa-solid fa-check"></i></button>
+      </div>
+      <button onclick="document.getElementById('phoneLoginModal').classList.remove('active')" class="btn-outline" style="margin-top: 10px;">Cancel</button>
     </div>
   </div>
 
@@ -377,7 +327,7 @@
         <button onclick="document.getElementById('customerChatModal').classList.remove('active')" class="btn-outline" style="width: auto; padding: 2px 6px; font-size: 10px;">Close X</button>
       </div>
       <div id="chatBoxLog" style="background: #f9f9f9; border: 1px solid var(--border); border-radius: 8px; padding: 10px; height: 140px; overflow-y: auto; font-size: 12px; margin-bottom: 10px;">
-        <div style="color: #666; margin-bottom: 4px;"><b>Customer:</b> Hello technician, please arrive promptly.</div>
+        <div style="color: #666; margin-bottom: 4px;"><b>Customer:</b> Hello partner, please arrive promptly.</div>
       </div>
       <div class="form-group" style="margin-bottom: 8px;">
         <input type="text" id="chatMessageInput" placeholder="Type message to customer...">
@@ -388,34 +338,29 @@
 
   <div id="stepLoginScreen" class="screen active">
     <div class="card" style="text-align: center;">
-      <div style="margin-bottom: 8px;"><i class="fa-solid fa-screwdriver-wrench" style="font-size: 36px; color: var(--zomato-red);"></i></div>
+      <div style="font-size: 32px; color: var(--zomato-red); font-weight: 900; margin-bottom: 5px;"><i class="fa-solid fa-shield-halved"></i></div>
       <h2 style="color: var(--zomato-red); font-weight: 900; font-size: 26px; letter-spacing: -1px; margin-bottom: 4px;">SEWAASTRA</h2>
-      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 20px;">Technician Partner Operating System</p>
+      <p style="color: var(--text-muted); font-size: 12px; margin-bottom: 25px;">Partner Operating System (Realtime Dispatch Pro)</p>
       
-      <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px; margin-bottom: 12px;">
-        <i class="fa-brands fa-google"></i> Sign in with Google Gmail
+      <button onclick="loginWithGoogleFirebase()" class="btn-google" style="padding: 14px; font-size: 15px;">
+        <i class="fa-brands fa-google"></i> Sign in with Google
       </button>
-
-      <div style="border-top: 1px solid var(--border); margin: 15px 0; padding-top: 15px;">
-        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Or quick mobile login:</p>
-        <div class="form-group" style="margin-bottom: 8px;">
-          <input type="text" id="quickMobileInput" placeholder="Enter 10-digit mobile number" maxlength="10" style="text-align: center; font-weight: bold;">
-        </div>
-        <button onclick="quickMobileLogin()" style="background: var(--success); padding: 10px; font-size: 13px;">Login with Mobile OTP <i class="fa-solid fa-phone"></i></button>
-      </div>
+      <button onclick="openPhoneLoginModal()" class="btn-phone" style="padding: 14px; font-size: 15px; margin-bottom: 15px;">
+        <i class="fa-solid fa-phone"></i> Sign in with Mobile OTP
+      </button>
     </div>
   </div>
 
   <div id="stepKycScreen" class="screen">
     <div class="card" style="max-width: 480px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="font-size: 15px;"><i class="fa-solid fa-id-card"></i> Technician Verification & KYC</h3>
+        <h3 style="font-size: 15px;"><i class="fa-solid fa-id-card"></i> Partner Verification & KYC</h3>
         <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
       </div>
-      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide correct details and documents for admin approval.</p>
+      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide correct details for admin approval.</p>
       
       <div class="form-group">
-        <label>Authenticated Account:</label>
+        <label>Authenticated Account / Email/Phone:</label>
         <input type="text" id="authEmailDisplay" readonly style="background: #f9f9f9; color: #555;">
       </div>
       <div class="form-group">
@@ -424,7 +369,7 @@
       </div>
       <div class="form-group">
         <label>Mobile Number:</label>
-        <input type="text" id="kycPhone" readonly style="background: #f9f9f9; color: #555; font-weight: bold;">
+        <input type="text" id="kycPhone" placeholder="Enter 10-digit Mobile Number" maxlength="10">
       </div>
       <div class="form-group">
         <label>Live GPS Coordinates & Area:</label>
@@ -447,17 +392,9 @@
           <label>PAN Card Number:</label>
           <input type="text" id="kycPan" placeholder="ABCDE1234F">
         </div>
-        <div class="form-group" style="margin-bottom: 10px;">
-          <label>Upload PAN Card Document (Image/PDF):</label>
-          <input type="file" id="kycPanFile" accept="image/*,.pdf">
-        </div>
-        <div class="form-group" style="margin-bottom: 10px;">
+        <div class="form-group" style="margin-bottom: 0;">
           <label>Driver's License / ID Number:</label>
           <input type="text" id="kycLicence" placeholder="DL-1420110012345">
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label>Upload ID / License Document (Image/PDF):</label>
-          <input type="file" id="kycIdFile" accept="image/*,.pdf">
         </div>
       </div>
       
@@ -482,7 +419,7 @@
     <div class="card" style="text-align: center;">
       <div style="font-size: 42px; margin-bottom: 12px;"><i class="fa-solid fa-hourglass-half fa-spin" style="color: var(--warning);"></i></div>
       <h3 style="font-size: 16px; margin-bottom: 6px;">Verification Under Review</h3>
-      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your technician profile is being reviewed by the admin team.</p>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Your cloud partner profile is being reviewed by the admin team.</p>
       <div class="form-group">
         <button onclick="checkAdminApprovalStatus()" class="btn-outline"><i class="fa-solid fa-rotate"></i> Check Status</button>
       </div>
@@ -503,7 +440,7 @@
         </div>
       </div>
       <div class="card" style="max-width: 100%; border-left: 5px solid var(--success);">
-        <h4 style="font-size: 13px; margin-bottom: 5px;"><i class="fa-solid fa-users-gear"></i> Technician Verification Queue</h4>
+        <h4 style="font-size: 13px; margin-bottom: 5px;"><i class="fa-solid fa-users-gear"></i> Partner Verification Queue</h4>
         <div id="adminPartnerQueue">
           <p style="font-size: 12px; color: var(--text-muted); text-align: center; padding: 20px;">Loading database records...</p>
         </div>
@@ -588,7 +525,7 @@
       </div>
       <div class="grid-2">
         <div class="stat-box"><div class="val" id="completedJobsCount">0</div><div class="lbl">Completed Gigs</div></div>
-        <div class="stat-box"><div class="val" id="partnerRatingDisplay">4.9 ⭐</div><div class="lbl">Technician Rating</div></div>
+        <div class="stat-box"><div class="val" id="partnerRatingDisplay">4.9 ⭐</div><div class="lbl">Partner Rating</div></div>
       </div>
       <div class="card" style="max-width: 100%;">
         <h4 style="font-size: 13px; color: var(--zomato-red); margin-bottom: 8px;"><i class="fa-solid fa-wallet"></i> Floating Cash-in-Hand Status</h4>
@@ -600,9 +537,9 @@
     <div id="profileTab" class="tab-content" style="padding: 12px 0;">
       <div class="card" style="max-width: 100%;">
         <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 12px;">
-          <div style="width: 50px; height: 50px; background: var(--zomato-red); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;" id="profileAvatarInitial">T</div>
+          <div style="width: 50px; height: 50px; background: var(--zomato-red); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;" id="profileAvatarInitial">P</div>
           <div>
-            <h3 style="font-size: 15px;" id="profileNameDisplay">Technician Name</h3>
+            <h3 style="font-size: 15px;" id="profileNameDisplay">Partner Name</h3>
             <span class="badge badge-success" id="profileIdBadge">ID: SW-9021</span> | <span style="font-size: 12px; color: var(--warning); font-weight: bold;" id="profileRatingHeader">4.9 ⭐</span>
           </div>
         </div>
@@ -635,9 +572,8 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, signInWithRedirect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, get, update, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
@@ -652,11 +588,9 @@
 
     const auth = getAuth(app);
     const db = getDatabase(app);
-    const storage = getStorage(app);
     const googleProvider = new GoogleAuthProvider();
 
     let loggedInUser = null;
-    let temporaryUserPhone = "";
     let activeSyncListener = null;
     let ordersListenerUnsubscribe = null;
     let leafletMap = null;
@@ -667,16 +601,7 @@
     let currentLng = 77.2090;
     let watchId = null;
     let soundAlarmInterval = null;
-
-    function showBackgroundSyncLoader(text = "Syncing in background...") {
-      const loader = document.getElementById("globalLoader");
-      document.getElementById("loadingText").innerText = text;
-      loader.classList.add("active");
-    }
-
-    function hideBackgroundSyncLoader() {
-      document.getElementById("globalLoader").classList.remove("active");
-    }
+    let confirmationResultObj = null;
 
     window.toggleDarkMode = function(enabled) {
       if (enabled) {
@@ -809,15 +734,12 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       detectCurrentGeolocation();
-      
       const persistedUid = localStorage.getItem('sewaastra_persisted_uid');
       const persistedEmail = localStorage.getItem('sewaastra_persisted_email');
       
       if (persistedUid) {
         loggedInUser = { uid: persistedUid, email: persistedEmail };
-        evaluateUserRoutingFast(persistedUid, persistedEmail);
-      } else {
-        showScreen('stepLoginScreen');
+        evaluateUserRouting(persistedUid, persistedEmail);
       }
     });
 
@@ -825,110 +747,107 @@
       try {
         const result = await signInWithPopup(auth, googleProvider);
         loggedInUser = result.user;
-        handleSuccessfulAuthFast();
-      } catch (error) {
-        if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
-          try {
-            await signInWithRedirect(auth, googleProvider);
-            return;
-          } catch (redirectError) {
-            alert("Google Login Error: " + redirectError.message);
-            return;
-          }
+        detectCurrentGeolocation();
+
+        const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
+        const snap = await get(partnerRef);
+
+        if (!snap.exists()) {
+          showScreen('stepKycScreen');
+          document.getElementById("authEmailDisplay").value = loggedInUser.email || loggedInUser.phoneNumber || "";
+          detectCurrentGeolocation();
+        } else {
+          localStorage.setItem('sewaastra_persisted_uid', loggedInUser.uid);
+          localStorage.setItem('sewaastra_persisted_email', loggedInUser.email || loggedInUser.phoneNumber || "");
+          evaluateUserRouting(loggedInUser.uid, loggedInUser.email || loggedInUser.phoneNumber || "");
         }
+      } catch (error) {
         alert("Google Login Error: " + error.message);
       }
     };
 
-    window.quickMobileLogin = function() {
-      const phone = document.getElementById("quickMobileInput").value.trim();
-      if (!phone || phone.length !== 10) {
-        alert("Please enter a valid 10-digit mobile number.");
-        return;
-      }
-      temporaryUserPhone = phone;
-      loggedInUser = {
-        uid: `mob_${phone}`,
-        email: `tech_${phone}@sewaastra.mobile`,
-        displayName: `Technician ${phone}`
-      };
-      handleSuccessfulAuthFast();
+    window.openPhoneLoginModal = function() {
+      document.getElementById("phoneLoginModal").classList.add("active");
     };
 
-    async function handleSuccessfulAuthFast() {
-      detectCurrentGeolocation();
-      showBackgroundSyncLoader("Syncing technician profile...");
-      
-      try {
+    window.requestPhoneOtp = function() {
+      const phoneNumber = document.getElementById("loginPhoneNumber").value.trim();
+      if (!phoneNumber || phoneNumber.length < 10) {
+        alert("Please enter a valid phone number with country code.");
+        return;
+      }
+
+      if (!window.recaptchaVerifier) {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+          'size': 'invisible'
+        });
+      }
+
+      const appVerifier = window.recaptchaVerifier;
+      signInWithPhoneNumber(auth, phoneNumber, appVerifier)
+        .then((confirmationResult) => {
+          confirmationResultObj = confirmationResult;
+          document.getElementById("phoneInputGroup").style.display = "none";
+          document.getElementById("otpInputGroup").style.display = "block";
+          alert("OTP sent successfully to " + phoneNumber);
+        })
+        .catch((error) => {
+          alert("SMS not sent: " + error.message);
+        });
+    };
+
+    window.verifyPhoneOtp = function() {
+      const code = document.getElementById("loginOtpCode").value.trim();
+      if (!code || code.length !== 6) {
+        alert("Please enter a valid 6-digit OTP.");
+        return;
+      }
+
+      confirmationResultObj.confirm(code).then(async (result) => {
+        loggedInUser = result.user;
+        document.getElementById("phoneLoginModal").classList.remove("active");
+        detectCurrentGeolocation();
+
         const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
         const snap = await get(partnerRef);
 
-        hideBackgroundSyncLoader();
         if (!snap.exists()) {
-          if (!temporaryUserPhone && !loggedInUser.email.includes("@sewaastra.mobile")) {
-            document.getElementById("mobilePopupModal").classList.add("active");
-          } else {
-            showScreen('stepKycScreen');
-            document.getElementById("authEmailDisplay").value = loggedInUser.email;
-            document.getElementById("kycPhone").value = temporaryUserPhone || loggedInUser.uid.replace('mob_', '');
-            document.getElementById("kycFullName").value = loggedInUser.displayName || "";
-          }
+          showScreen('stepKycScreen');
+          document.getElementById("authEmailDisplay").value = loggedInUser.phoneNumber || "";
+          document.getElementById("kycPhone").value = (loggedInUser.phoneNumber || "").replace("+91", "");
+          detectCurrentGeolocation();
         } else {
           localStorage.setItem('sewaastra_persisted_uid', loggedInUser.uid);
-          localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
-          evaluateUserRoutingFast(loggedInUser.uid, loggedInUser.email);
+          localStorage.setItem('sewaastra_persisted_email', loggedInUser.phoneNumber || "");
+          evaluateUserRouting(loggedInUser.uid, loggedInUser.phoneNumber || "");
         }
-      } catch(e) {
-        hideBackgroundSyncLoader();
-        showScreen('stepLoginScreen');
-      }
-    }
-
-    window.submitPopupMobileNumber = function() {
-      const phoneInput = document.getElementById("popupPhoneInput").value.trim();
-      if (!phoneInput || phoneInput.length !== 10) {
-        alert("Please enter a valid 10-digit mobile number.");
-        return;
-      }
-      temporaryUserPhone = phoneInput;
-      document.getElementById("mobilePopupModal").classList.remove("active");
-
-      showScreen('stepKycScreen');
-      document.getElementById("authEmailDisplay").value = loggedInUser.email;
-      document.getElementById("kycPhone").value = temporaryUserPhone;
-      document.getElementById("kycFullName").value = loggedInUser.displayName || "";
-      detectCurrentGeolocation();
+      }).catch((error) => {
+        alert("Invalid OTP code entered.");
+      });
     };
 
-    async function evaluateUserRoutingFast(uid, email) {
-      if (email === "admin@sewaastra.com" || email.includes("masteradmin")) {
+    async function evaluateUserRouting(uid, identifier) {
+      if (identifier === "admin@sewaastra.com" || (identifier && identifier.includes("masteradmin"))) {
         showScreen('adminDashboard');
         initAdminCloudDashboard();
         return;
       }
 
-      showBackgroundSyncLoader("Background syncing data...");
-      try {
-        const partnerRef = ref(db, `live_partners/${uid}`);
-        const snap = await get(partnerRef);
-        hideBackgroundSyncLoader();
+      const partnerRef = ref(db, `live_partners/${uid}`);
+      const snap = await get(partnerRef);
 
-        if (!snap.exists()) {
-          showScreen('stepKycScreen');
-          document.getElementById("authEmailDisplay").value = email;
-          detectCurrentGeolocation();
+      if (!snap.exists()) {
+        showScreen('stepKycScreen');
+        document.getElementById("authEmailDisplay").value = identifier;
+        detectCurrentGeolocation();
+      } else {
+        const data = snap.val();
+        if (data.kycStatus === "approved") {
+          showScreen('partnerHome');
+          attachPartnerRealtimeSync(uid);
         } else {
-          const data = snap.val();
-          if (data.kycStatus === "approved") {
-            showScreen('partnerHome');
-            attachPartnerRealtimeSync(uid);
-          } else {
-            showScreen('stepWaitScreen');
-          }
+          showScreen('stepWaitScreen');
         }
-      } catch (err) {
-        hideBackgroundSyncLoader();
-        showScreen('stepLoginScreen');
       }
     }
 
@@ -937,7 +856,7 @@
       const uid = loggedInUser.uid;
 
       const name = document.getElementById("kycFullName").value.trim();
-      const phone = document.getElementById("kycPhone").value.trim() || temporaryUserPhone;
+      const phone = document.getElementById("kycPhone").value.trim();
       const skill = document.getElementById("kycSkill").value;
       const pan = document.getElementById("kycPan").value.trim();
       const licence = document.getElementById("kycLicence").value.trim();
@@ -945,38 +864,14 @@
       const ifsc = document.getElementById("kycIfsc").value.trim();
       const upi = document.getElementById("kycUpi").value.trim();
 
-      const panFile = document.getElementById("kycPanFile").files[0];
-      const idFile = document.getElementById("kycIdFile").files[0];
-
       if (!name || !phone || !pan || !licence || !bankAc || !ifsc) {
         alert("Please fill in all mandatory KYC and banking fields.");
         return;
       }
-
-      showBackgroundSyncLoader("Uploading documents & saving profile...");
-
-      let panFileUrl = "";
-      let idFileUrl = "";
-
-      try {
-        if (panFile) {
-          const panRef = storageRef(storage, `kyc_docs/${uid}/pan_${Date.now()}_${panFile.name}`);
-          const panSnapshot = await uploadBytes(panRef, panFile);
-          panFileUrl = await getDownloadURL(panSnapshot.ref);
-        }
-
-        if (idFile) {
-          const idRef = storageRef(storage, `kyc_docs/${uid}/id_${Date.now()}_${idFile.name}`);
-          const idSnapshot = await uploadBytes(idRef, idFile);
-          idFileUrl = await getDownloadURL(idSnapshot.ref);
-        }
-      } catch (uploadError) {
-        console.warn("Storage upload notice:", uploadError);
-      }
       
       const payload = {
-        email: loggedInUser.email,
-        name, phone, skill, pan, panFileUrl, licence, idFileUrl, bankAc, ifsc, upi,
+        email: loggedInUser.email || loggedInUser.phoneNumber || "phone-user",
+        name, phone, skill, pan, licence, bankAc, ifsc, upi,
         kycStatus: "pending",
         isOnline: false,
         status: "available",
@@ -1000,19 +895,16 @@
 
       await set(ref(db, `live_partners/${uid}`), payload);
       localStorage.setItem('sewaastra_persisted_uid', uid);
-      localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
+      localStorage.setItem('sewaastra_persisted_email', loggedInUser.email || loggedInUser.phoneNumber || "");
 
-      hideBackgroundSyncLoader();
-      alert("KYC and documents submitted successfully!");
+      alert("KYC submitted successfully!");
       showScreen('stepWaitScreen');
     };
 
     window.checkAdminApprovalStatus = async function() {
-      showBackgroundSyncLoader("Checking status...");
       if (!loggedInUser) return;
       const snap = await get(ref(db, `live_partners/${loggedInUser.uid}`));
       const data = snap.val() || {};
-      hideBackgroundSyncLoader();
 
       if (data.kycStatus === "approved") {
         alert("🎉 Admin approved your onboarding!");
@@ -1047,7 +939,7 @@
 
       onValue(ref(db, 'live_partners'), (snap) => {
         if (!snap.exists()) {
-          container.innerHTML = `<p style="font-size: 12px; text-align: center; color: var(--text-muted);">No technicians registered.</p>`;
+          container.innerHTML = `<p style="font-size: 12px; text-align: center; color: var(--text-muted);">No partners registered.</p>`;
           return;
         }
 
@@ -1055,10 +947,6 @@
         const records = snap.val();
         for (const [uid, data] of Object.entries(records)) {
           const badgeClass = data.kycStatus === "approved" ? "badge-success" : (data.kycStatus === "rejected" ? "badge-danger" : "badge-pending");
-          let docsHtml = "";
-          if (data.panFileUrl) docsHtml += `<a href="${data.panFileUrl}" target="_blank" style="color: var(--blue);">View PAN Document</a> | `;
-          if (data.idFileUrl) docsHtml += `<a href="${data.idFileUrl}" target="_blank" style="color: var(--blue);">View ID Document</a>`;
-
           html += `
             <div style="background: var(--bg-card); border: 1px solid var(--border); border-left: 5px solid var(--blue); padding: 14px; border-radius: 8px; margin-bottom: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -1066,10 +954,9 @@
                 <span class="badge ${badgeClass}">${data.kycStatus.toUpperCase()}</span>
               </div>
               <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px;">
-                📧 Email/ID: <b>${data.email}</b><br>
+                📧 Account: <b>${data.email}</b><br>
                 📱 Phone: <b>${data.phone}</b> | UPI: <b>${data.upi || 'N/A'}</b><br>
                 🛠️ Skill: <b>${data.skill}</b><br>
-                📄 Docs: ${docsHtml || 'None uploaded'}<br>
                 💵 Earnings: <b>₹${data.totalEarned || 0}</b> | Floating Cash: <b>₹${data.floatingCash || 0}</b>
               </div>
               <div style="display: flex; gap: 10px;">
@@ -1159,8 +1046,8 @@
         document.getElementById("partnerRatingDisplay").innerText = `${data.rating || 4.9} ⭐`;
         document.getElementById("profileRatingHeader").innerText = `${data.rating || 4.9} ⭐`;
 
-        document.getElementById("profileNameDisplay").innerText = data.name || "Technician";
-        document.getElementById("profileAvatarInitial").innerText = (data.name || "T").charAt(0).toUpperCase();
+        document.getElementById("profileNameDisplay").innerText = data.name || "Partner";
+        document.getElementById("profileAvatarInitial").innerText = (data.name || "P").charAt(0).toUpperCase();
         document.getElementById("profileIdBadge").innerText = `ID: SW-${uid.substring(0,4).toUpperCase()}`;
 
         if (data.settings) {
