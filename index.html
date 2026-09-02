@@ -397,7 +397,7 @@ firebase.auth().getRedirectResult().then(function(r){
 function diag(){
   alert('🌐 '+location.protocol+'//'+(location.hostname||'(file)')+'\n📶 Internet: '+(navigator.onLine?'✅':'❌')+'\n🔥 Firebase: '+(window.firebase&&firebase.apps.length?'✅':'❌')+'\n\n'+(location.protocol==='file:'?'❗ file:// से खोला — hosting पर खोलें!':'👉 Authorized domains में add करें: '+location.hostname)+'\n\n✅ बिना SMS: Console → Auth → Phone → test numbers में +91 7869969190 / OTP 123456 डालें');
 }
-function lgOut(){ localStorage.removeItem('swp_logged'); try{firebase.auth().signOut();}catch(e){} location.reload(); }
+function lgOut(){ localStorage.removeItem('swp_logged'); localStorage.removeItem('swp_phone'); localStorage.removeItem('swp_name'); localStorage.removeItem('swp_uid'); try{firebase.auth().signOut();}catch(e){} location.reload(); }
 
 /* ═══ ENTER APP ═══ */
 var booted=false;
@@ -2206,6 +2206,69 @@ upKyc=function(k,inp){
   _upKyc52(k,inp);
 };
 console.log('%c 📱 v5.2 — GMAIL→KYC PHONE ✅ ','background:#1976d2;color:#fff;font-weight:bold;');
+
+/* ═══ v5.3 — KYC SELFIE = LIVE CAMERA + phone auto-fill fix ═══ */
+var v53KycSel=false, v53Busy=false;
+function v53Selfie(){
+  if(v53Busy) return; v53Busy=true; setTimeout(function(){v53Busy=false;},900);
+  if(!me()){
+    var pe=document.getElementById('kPh');
+    var ph=pe?pe.value.trim():'';
+    if(!/^\d{10}$/.test(ph)) return toast('❌ पहले ऊपर 10-अंकों का मोबाइल नंबर भरें');
+    localStorage.setItem('swp_phone',ph);
+    try{ listenPartner(); }catch(e){}
+  }
+  v53KycSel=true;
+  function fb(){ v53KycSel=false; var f=document.getElementById('ofselfie')||document.getElementById('kfselfie'); if(f) f.click(); }
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return fb();
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false}).then(function(st){
+    camS=st;
+    document.getElementById('camV').srcObject=st;
+    document.getElementById('camOv').style.display='flex';
+    toast('🤳 KYC के लिए LIVE selfie लें');
+  }).catch(function(){ fb(); });
+}
+var _snap53=v46Snap;
+v46Snap=function(){
+  var isKyc=v53KycSel;
+  if(!isKyc) return _snap53();
+  var v=document.getElementById('camV');
+  if(!v.videoWidth) return toast('⏳ camera तैयार हो रहा है...');
+  var w=480, h=Math.round(v.videoHeight/v.videoWidth*480);
+  var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+  var c=cv.getContext('2d'); c.translate(w,0); c.scale(-1,1); c.drawImage(v,0,0,w,h);
+  var b64=cv.toDataURL('image/jpeg',.55);
+  v46CamX();
+  ldr('🤳 Live selfie save...');
+  FS.collection('partners').doc(me()).collection('kyc').doc('selfie').set({img:b64,ts:Date.now(),at:new Date().toLocaleString('en-IN'),live:true})
+    .then(function(){ kyc.selfie=b64; ldrX(); vib([80,40,80]); toast('✅ LIVE selfie saved!'); try{drawProfile();}catch(e){} try{v47Docs();}catch(e){} })
+    .catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+};
+var _camx53=v46CamX;
+v46CamX=function(){ _camx53(); v53KycSel=false; };
+/* KYC grid के selfie tile पर LIVE camera लगाओ (form + profile दोनों) */
+function v53Hook(){
+  ['ofselfie','kfselfie'].forEach(function(id){
+    var inp=document.getElementById(id);
+    if(inp&&inp.parentNode&&!inp.parentNode._v53){
+      inp.parentNode._v53=true;
+      inp.parentNode.onclick=function(){ v53Selfie(); };
+    }
+  });
+}
+var _docs53=v47Docs;
+v47Docs=function(){ _docs53(); try{ v53Hook(); }catch(e){} };
+var _dp7=drawProfile;
+drawProfile=function(){ _dp7(); try{ v53Hook(); }catch(e){} };
+console.log('%c 🤳 v5.3 — KYC LIVE SELFIE + PHONE FIX ✅ ','background:#7b1fa2;color:#fff;font-weight:bold;');
+</script>
+</body>
+</html>
+nt-weight:bold;');
+</script>
+</body>
+</html>
+e.log('%c 📱 v5.2 — GMAIL→KYC PHONE ✅ ','background:#1976d2;color:#fff;font-weight:bold;');
 </script>
 </body>
 </html>
