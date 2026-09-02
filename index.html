@@ -407,6 +407,11 @@ function enter(){
   $('lgOv').style.display='none';
   if(booted){ if(window.v43Gate) v43Gate(); return; }
   booted=true;
+  /* 🚦 STRICT: सबसे पहले KYC check — home तब तक छुपा रहेगा */
+  try{
+    var ob=document.getElementById('obOv');
+    if(ob){ ob.style.display='block'; document.getElementById('obX').innerHTML='<div style="text-align:center;padding:90px 16px;"><div style="font-size:54px;">🔎</div><h2 style="font-size:17px;margin:12px 0 6px;">आपकी KYC status जांच रहे हैं...</h2><div style="font-size:11.5px;color:#988;font-weight:700;">एक क्षण रुकें ⏳</div></div>'; }
+  }catch(e){}
   $('pPh').innerText='📱 +91 '+(me()||'—');
   if(localStorage.getItem('swp_dark')){ $('drkC').checked=true; document.body.classList.add('dark'); }
   if(localStorage.getItem('swp_auto')==='1') $('aSw').classList.add('on');
@@ -1986,6 +1991,38 @@ v46NMap=function(){
 };
 setInterval(function(){ try{ if(booted&&document.getElementById('secN').classList.contains('act')) v46NMap(); }catch(e){} },5000);
 console.log('%c 🔒 v4.8 — 100% SECURITY ACTIVE ','background:#e53935;color:#fff;font-weight:bold;padding:3px;');
+
+/* ═══════════════ v4.9 — STRICT KYC-FIRST FLOW ═══════════════ */
+/* क्रम पक्का: 1) KYC सारी जानकारी → 2) Submit → PENDING APPROVAL screen → 3) Admin approve → training → तभी home */
+var pReady=false;
+var _dp6=drawProfile;
+drawProfile=function(){ pReady=true; _dp6(); };
+/* अगर Firestore से जवाब देर से आए तो 5s बाद भी KYC form दिखा दो (home कभी नहीं) */
+setInterval(function(){
+  if(booted && !pReady){
+    var ob=document.getElementById('obOv');
+    if(ob && ob.style.display!=='none' && !document.getElementById('kForm')) v43Gate();
+  }
+},5000);
+/* PENDING screen पर status refresh button */
+var _v43Show49=v43Show;
+v43Show=function(st){
+  _v43Show49(st);
+  if(st==='Submitted'){
+    var x=$('obX');
+    if(x && !document.getElementById('rfBtn')) x.insertAdjacentHTML('beforeend','<button id="rfBtn" class="bn b" style="width:100%;margin-top:10px;padding:11px;" onclick="v49Rf()">🔄 Approval Status Check करें</button>');
+  }
+};
+function v49Rf(){
+  ldr('🔄 Status check...');
+  FS.collection('partners').doc(me()).get().then(function(d){
+    if(d.exists) P=d.data()||{};
+    ldrX(); v43Gate();
+    if(P.kycStatus==='Approved'){ vib([90,50,90,50,180]); toast('🎉 APPROVED! स्वागत है!'); }
+    else toast('⏳ अभी admin approval pending है');
+  }).catch(function(){ ldrX(); toast('❌ Internet check करें'); });
+}
+console.log('%c 🚦 v4.9 — STRICT KYC-FIRST FLOW ✅ ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
 </script>
 </body>
 </html>
