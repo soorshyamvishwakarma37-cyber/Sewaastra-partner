@@ -354,7 +354,7 @@
         <h3 style="font-size: 15px;"><i class="fa-solid fa-id-card"></i> Partner Verification & KYC</h3>
         <button onclick="logoutSession()" class="btn-outline" style="width: auto; padding: 3px 6px; font-size: 10px;">Sign Out</button>
       </div>
-      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide correct details for admin approval.</p>
+      <p style="color: var(--danger); font-size: 11px; font-weight: bold; margin-bottom: 14px;">⚠️ Please provide correct details and documents for admin approval.</p>
       
       <div class="form-group">
         <label>Authenticated Email:</label>
@@ -389,9 +389,17 @@
           <label>PAN Card Number:</label>
           <input type="text" id="kycPan" placeholder="ABCDE1234F">
         </div>
-        <div class="form-group" style="margin-bottom: 0;">
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label>Upload PAN Card Document (Image/PDF):</label>
+          <input type="file" id="kycPanFile" accept="image/*,.pdf">
+        </div>
+        <div class="form-group" style="margin-bottom: 10px;">
           <label>Driver's License / ID Number:</label>
           <input type="text" id="kycLicence" placeholder="DL-1420110012345">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>Upload ID / License Document (Image/PDF):</label>
+          <input type="file" id="kycIdFile" accept="image/*,.pdf">
         </div>
       </div>
       
@@ -560,17 +568,18 @@
 
     <div class="bottom-nav">
       <div class="nav-item active" onclick="switchTab('feedTab', this)"><span><i class="fa-solid fa-map"></i></span>Live Map</div>
-      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span><i class="fa-solid fa-bolt">icon</i></span>Finding Orders</div>
-      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span><i class="fa-solid fa-wallet">icon</i></span>Earnings</div>
-      <div class="nav-item" onclick="switchTab('profileTab', this)"><span><i class="fa-solid fa-user">icon</i></span>Profile</div>
+      <div class="nav-item" onclick="switchTab('ordersTab', this)"><span><i class="fa-solid fa-bolt"></i></span>Finding Orders</div>
+      <div class="nav-item" onclick="switchTab('earningsTab', this)"><span><i class="fa-solid fa-wallet"></i></span>Earnings</div>
+      <div class="nav-item" onclick="switchTab('profileTab', this)"><span><i class="fa-solid fa-user"></i></span>Profile</div>
     </div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, signInWithRedirect, getRedirectResult } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
     import { getDatabase, ref, set, get, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
     const app = initializeApp({
       apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
@@ -585,6 +594,7 @@
 
     const auth = getAuth(app);
     const db = getDatabase(app);
+    const storage = getStorage(app);
     const googleProvider = new GoogleAuthProvider();
 
     let loggedInUser = null;
@@ -740,6 +750,17 @@
 
     window.addEventListener('DOMContentLoaded', async () => {
       detectCurrentGeolocation();
+      try {
+        const redirectResult = await getRedirectResult(auth);
+        if (redirectResult && redirectResult.user) {
+          loggedInUser = redirectResult.user;
+          handleSuccessfulAuth();
+          return;
+        }
+      } catch (e) {
+        console.error("Redirect login error:", e);
+      }
+
       const persistedUid = localStorage.getItem('sewaastra_persisted_uid');
       const persistedEmail = localStorage.getItem('sewaastra_persisted_email');
       
@@ -754,25 +775,38 @@
       try {
         const result = await signInWithPopup(auth, googleProvider);
         loggedInUser = result.user;
-        
-        detectCurrentGeolocation();
-
-        const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
-        const snap = await get(partnerRef);
-
-        hideLoader();
-        if (!snap.exists()) {
-          document.getElementById("mobilePopupModal").classList.add("active");
-        } else {
-          localStorage.setItem('sewaastra_persisted_uid', loggedInUser.uid);
-          localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
-          evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
-        }
+        handleSuccessfulAuth();
       } catch (error) {
+        // Fallback to redirect if popup is blocked (cross-origin iframe issues)
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
+          try {
+            await signInWithRedirect(auth, googleProvider);
+            return;
+          } catch (redirectError) {
+            hideLoader();
+            alert("Google Login Error: " + redirectError.message);
+            return;
+          }
+        }
         hideLoader();
         alert("Google Login Error: " + error.message);
       }
     };
+
+    async function handleSuccessfulAuth() {
+      detectCurrentGeolocation();
+      const partnerRef = ref(db, `live_partners/${loggedInUser.uid}`);
+      const snap = await get(partnerRef);
+
+      hideLoader();
+      if (!snap.exists()) {
+        document.getElementById("mobilePopupModal").classList.add("active");
+      } else {
+        localStorage.setItem('sewaastra_persisted_uid', loggedInUser.uid);
+        localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
+        evaluateUserRouting(loggedInUser.uid, loggedInUser.email);
+      }
+    }
 
     window.submitPopupMobileNumber = function() {
       const phoneInput = document.getElementById("popupPhoneInput").value.trim();
@@ -830,16 +864,38 @@
       const ifsc = document.getElementById("kycIfsc").value.trim();
       const upi = document.getElementById("kycUpi").value.trim();
 
+      const panFile = document.getElementById("kycPanFile").files[0];
+      const idFile = document.getElementById("kycIdFile").files[0];
+
       if (!name || !phone || !pan || !licence || !bankAc || !ifsc) {
         alert("Please fill in all mandatory KYC and banking fields.");
         return;
       }
 
-      showLoader("Saving profile to unique Firebase node...");
+      showLoader("Uploading documents and saving profile...");
+
+      let panFileUrl = "";
+      let idFileUrl = "";
+
+      try {
+        if (panFile) {
+          const panRef = storageRef(storage, `kyc_docs/${uid}/pan_${Date.now()}_${panFile.name}`);
+          const panSnapshot = await uploadBytes(panRef, panFile);
+          panFileUrl = await getDownloadURL(panSnapshot.ref);
+        }
+
+        if (idFile) {
+          const idRef = storageRef(storage, `kyc_docs/${uid}/id_${Date.now()}_${idFile.name}`);
+          const idSnapshot = await uploadBytes(idRef, idFile);
+          idFileUrl = await getDownloadURL(idSnapshot.ref);
+        }
+      } catch (uploadError) {
+        console.warn("Storage upload notice:", uploadError);
+      }
       
       const payload = {
         email: loggedInUser.email,
-        name, phone, skill, pan, licence, bankAc, ifsc, upi,
+        name, phone, skill, pan, panFileUrl, licence, idFileUrl, bankAc, ifsc, upi,
         kycStatus: "pending",
         isOnline: false,
         status: "available",
@@ -866,7 +922,7 @@
       localStorage.setItem('sewaastra_persisted_email', loggedInUser.email);
 
       hideLoader();
-      alert("KYC submitted successfully!");
+      alert("KYC and documents submitted successfully!");
       showScreen('stepWaitScreen');
     };
 
@@ -918,6 +974,10 @@
         const records = snap.val();
         for (const [uid, data] of Object.entries(records)) {
           const badgeClass = data.kycStatus === "approved" ? "badge-success" : (data.kycStatus === "rejected" ? "badge-danger" : "badge-pending");
+          let docsHtml = "";
+          if (data.panFileUrl) docsHtml += `<a href="${data.panFileUrl}" target="_blank" style="color: var(--blue);">View PAN Document</a> | `;
+          if (data.idFileUrl) docsHtml += `<a href="${data.idFileUrl}" target="_blank" style="color: var(--blue);">View ID Document</a>`;
+
           html += `
             <div style="background: var(--bg-card); border: 1px solid var(--border); border-left: 5px solid var(--blue); padding: 14px; border-radius: 8px; margin-bottom: 12px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
@@ -928,6 +988,7 @@
                 📧 Email: <b>${data.email}</b><br>
                 📱 Phone: <b>${data.phone}</b> | UPI: <b>${data.upi || 'N/A'}</b><br>
                 🛠️ Skill: <b>${data.skill}</b><br>
+                📄 Docs: ${docsHtml || 'None uploaded'}<br>
                 💵 Earnings: <b>₹${data.totalEarned || 0}</b> | Floating Cash: <b>₹${data.floatingCash || 0}</b>
               </div>
               <div style="display: flex; gap: 10px;">
