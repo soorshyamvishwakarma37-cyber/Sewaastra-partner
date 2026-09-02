@@ -2023,6 +2023,141 @@ function v49Rf(){
   }).catch(function(){ ldrX(); toast('❌ Internet check करें'); });
 }
 console.log('%c 🚦 v4.9 — STRICT KYC-FIRST FLOW ✅ ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+
+/* ═══════════════ v5.0 — GIG-LOCK + FLOATING CASH ₹2000 + INCENTIVES ═══════════════ */
+
+function v50TD(){ return new Date().toISOString().slice(0,10); }
+function v50WK(){ var d=new Date(); var on=(d.getDay()+6)%7; return new Date(Date.now()-on*864e5).toISOString().slice(0,10); }
+
+/* 📅 1) GIG BOOK किए बिना ONLINE नहीं */
+var _togOnl3=togOnl;
+togOnl=function(){
+  if(!onl){
+    var td=v50TD();
+    var has=gigL.some(function(g){ return g.date===td; });
+    if(!has){
+      v45GList();
+      sAlert('ONLINE जाने के लिए पहले आज की GIG BOOK करना ज़रूरी है!\n\nअभी gig booking खुल रही है — आज का दिन + slot चुनकर book करें, फिर ONLINE जाएँ। 📅','🔒 पहले Gig Book करें','📅');
+      setTimeout(function(){ try{ v45GOpen(); }catch(e){} },600);
+      return;
+    }
+  }
+  _togOnl3();
+};
+
+/* 💵 2) FLOATING CASH — limit ₹2000 */
+var FLOAT_LIM=2000, depSum=0, depL=[], incL=[];
+function v50Cash(){
+  var m=me();
+  var col=ALL.filter(function(o){ return o.status==='Completed'&&o.partnerPhone===m&&/cash|cod|नकद/i.test(o.mode||''); })
+    .reduce(function(s,o){ return s+(o.total||0); },0);
+  return Math.max(0,col-depSum);
+}
+function v50Load(cb){
+  var ph=me(); if(!ph) return;
+  Promise.all([
+    FS.collection('partners').doc(ph).collection('deposits').get(),
+    FS.collection('partners').doc(ph).collection('incentives').get()
+  ]).then(function(r){
+    depL=r[0].docs.map(function(d){return d.data();}).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
+    depSum=depL.reduce(function(s,d){ return s+(d.status!=='Rejected'?(d.amt||0):0); },0);
+    incL=r[1].docs.map(function(d){return d.id;});
+    if(cb)cb();
+  }).catch(function(){ if(cb)cb(); });
+}
+setTimeout(function(){ if(booted) v50Load(); },4000);
+/* COD order accept block जब limit पार */
+var _acc4=acc;
+acc=function(oid){
+  var o=ALL.filter(function(x){return x.id===oid;})[0];
+  if(o&&/cash|cod|नकद/i.test(o.mode||'')&&v50Cash()>=FLOAT_LIM){
+    return sAlert('आपके पास ₹'+v50Cash().toLocaleString('en-IN')+' floating cash जमा है (limit ₹2,000)।\n\nपहले cash admin को जमा करें — कमाई tab → 💵 Floating Cash → जमा करें।\nजमा होते ही COD orders फिर खुल जाएँगे। Online (UPI) orders अभी भी ले सकते हैं।','💵 Cash Limit पार!','🔒');
+  }
+  _acc4(oid);
+};
+function v50Dep(){
+  var f=v50Cash();
+  if(f<=0) return sAlert('आपके पास कोई floating cash नहीं है — सब जमा है! 👌','सब Clear ✅','💵');
+  var a=prompt('कितने ₹ जमा कर रहे हैं? (floating: ₹'+f+')',f);
+  if(!a) return; a=parseInt(a,10);
+  if(!(a>0)||a>f) return toast('❌ सही amount डालें (max ₹'+f+')');
+  var upi='upi://pay?pa=shoorshyam.vishwakarma@ibl&pn=SewaAstra&am='+a+'&cu=INR&tn=PartnerCashDeposit'+me();
+  try{ window.location.href=upi; }catch(e){}
+  setTimeout(function(){
+    var ref=prompt('UPI से ₹'+a+' भेजने के बाद UTR/Ref नंबर डालें:');
+    if(!ref||ref.trim().length<6) return toast('❌ UTR ज़रूरी — बिना UTR जमा दर्ज नहीं होगा');
+    ldr('💸 दर्ज हो रहा है...');
+    FS.collection('partners').doc(me()).collection('deposits').add({
+      amt:a, ref:ref.trim(), status:'Pending', phone:me(), name:P.name||'', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+    }).then(function(){
+      ldrX(); vib([80,40,80]);
+      sAlert('₹'+a+' का deposit दर्ज हो गया (UTR: '+ref.trim()+')।\n\nAdmin verify करेंगे — verify होते ही floating cash कम हो जाएगा।','Deposit दर्ज! 💸','✅');
+      v50Load(function(){ drawEarn(); });
+    }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+  },1500);
+}
+
+/* 🏆 3) INCENTIVES */
+var INC=[
+  {k:'d3', n:'रोज़ 3 काम पूरे', need:3, amt:50, per:'day', i:'🥉'},
+  {k:'d5', n:'रोज़ 5 काम पूरे', need:5, amt:120, per:'day', i:'🥈'},
+  {k:'w25', n:'हफ्ते में 25 काम', need:25, amt:500, per:'week', i:'🏆'}
+];
+function v50IncSt(){
+  var done=v41Done(), td=new Date().toDateString(), wk=Date.now()-7*864e5;
+  var dCnt=done.filter(function(o){return new Date(o.createdAt||0).toDateString()===td;}).length;
+  var wCnt=done.filter(function(o){return (o.createdAt||0)>wk;}).length;
+  return INC.map(function(x){
+    var cnt=x.per==='day'?dCnt:wCnt;
+    var key=x.k+'-'+(x.per==='day'?v50TD():v50WK());
+    return { x:x, cnt:cnt, key:key, hit:cnt>=x.need, claimed:incL.indexOf(key)>-1 };
+  });
+}
+function v50Claim(ix){
+  var st=v50IncSt()[ix];
+  if(!st.hit) return toast('❌ अभी '+st.cnt+'/'+st.x.need+' — और काम पूरे करें!');
+  if(st.claimed) return toast('✅ पहले ही claim हो चुका');
+  ldr('🏆 Claim...');
+  FS.collection('partners').doc(me()).collection('incentives').doc(st.key).set({
+    name:st.x.n, amt:st.x.amt, status:'Earned', phone:me(), pname:P.name||'', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+  }).then(function(){
+    incL.push(st.key); ldrX(); vib([90,50,90,50,180]);
+    sAlert(st.x.i+' '+st.x.n+' — ₹'+st.x.amt+' incentive आपका!\n\nAdmin अगली payout के साथ भेजेंगे। 🎉','INCENTIVE UNLOCKED!','🏆');
+    drawEarn();
+  }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+}
+
+/* कमाई tab में दोनों cards */
+var _drawEarn3=drawEarn;
+drawEarn=function(){ _drawEarn3(); try{ v50Card(); }catch(e){} };
+function v50Card(){
+  var old=document.getElementById('v50C'); if(old) old.remove();
+  var f=v50Cash(), pc=Math.min(100,Math.round(f/FLOAT_LIM*100)), over=f>=FLOAT_LIM;
+  var host=document.createElement('div'); host.id='v50C';
+  host.innerHTML=
+  '<div class="cd" '+(over?'style="border:1.5px solid #e53935;"':'')+'><div class="rw"><b style="font-size:12.5px;">💵 Floating Cash (COD)</b><b style="color:'+(over?'#e53935':pc>70?'#b07800':'#15a04a')+';">₹'+f.toLocaleString('en-IN')+' / ₹2,000</b></div>'+
+  '<div class="pcb"><span style="width:'+pc+'%;background:'+(over?'#e53935':'var(--pr)')+';"></span></div>'+
+  '<div style="font-size:10px;font-weight:800;margin-top:5px;color:'+(over?'#e53935':'#998')+';">'+(over?'🔒 Limit पार — cash जमा करने तक COD orders बंद!':'Customer से लिया cash — ₹2,000 से पहले जमा करते रहें')+'</div>'+
+  '<button class="bn '+(over?'r':'g')+'" style="width:100%;margin-top:9px;padding:11px;" onclick="v50Dep()">💸 Cash जमा करें (UPI)</button>'+
+  (depL.length?'<div style="font-size:11px;font-weight:800;margin-top:10px;">📜 जमा history</div>'+depL.slice(0,4).map(function(d){
+    var cl=d.status==='Approved'?'#15a04a':d.status==='Rejected'?'#e53935':'#b07800';
+    var ic=d.status==='Approved'?'✅':d.status==='Rejected'?'❌':'⏳';
+    return '<div class="rw" style="margin-top:6px;font-size:11px;font-weight:700;"><span>₹'+(d.amt||0)+' • UTR: '+esc((d.ref||'').slice(0,14))+'</span><span style="color:'+cl+';">'+ic+' '+esc(d.status||'')+'</span></div>';
+  }).join(''):'')+'</div>'+
+  '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🏆 Incentives — bonus कमाओ!</b></div>'+
+  v50IncSt().map(function(s,ix){
+    var p=Math.min(100,Math.round(s.cnt/s.x.need*100));
+    return '<div style="border:1.5px solid var(--bd);border-radius:13px;padding:9px 11px;margin-top:8px;'+(s.hit&&!s.claimed?'border-color:var(--pr);background:var(--prl);':'')+'">'+
+    '<div class="rw" style="font-size:11.5px;font-weight:800;"><span>'+s.x.i+' '+s.x.n+'</span><b style="color:var(--pr);">+₹'+s.x.amt+'</b></div>'+
+    '<div class="pcb" style="margin-top:5px;"><span style="width:'+p+'%;"></span></div>'+
+    '<div class="rw" style="margin-top:5px;"><span style="font-size:10px;font-weight:800;color:#998;">'+s.cnt+'/'+s.x.need+' पूरे</span>'+
+    (s.claimed?'<span style="font-size:10px;font-weight:800;color:#15a04a;">✅ CLAIMED</span>':s.hit?'<button class="bn o" style="padding:6px 14px;font-size:10.5px;" onclick="v50Claim('+ix+')">🎉 CLAIM करें</button>':'<span style="font-size:10px;font-weight:800;color:#998;">'+(s.x.need-s.cnt)+' बाकी 💪</span>')+
+    '</div></div>';
+  }).join('')+
+  '<div style="font-size:10px;color:#998;font-weight:700;margin-top:8px;">💡 Incentive admin अगली payout के साथ भेजते हैं</div></div>';
+  $('lsE').appendChild(host);
+}
+console.log('%c 💰 v5.0 — GIG-LOCK + FLOAT ₹2000 + INCENTIVES ✅ ','background:#ff6b00;color:#fff;font-weight:bold;padding:3px;');
 </script>
 </body>
 </html>
