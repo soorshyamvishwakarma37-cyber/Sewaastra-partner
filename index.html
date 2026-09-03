@@ -4177,5 +4177,343 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a355b69848eb4454',t:'MTc4ODQ0ODU2MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ PARTNER v6.4 — FULL KYC (gender/work-city/bank/auto-doc) + LIVE SELFIE + WORK-START FACE + ONBOARD POPUP + TRAINING URL ═══════════════ */
+(function(){
+  if(window.__p65) return; window.__p65=1;
+  var P65={gender:'',city:'Bhopal',radius:8,bank:{},selLive:false};
+  var ST=null;
+  if(!document.getElementById('p65sty')){
+    ST=document.createElement('style'); ST.id='p65sty'; ST.textContent=
+      '.p65c{border:1.5px dashed #2c3a5c;border-radius:14px;padding:11px 12px;margin:8px 0;background:rgba(255,255,255,.02)}'+
+      '.p65c b.t{font-size:12.5px;display:block;margin-bottom:7px}'+
+      '.p65chk{font-size:10px;font-weight:900;padding:3px 9px;border-radius:20px;display:inline-block;margin:4px 0 2px}'+
+      '.p65camWrap{position:fixed;inset:0;z-index:900000;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;flex-direction:column;padding:14px}'+
+      '#p65Vid{width:100%;max-width:420px;border-radius:16px;background:#000;transform:scaleX(-1);max-height:62vh}'+
+      '#p65Cap{background:linear-gradient(135deg,#ff6b00,#ff9a3d);color:#fff;border:none;padding:13px 26px;border-radius:40px;font-weight:900;font-size:15px;margin-top:12px}'+
+      '.p65pl{border:none;border-radius:13px;padding:12px;font-weight:900;cursor:pointer;width:100%;margin-top:6px;font-size:12px}'+
+      '.p65v1{color:#ff8a80}.p65v2{color:#ffd60a}.p65v3{color:#7fb3ff}';
+    document.head.appendChild(ST);
+  }
+
+  /* ── Aadhaar (Verhoeff) + PAN auto-verify ── */
+  var _d=[[0,1,2,3,4,5,6,7,8,9],[1,2,3,4,0,6,7,8,9,5],[2,3,4,0,1,7,8,9,5,6],[3,4,0,1,2,8,9,5,6,7],[4,0,1,2,3,9,5,6,7,8],[5,9,8,7,6,0,4,3,2,1],[6,5,9,8,7,1,0,4,3,2],[7,6,5,9,8,2,1,0,4,3],[8,7,6,5,9,3,2,1,0,4],[9,8,7,6,5,4,3,2,1,0]];
+  var _p=[[0,1,2,3,4,5,6,7,8,9],[1,5,7,6,2,8,3,0,9,4],[5,8,0,3,7,9,6,1,4,2],[8,9,1,6,0,4,3,5,2,7],[9,4,5,3,1,2,6,8,7,0],[4,2,8,6,5,7,3,9,0,1],[2,7,9,3,8,0,6,4,1,5],[7,0,4,6,9,1,3,2,5,8]];
+  function p65Vh(n){ n=String(n||''); if(!/^\d{12}$/.test(n)) return false; var c=0; for(var i=0;i<n.length;i++){ c=_d[c][_p[(i+1)%8][parseInt(n[n.length-1-i],10)]]; } return c===0; }
+  function p65PanOk(p){ return /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(String(p||'').toUpperCase()); }
+  function badge(kind,ok,msg){
+    return '<span class="p65chk" style="background:'+(ok?'#0f5c2e':'#3a1110')+';color:'+(ok?'#7dffa0':'#ff8a80')+';border:1px solid '+(ok?'#2bc96e':'#6d2320')+';">'+(ok?'✅':'⚠️')+' '+msg+'</span>';
+  }
+  function docBadges(){
+    try{
+      var aa=document.getElementById('kAa'); if(aa){
+        var host=aa.parentNode;
+        if(!document.getElementById('p65AaBd')) host.insertAdjacentHTML('beforeend','<div id="p65AaBd"></div>');
+        var ok=p65Vh(aa.value.trim());
+        var el=document.getElementById('p65AaBd');
+        el.innerHTML=badge('a',ok, ok?'Aadhaar नंबर सही (auto-verified)':'Aadhaar: 12 अंक — सही format/checksum चाहिए');
+      }
+      var pa=document.getElementById('kPa'); if(pa){
+        var h2=pa.parentNode;
+        if(!document.getElementById('p65PaBd')) h2.insertAdjacentHTML('beforeend','<div id="p65PaBd"></div>');
+        var ok2=p65PanOk(pa.value);
+        var e2=document.getElementById('p65PaBd');
+        e2.innerHTML=badge('p',ok2, ok2?'PAN format सही':'PAN: ABCDE1234F format');
+      }
+    }catch(e){}
+  }
+  var _docB=null;
+  function docWatcher(){
+    if(_docB) return; _docB=1;
+    ['kAa','kPa'].forEach(function(id){
+      var el=document.getElementById(id); if(!el) return;
+      el.addEventListener('input',function(){ docBadges(); });
+    });
+  }
+
+  /* ── Camera: Live selfie ── */
+  function p65Cam(cb,title){
+    var w=document.createElement('div'); w.id='p65cam'; w.className='p65camWrap';
+    w.innerHTML='<div style="width:100%;max-width:430px;background:#0e1524;border:1px solid var(--bd);border-radius:18px;overflow:hidden;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;background:linear-gradient(135deg,#0b1220,#26364f);color:#fff;"><b>'+String(title||'📸 Live Selfie')+'</b><span style="font-size:22px;cursor:pointer;" onclick="window.__p65CamCl()">✕</span></div>'+
+      '<div style="padding:12px;text-align:center;">'+
+        '<div style="font-size:10.5px;color:#8a94ab;font-weight:700;margin-bottom:8px;">चेहरा अच्छी रोशनी में दिखाएँ — बिना चश्मे/मास्क</div>'+
+        '<video id="p65Vid" autoplay playsinline muted></video>'+
+        '<button id="p65Cap">📸 Selfie लें</button></div></div>';
+    document.body.appendChild(w);
+    var vid=w.querySelector('#p65Vid'), stream=null;
+    window.__p65CamCl=function(){ try{ if(stream) stream.getTracks().forEach(function(t){t.stop();}); }catch(e){} w.remove(); };
+    navigator.mediaDevices&&navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:640}},audio:false})
+      .then(function(s){ stream=s; vid.srcObject=s; try{ vid.play(); }catch(e){} })
+      .catch(function(){ w.innerHTML='<div style="width:100%;max-width:380px;background:#0e1524;border:1px solid var(--bd);border-radius:16px;padding:20px;text-align:center;color:#ff8a80;font-weight:800;font-size:13px;">❌ Camera नहीं खुली (permission?)\n<br><button class="p65pl p65v1" style="margin-top:12px;background:#3a1110;" onclick="window.__p65CamCl()">✕ बंद</button></div>'; });
+    w.querySelector('#p65Cap').onclick=function(){
+      if(!stream) return;
+      var cv=document.createElement('canvas'); cv.width=480; cv.height=Math.round(480*vid.videoHeight/vid.videoWidth||360);
+      var c=cv.getContext('2d');
+      c.translate(cv.width,0); c.scale(-1,1); c.drawImage(vid,0,0,cv.width,cv.height);
+      var b64=cv.toDataURL('image/jpeg',.7);
+      window.__p65CamCl();
+      if(cb) cb(b64);
+    };
+  }
+  /* KYC live selfie -> save */
+  function p65Selfie(){
+    p65Cam(function(b64){
+      ldr('📸 Selfie save...');
+      FS.collection('partners').doc(me()).collection('kyc').doc('selfie').set({img:b64,ts:Date.now(),live:true,at:new Date().toLocaleString('en-IN')})
+        .then(function(){
+          kyc.selfie=b64; P65.selLive=true; ldrX(); vib([70,40,70]); toast('✅ Live Selfie save हो गई!');
+          try{ v47Docs(); }catch(e){}
+        }).catch(function(e){ ldrX(); toast('❌ '+e.message); });
+    },'📸 Live Selfie — KYC के लिए');
+  }
+
+  /* ── Extra KYC fields: gender, work city+range, bank ── */
+  var CITIES=['Bhopal','Indore','Gwalior','Jabalpur','Ujjain','Sagar','Dewas','Ratlam','Rewa','Satna','Guna','Hoshangabad','अन्य'];
+  function p65Ext(){
+    try{
+      var kf=document.getElementById('kForm'); if(!kf||document.getElementById('p65Ext')) return;
+      var sub=document.getElementById('kSub'); if(!sub) return;
+      var ki=P.kycInfo||{}, bk=P.bank||{};
+      P65.gender=ki.gender||''; P65.city=ki.city||'Bhopal'; P65.radius=Number(P.radiusKm)||Number(ki.radius)||8;
+      P65.bank=bk;
+      var d=document.createElement('div'); d.id='p65Ext'; d.className='cd'; d.style.cssText='border-color:#1d3a5f;';
+      d.innerHTML=
+        '<b style="font-size:12.5px;">🧾 KYC — पूरी जानकारी (सब एक साथ)</b>'+
+        '<div style="margin-top:6px;display:flex;gap:8px;align-items:center;">लिंग <select id="p65Gen" class="pi" style="flex:1;width:auto;"><option value="">— चुनें —</option><option value="Male">पुरुष (Male)</option><option value="Female">महिला (Female)</option><option value="Other">अन्य</option></select></div>'+
+        '<div style="display:flex;gap:8px;margin-top:6px;"><div style="flex:1;">🏙️ काम का शहर<select id="p65City" class="pi" style="width:100%;">'+CITIES.map(function(c){return '<option>'+c+'</option>';}).join('')+'</select></div>'+
+        '<div style="width:130px;">📍 Work Range<div style="display:flex;align-items:center;gap:6px;"><input type="range" id="p65Rad" min="2" max="30" value="8" oninput="document.getElementById(\'p65RadV\').innerText=this.value"><b id="p65RadV" style="color:var(--pr);">8</b></div></div></div>'+
+        '<div style="margin-top:4px;font-size:9.5px;color:#8a94ab;font-weight:700;">शहर के भीतर यही दूरी (km) तक आपको नए ऑर्डर मिलेंगे।</div>'+
+        '<div class="p65c"><b class="t">🏦 Bank / Payout details</b>'+
+          '<input class="pi" id="p65BH" placeholder="Account Holder नाम *" value="'+esc(bk.holder||'')+'">'+
+          '<input class="pi" id="p65BA" placeholder="Account Number" value="'+esc(bk.acc||'')+'">'+
+          '<input class="pi" id="p65BI" placeholder="IFSC" style="text-transform:uppercase;" value="'+esc(bk.ifsc||'')+'">'+
+          '<input class="pi" id="p65BU" placeholder="UPI ID (payout यहीं आएगा) *" value="'+esc(bk.upi||'')+'"></div>'+
+        '<div class="p65c"><b class="t">📸 Selfie — Live लें (document नहीं)</b>'+
+          '<div style="display:flex;gap:8px;align-items:center;">'+(kyc.selfie?'<img src="'+esc(kyc.selfie)+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #2bc96e;">':'<span style="font-size:30px;">🤳</span>')+
+          '<div style="flex:1;"><button class="bn o" style="width:100%;padding:10px;" onclick="p65Selfie()">📸 Live Selfie लें</button>'+
+          '<div style="font-size:9px;color:#8a94ab;font-weight:700;margin-top:3px;">कैमरा खुलकर अभी-का चेहरा कैद करेगा — काम-शुरू verification भी इसी से होगा।</div></div></div></div>';
+      var selG=d.querySelector('#p65Gen'), selC=d.querySelector('#p65City'), rng=d.querySelector('#p65Rad');
+      if(P65.gender) selG.value=P65.gender;
+      if(CITIES.indexOf(P65.city)>-1) selC.value=P65.city;
+      rng.value=P65.radius; document.getElementById('p65RadV').innerText=P65.radius;
+      sub.parentNode.insertBefore(d,sub);
+      docWatcher(); setTimeout(docBadges,150);
+    }catch(e){}
+  }
+  var _kyc47=window.v47Kyc;
+  window.v47Kyc=function(){ if(_kyc47) _kyc47.apply(this,arguments); setTimeout(function(){ try{ p65Ext(); docWatcher(); docBadges(); }catch(e){} },150); };
+  var _doc47=window.v47Docs;
+  window.v47Docs=function(){ if(_doc47) _doc47.apply(this,arguments); setTimeout(function(){
+    try{ var inp=document.getElementById('ofselfie'); if(!inp) return; var tile=inp.closest('.kyd'); if(!tile) return;
+      if(!kyc.selfie){ tile.onclick=function(){ p65Selfie(); }; var n=tile.querySelector('.n2'); if(n) n.innerHTML='📸 Live Selfie — टैप करके लें'; }
+    }catch(e){}
+  },80); };
+
+  /* ── v47Sub override: full validation + single save with extra fields ── */
+  var _sub47=window.v47Sub;
+  window.v47Sub=function(){
+    try{
+      var gen=(document.getElementById('p65Gen')||{}).value||''; if(!gen) return toast('❌ लिंग चुनें (Male/Female/Other)');
+      var city=(document.getElementById('p65City')||{}).value||''; if(!city) return toast('❌ काम का शहर चुनें');
+      var rad=parseInt((document.getElementById('p65Rad')||{}).value||'8',10);
+      var bh=(document.getElementById('p65BH')||{}).value||'', ba=(document.getElementById('p65BA')||{}).value||'', bi=(document.getElementById('p65BI')||{}).value||'', bu=(document.getElementById('p65BU')||{}).value||'';
+      bh=String(bh).trim(); bu=String(bu).trim().toLowerCase();
+      if(!bh||bh.length<3) return toast('❌ Bank account holder नाम डालें');
+      if(!bu) return toast('❌ UPI ID डालें (payout यहीं आएगा)');
+      if(bu&&!/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(bu)) return toast('❌ UPI ID सही नहीं (जैसे name@okhdfcbank)');
+      var aa=((document.getElementById('kAa')||{}).value||'').trim();
+      var pa=((document.getElementById('kPa')||{}).value||'').trim().toUpperCase();
+      if(aa&&!p65Vh(aa)) return toast('❌ Aadhaar नंबर सही नहीं — 12 अंक + checksum check करें');
+      if(pa&&!p65PanOk(pa)) return toast('❌ PAN format सही नहीं — ABCDE1234F');
+      if(!kyc.selfie) return toast('❌ Selfie live लें — कैमरा से अभी लें');
+      P65.gender=gen; P65.city=city; P65.radius=rad; P65.bank={holder:bh,acc:ba,ifsc:bi,upi:bu};
+      window.__p65ex=1;
+      if(_sub47) _sub47();
+    }catch(e){ if(_sub47) _sub47(); }
+  };
+  /* original v47Sub write को extra fields merge करने के लिए पहले से doc update hook — original set पहले चलता है, फिर extra merge */
+  var _ps=setInterval(function(){
+    try{ if(window.__p65ex){ clearInterval(_ps); window.__p65ex=0;
+      var ph=me(); FS.collection('partners').doc(ph).set({gender:P65.gender,workCity:P65.city,radiusKm:P65.radius,bank:P65.bank,kycInfo:Object.assign({},(P.kycInfo||{}),{gender:P65.gender,city:P65.city,radius:P65.radius})},{merge:true}).catch(function(){}); }
+    }catch(e){}
+  },900);
+
+  /* ── Face verify: live कैमरा selfie vs KYC selfie ── */
+  function p65LoadFace(cb){
+    try{
+      if(window.faceapi&&faceapi.nets){ try{ cb(true); }catch(e){} return; }
+      var sc=document.createElement('script');
+      sc.src='https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js';
+      sc.onload=function(){
+        try{ Promise.all([
+          faceapi.nets.tinyFaceDetector.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model'),
+          faceapi.nets.faceLandmark68TinyNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model'),
+          faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model')
+        ]).then(function(){ cb(true); }).catch(function(){ cb(false); }); }catch(e){ cb(false); }
+      };
+      sc.onerror=function(){ cb(false); };
+      document.head.appendChild(sc);
+    }catch(e){ cb(false); }
+  }
+  function p65Desc(src,onok,onerr){
+    var im=new Image();
+    im.onload=function(){ try{
+      faceapi.detectSingleFace(im,new faceapi.TinyFaceDetectorOptions({inputSize:320})).withFaceLandmarks().withFaceDescriptor().then(function(r){
+        if(r&&r.descriptor) onok(r.descriptor); else onerr('no face');
+      }).catch(function(e){ onerr(e); });
+    }catch(e){ onerr(e); } };
+    im.onerror=function(){ onerr('img'); };
+    im.src=src;
+  }
+  function p65FaceCheck(live,ref,res){
+    ldr('🔍 चेहरा verify हो रहा है...');
+    p65LoadFace(function(ok){
+      if(!ok){ ldrX(); p65Manual(live,ref,res); return; }
+      p65Desc(ref,function(rd){
+        p65Desc(live,function(ld){
+          ldrX();
+          var d=faceapi.euclideanDistance(rd,ld);
+          if(d<=0.55){ res(true,{d:d,auto:true}); }
+          else { sAlert('चेहरा मैच नहीं हुआ (distance '+d.toFixed(2)+' — 0.55 से कम चाहिए)।\n\nरोशनी ठीक करके दोबारा try करें, या नीचे side-by-side confirm करें।','Face Verify नहीं हुआ','😕'); p65Manual(live,ref,res,true); }
+        },function(){ ldrX(); p65Manual(live,ref,res); });
+      },function(){ ldrX(); p65Manual(live,ref,res); });
+    });
+  }
+  function p65Manual(live,ref,res,again){
+    var w=document.createElement('div'); w.style.cssText='position:fixed;inset:0;z-index:900001;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:14px;';
+    w.innerHTML='<div style="width:100%;max-width:430px;background:#0e1524;border:1px solid var(--bd);border-radius:18px;overflow:hidden;">'+
+      '<div style="padding:12px 14px;background:linear-gradient(135deg,#0b1220,#26364f);color:#fff;font-weight:900;font-size:13px;">🔍 चेहरा मिलान'+(again?' — machine नहीं मिला, नीचे confirm करें':' (network नहीं — नीचे confirm करें)')+'</div>'+
+      '<div style="display:flex;gap:8px;padding:14px;">'+
+        '<div style="flex:1;text-align:center;"><img src="'+ref+'" style="width:100%;height:120px;object-fit:cover;border-radius:12px;"><div style="font-size:9px;color:#8a94ab;font-weight:800;margin-top:4px;">KYC Selfie</div></div>'+
+        '<div style="display:flex;align-items:center;font-size:22px;">↔️</div>'+
+        '<div style="flex:1;text-align:center;"><img src="'+live+'" style="width:100%;height:120px;object-fit:cover;border-radius:12px;"><div style="font-size:9px;color:#8a94ab;font-weight:800;margin-top:4px;">अभी ली गई</div></div></div>'+
+      '<div style="padding:0 14px 6px;text-align:center;font-size:11px;color:#c6cbdb;font-weight:700;">क्या दोनों चेहरे एक ही व्यक्ति के हैं?</div>'+
+      '<div style="display:flex;gap:8px;padding:0 14px 16px;"><button class="bn gy" id="p65mNo" style="flex:1;">✕ नहीं</button><button class="bn g" id="p65mYes" style="flex:1;">✅ हाँ, मैं ही हूँ</button></div></div>';
+    document.body.appendChild(w);
+    w.querySelector('#p65mNo').onclick=function(){ w.remove(); res(false); };
+    w.querySelector('#p65mYes').onclick=function(){ w.remove(); res(true,{manual:true}); };
+  }
+
+  /* ── upKyc गेट: सही documents ही upload हों + selfie sirf LIVE ── */
+  var _upK=window.upKyc;
+  window.upKyc=function(k,inp){
+    var inK=!!document.getElementById('kForm');
+    if(k==='selfie'&&inK){ toast('❌ Selfie gallery से नहीं — कैमरा से 📸 Live Selfie लें'); if(inp) inp.value=''; return; }
+    if(inK){
+      var aa=String(((document.getElementById('kAa')||{}).value||'')).trim();
+      if(k.indexOf('aadhaar')===0&&!p65Vh(aa)){ toast('❌ पहले सही 12-अंकों का Aadhaar नंबर डालें (auto-verify) — फिर photo upload'); if(inp) inp.value=''; return; }
+      if(k==='pan'){ var pa=String(((document.getElementById('kPa')||{}).value||'')).trim().toUpperCase(); if(!p65PanOk(pa)){ toast('❌ पहले सही PAN format (ABCDE1234F) डालें'); if(inp) inp.value=''; return; } }
+    }
+    if(_upK) _upK(k,inp);
+  };
+
+  /* ── Work start के पहले selfie + verify ── */
+  var _advp=adv;
+  function p65StartGate(oid){
+    if(!v48Kyc()) return _advp(oid,'On the Way');
+    if(!kyc.selfie) return sAlert('पहले KYC में Live Selfie लें — उसी चेहरे से काम-शुरू verify होगा।','Selfie नहीं मिली','🤳');
+    p65Cam(function(live){
+      ldr('🔐 काम शुरू — selfie verify...');
+      FS.collection('partners').doc(me()).collection('startLog').add({oid:oid,img:live,ts:Date.now()}).catch(function(){});
+      p65FaceCheck(live,kyc.selfie,function(ok,r){
+        if(!ok) return;
+        FS.collection('orders').doc(oid).set({workStart:{img:live,ts:Date.now(),match:r&&r.d?Number(r.d.toFixed(3)):null,auto:!!(r&&r.auto),by:me()}},{merge:true}).catch(function(){});
+        toast('✅ चेहरा verified — काम शुरू! 🔧'); vib([80,40,80,40,140]);
+        _advp(oid,'On the Way');
+      });
+    },'📸 Work-Start Selfie — KYC वाले चेहरे से मिलान');
+  }
+  adv=function(oid,cur){
+    if(cur==='On the Way'){ try{ p65StartGate(oid); }catch(e){ _advp(oid,cur); } return; }
+    _advp(oid,cur);
+  };
+
+  /* ── 3) Admin Training: LINK support ── */
+  var _tr=window.p64Tr;
+  window.p64Tr=function(){
+    var ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;z-index:900002;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:14px;';
+    ov.innerHTML='<div style="width:100%;max-width:640px;background:#0b1220;border:1px solid var(--bd);border-radius:18px;overflow:hidden;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:linear-gradient(135deg,#101a2e,#0d6efd);color:#fff;"><b>🎬 SewaAstra Partner Training</b><span style="font-size:22px;cursor:pointer;" onclick="this.parentNode.parentNode.parentNode.remove()">✕</span></div>'+
+      '<div id="p65Vd" style="padding:10px;text-align:center;color:#8a94ab;font-weight:700;font-size:12px;">🎥 Training video load हो रही है...</div></div>';
+    document.body.appendChild(ov);
+    FS.collection('config').doc('partnerTraining').get().then(function(d){
+      var h=document.getElementById('p65Vd'); if(!h) return;
+      if(d.exists){
+        var x=d.data()||{}; var src=String(x.url||'').trim()||String(x.vdo||'').trim();
+        var cap=String(x.caption||'');
+        if(src) h.innerHTML='<video controls autoplay playsinline style="width:100%;max-height:62vh;border-radius:10px;background:#000;" src="'+esc(src)+'"></video>'+(cap?'<div style="margin:8px 0 2px;font-size:11px;color:#aab6cf;font-weight:700;">'+esc(cap)+'</div>':'');
+        else h.innerHTML='<div style="padding:22px;">📭 Admin ने अभी training video/link नहीं डाली।</div>';
+      } else h.innerHTML='<div style="padding:22px;">📭 Training video उपलब्ध नहीं</div>';
+    }).catch(function(){ var h=document.getElementById('p65Vd'); if(h) h.innerHTML='📭 Training video उपलब्ध नहीं'; });
+  };
+
+  /* ── 4) Onboarding fee popup — KYC approve के तुरंत बाद ── */
+  function p65ObDue(){
+    var fee=0,off='none',val=0; try{ var g=window.__p65Cfg||{}; fee=Number(g.fee)||0; off=g.off||'none'; val=Number(g.val)||0; }catch(e){}
+    if(fee<=0) return {amt:0,orig:0,free:true};
+    if(off==='free') return {amt:0,orig:fee,free:true};
+    if(off==='flat') return {amt:Math.max(0,fee-val),orig:fee,free:(fee-val)<=0};
+    if(off==='percent'){ var a=fee-Math.round(fee*val/100); return {amt:Math.max(0,a),orig:fee,free:a<=0}; }
+    return {amt:fee,orig:fee,free:false};
+  }
+  window.p65ObPop=function(){
+    var due=p65ObDue();
+    var done=!!(P.onboarding&&P.onboarding.paid);
+    if(done) return;
+    var w=document.createElement('div'); w.id='p65ObW'; w.style.cssText='position:fixed;inset:0;z-index:900003;background:rgba(0,0,0,.86);display:flex;align-items:center;justify-content:center;padding:16px;';
+    w.innerHTML='<div style="width:100%;max-width:400px;background:linear-gradient(180deg,#141020,#1b1730);border:2px solid #7a5a00;border-radius:22px;overflow:hidden;animation:p64Up .3s ease;">'+
+      '<div style="text-align:center;padding:18px 16px 4px;"><div style="font-size:44px;">🎉</div>'+
+      '<div style="font-size:17px;font-weight:900;margin-top:6px;">KYC APPROVED — स्वागत है!</div>'+
+      '<div style="font-size:11px;color:#b9c2d8;margin-top:5px;font-weight:700;line-height:1.7;">अब काम शुरू करने से पहले <b style="color:#ffd60a;">Onboarding</b> पूरा करें। Pay करते ही आप ONLINE होकर ऑर्डर ले सकेंगे।</div></div>'+
+      '<div style="padding:12px 18px;">'+
+        '<div style="background:#0f1626;border:1px solid #574400;border-radius:14px;padding:12px;text-align:center;">'+
+          '<div style="font-size:9.5px;color:#8a94ab;font-weight:800;">Onboarding Fee'+(due.free?'':(' <s style="opacity:.6;">₹'+due.orig+'</s>'))+'</div>'+
+          '<div style="font-size:30px;font-weight:900;color:#ffd60a;">'+(due.free?'FREE 🎉':'₹'+due.amt.toLocaleString('en-IN'))+'</div></div>'+
+        '<div style="font-size:9.5px;color:#8a94ab;font-weight:700;text-align:center;margin-top:6px;">UPI app में pay करके UTR डालें → Admin verify करेगा</div>'+
+        '<div style="display:flex;gap:7px;margin-top:9px;"><button class="bn w" style="flex:1.2;" onclick="window.__p65ObPay()">💳 UPI से Pay करें</button></div>'+
+        '<input id="p65ObUt" placeholder="UTR / Ref no. (pay के बाद)" style="width:100%;box-sizing:border-box;margin-top:8px;text-align:center;font-weight:900;letter-spacing:1px;">'+
+        '<button class="bn o" style="width:100%;margin-top:7px;padding:12px;" onclick="p65ObSub()">✅ UTR भरो — Onboarding पूरा</button>'+
+        '<button class="bn gy" style="width:100%;margin-top:7px;padding:10px;" onclick="p65ObLater()">बाद में (आज फिर याद दिलाएँगे)</button></div></div>';
+    document.body.appendChild(w);
+  };
+  window.__p65ObPay=function(){
+    var due=p65ObDue(); if(due.amt<=0) return;
+    FS.collection('config').doc('global').get().then(function(d){ var upi=''; if(d.exists) upi=String(d.data().upiId||''); if(!upi) upi='soorshyam37@oksbi';
+      var l='upi://pay?pa='+encodeURIComponent(upi)+'&pn=SewaAstra&am='+due.amt+'&cu=INR&tn=Onboarding%20Fee'; window.open(l,'_blank'); toast('✅ UPI खुला — pay करके UTR डालें'); }).catch(function(){}); };
+  window.p65ObSub=function(){
+    var u=String((document.getElementById('p65ObUt')||{}).value||'').trim(); var due=p65ObDue();
+    if(u.length<6) return sAlert('UTR/reference नंबर डालें (pay के बाद UPI app में दिखा)।','UTR चाहिए','🔤');
+    ldr('Save...');
+    FS.collection('partners').doc(me()).set({onboarding:{paid:true,amt:due.amt,orig:due.orig,utr:u,at:Date.now()}},{merge:true})
+      .then(function(){ ldrX(); P.onboarding={paid:true}; var w=document.getElementById('p65ObW'); if(w) w.remove();
+        sAlert('🎉 Onboarding complete (UTR: '+u+')।\n\nअब ONLINE होकर ऑर्डर accept कर सकते हैं!','धन्यवाद! 🙏','✅');
+        try{ drawProfile(); }catch(e){}
+      }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+  };
+  window.p65ObLater=function(){ var w=document.getElementById('p65ObW'); if(w) w.remove();
+    try{ localStorage.setItem('ob_later',String(Date.now())); }catch(e){}
+    toast('ठीक है — बाद में याद दिलाएँगे');
+  };
+  /* watcher: approved & not paid & fee>0 → popup once per session */
+  try{ FS.collection('config').doc('global').onSnapshot(function(d){ if(d.exists){ var x=d.data(); window.__p65Cfg={fee:Number(x.obFee)||0,off:x.obOffType||'none',val:Number(x.obOffVal)||0}; } },function(){}); }catch(e){}
+  try{ FS.collection('partners').doc(me()).onSnapshot(function(d){
+    if(!d.exists) return;
+    var x=d.data()||{}; var was=window.__p65st;
+    window.__p65st=x.kycStatus||'';
+    if(was&&was!=='Approved'&&x.kycStatus==='Approved'){
+      var fee=Number((window.__p65Cfg||{}).fee)||0;
+      var paid=!!(x.onboarding&&x.onboarding.paid);
+      var later=Number(localStorage.getItem('ob_later')||0);
+      if(fee>0&&!paid&&(Date.now()-later)>18e5){ setTimeout(function(){ try{ p65ObPop(); }catch(e){} },1200); }
+      try{ localStorage.removeItem('swp_kyc_ok'); }catch(e){}
+    }
+  },function(){}); }catch(e){}
+  console.log('%c 🧾🤳 PARTNER v6.4 — FULL KYC + FACE VERIFY + ONBOARD POPUP ✅ ','background:#6a1b9a;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35699bb5a123228',t:'MTc4ODQ1Nzg2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
