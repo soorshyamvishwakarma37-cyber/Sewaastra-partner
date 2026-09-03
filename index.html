@@ -886,11 +886,25 @@ function upKyc(k,inp){
   };
   rd.readAsDataURL(f);
 }
+/* 🔒 KYC submit के बाद — device से photos + draft पूरी तरह हटा (server पर Admin के लिए रहती हैं) */
+function clrKyc(){
+  try{
+    var ph=me()||'anon';
+    ['selfie','aadhaarF','aadhaarB','pan'].forEach(function(k){
+      try{ localStorage.removeItem('swp_kyc_img_'+ph+'__'+k); }catch(e){}
+      try{ if(kyc) delete kyc[k]; }catch(e){}
+    });
+    try{ localStorage.removeItem('swp_kyc_draft_'+ph); }catch(e){}
+    try{ drawProfile(); }catch(e){}
+    try{ if(window.v47Docs) v47Docs(); }catch(e){}
+  }catch(e){}
+}
 function subKyc(){
   var miss=KDOCS.filter(function(d){return !kyc[d.k];});
   if(miss.length)return toast('❌ पहले upload करें: '+miss.map(function(d){return d.n;}).join(', '));
   FS.collection('partners').doc(me()).set({kycStatus:'Submitted',kycAt:Date.now()},{merge:true}).then(function(){
-    P.kycStatus='Submitted'; toast('📤 KYC submit — admin approve करेंगे ✅'); vib(); drawProfile();
+    P.kycStatus='Submitted'; toast('📤 KYC submit — admin approve करेंगे ✅'); vib();
+    try{ clrKyc(); }catch(e){}
   });
 }
 
@@ -1909,6 +1923,7 @@ function v47Sub(){
     ldrX(); vib([90,50,90,50,180]);
     sAlert('आपकी पूरी जानकारी + चारों documents admin के पास पहुँच गए!\n\nApprove होते ही app अपने आप खुल जाएगा। ⏳','KYC Submitted! 📤','✅');
     if(me()==='7869969190'){ setTimeout(function(){ FS.collection('partners').doc(me()).set({kycStatus:'Approved'},{merge:true}).catch(function(){}); },1500); }
+    try{ clrKyc(); }catch(e){}
     v43Gate();
   }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
 }
@@ -4569,7 +4584,7 @@ var LGS=[['hi','हिन्दी'],['en','English']];
       var fee=Number((window.__p65Cfg||{}).fee)||0;
       var paid=!!(x.onboarding&&x.onboarding.paid);
       var later=Number(localStorage.getItem('ob_later')||0);
-      if(fee>0&&!paid&&(Date.now()-later)>18e5){ setTimeout(function(){ try{ p65ObPop(); }catch(e){} },1200); }
+      if(fee>0&&!paid){ try{ if(window.__p68Check){ setTimeout(function(){ try{ window.__p68Check(); }catch(e){} },250); } else { setTimeout(function(){ try{ p65ObPop(); }catch(e){} },1200); } }catch(e){} }
       try{ localStorage.removeItem('swp_kyc_ok'); }catch(e){}
     }
   },function(){}); }catch(e){}
@@ -4860,11 +4875,12 @@ var LGS=[['hi','हिन्दी'],['en','English']];
       }
     }catch(e){}
   }
-  setInterval(check,1000);
-  setTimeout(check,1000); setTimeout(check,2500); setTimeout(check,4500);
+  window.__p68Check=check;
+  setInterval(check,700);
+  setTimeout(check,0); setTimeout(check,300); setTimeout(check,900); setTimeout(check,2500); setTimeout(check,4500);
   console.log('%c 🔒 PARTNER v6.8 — ONBOARDING-FEE HARD GATE ✅ ','background:#7a5a00;color:#fff;font-weight:bold;padding:3px;');
 })();
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3583d754de0446e',t:'MTc4ODQ3NTA1Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35874224fc547c5',t:'MTc4ODQ3NzI5Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
