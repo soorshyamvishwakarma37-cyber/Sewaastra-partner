@@ -636,7 +636,7 @@ function acc(oid){
 }
 function adv(oid,cur){
   var nx=FLOW[FLOW.indexOf(cur)+1]; if(!nx)return;
-  if(nx==='Completed'&&!confirm('काम पूरा? Customer को bill+rating popup जाएगा।'))return;
+  if(nx==='Completed'){ /* OTP verification — sunder box se (v5.6) */ }
   var u={status:nx}; u['t_'+nx.replace(/\s/g,'')]=Date.now();
   FS.collection('orders').doc(oid).update(u).then(function(){
     toast('📌 '+SH[nx]);
@@ -2314,10 +2314,10 @@ adv=function(oid,cur){
   if(nx==='Completed'){
     var o=ALL.filter(function(x){return x.id===oid;})[0];
     if(o&&o.wOtp){
-      var e=prompt('🔐 काम पूरा — Customer से 4-अंकों का WORK OTP पूछकर डालें:');
-      if(e===null) return;
-      if((e||'').trim()!==String(o.wOtp)) return sAlert('OTP match नहीं हुआ!\n\nCustomer के app में नीचे 🔐 Work OTP दिख रहा है — उनसे सही OTP पूछें। बिना OTP काम पूरा नहीं होगा।','❌ गलत OTP','🔐');
-      toast('✅ OTP verified!');
+      v56OtpAsk(oid,function(ok){
+        if(ok===true){ toast('✅ OTP verified!'); _adv54(oid,cur); }
+      });
+      return;
     }
   }
   _adv54(oid,cur);
@@ -2337,18 +2337,6 @@ function v54Shr(){
 var _draw54=draw;
 draw=function(){ _draw54(); try{ v54Btns(); v54Shr(); }catch(e){} };
 console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
-</script>
-</body>
-</html>
-nt-weight:bold;');
-</script>
-</body>
-</html>
-e.log('%c 📱 v5.2 — GMAIL→KYC PHONE ✅ ','background:#1976d2;color:#fff;font-weight:bold;');
-</script>
-</body>
-</html>
-nt-weight:bold;');
 </script>
 
 
@@ -2599,5 +2587,278 @@ nt-weight:bold;');
 })();
 
 </script>
-</body>
+
+<script>
+/* ═══════════════ v5.6 — SUNDER ALERT/OTP/INPUT ENGINE + WITHDRAW ONLINE-ONLY + BOTTOM FIX ═══════════════ */
+(function(){
+  if(window.__v56P) return; window.__v56P=1;
+  var ST=document.createElement('style');
+  ST.innerText=
+  '#sxOv{position:fixed;inset:0;z-index:70000;display:none;align-items:center;justify-content:center;background:rgba(5,9,20,.68);backdrop-filter:blur(5px);padding:20px}'+
+  '#sxOv.open{display:flex}'+
+  '.sxcard{width:100%;max-width:410px;border-radius:26px;overflow:hidden;background:var(--card);color:var(--tx);box-shadow:0 34px 95px rgba(0,0,0,.6);animation:sxin .28s cubic-bezier(.2,1.25,.4,1);border:1px solid rgba(255,255,255,.08)}'+
+  '@keyframes sxin{from{transform:scale(.88) translateY(16px);opacity:0}to{transform:none;opacity:1}}'+
+  '.sxh{padding:24px 16px 18px;text-align:center;color:#fff;position:relative;background:linear-gradient(135deg,#ff6b00,#ff9a3d)}'+
+  '.sxh .sxi{font-size:50px;line-height:1;filter:drop-shadow(0 4px 8px rgba(0,0,0,.3))}'+
+  '.sxh .sxt{font-size:16px;font-weight:900;margin-top:9px;letter-spacing:.2px}'+
+  '.sxb{padding:16px 18px 20px}'+
+  '.sxmsg{font-size:12.8px;line-height:1.75;color:#c6cbdb;font-weight:600;white-space:pre-wrap;word-break:break-word;max-height:42vh;overflow:auto;background:rgba(255,255,255,.035);border:1px solid var(--bd);border-radius:14px;padding:12px 13px}'+
+  '.sxbig{width:100%;text-align:center;font-size:24px;font-weight:900;letter-spacing:8px;padding:12px 6px;border:2px solid var(--bd);border-radius:15px;background:#0b1220;color:#ffd700;outline:none;margin-top:6px;caret-color:#ffd700}'+
+  '.sxbig:focus{border-color:#ff9a3d}'+
+  '.sxrow{display:flex;gap:9px;margin-top:15px}'+
+  '.sxrow .bn{flex:1;padding:13px;font-size:12.5px;border-radius:13px;margin:0}'+
+  '.sxerr{display:none;color:#ff8a80;font-size:11px;font-weight:800;margin-top:9px;text-align:center;line-height:1.5}'+
+  '.sxerr.on{display:block}'+
+  '@keyframes sxshk{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}60%{transform:translateX(7px)}}'+
+  '.sxshk{animation:sxshk .25s 2}'+
+  /* bottom-overlap fix */
+  'body{padding-bottom:104px!important}'+
+  '#tst{bottom:112px!important}'+
+  '.nv{min-height:64px}'+
+  '.nv button{white-space:nowrap;padding:10px 3px 12px}'+
+  '.bo{min-height:calc(100vh - 140px)}';
+  document.head.appendChild(ST);
+
+  var ov=null, pRes=null;
+  function nl(s){ return String(s==null?'':s).replace(/\n/g,'<br>'); }
+  function escS(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+  function sv(v){ var r=pRes; pRes=null; var o=document.getElementById('sxOv'); if(o) o.classList.remove('open'); if(r) r(v); }
+  function close(){ sv(null); }
+  window.v56Close=close;
+  function open(cfg){
+    if(!ov){ ov=document.createElement('div'); ov.id='sxOv'; document.body.appendChild(ov); }
+    ov.innerHTML=
+      '<div class="sxcard"><div class="sxh" style="background:'+(cfg.bg||'linear-gradient(135deg,#ff6b00,#ff9a3d)')+'">'+
+      '<div class="sxi">'+escS(cfg.ic||'💬')+'</div><div class="sxt">'+escS(cfg.t||'SewaAstra')+'</div></div>'+
+      '<div class="sxb">'+(cfg.html||'')+'</div></div>';
+    ov.classList.add('open');
+    ov.onclick=function(e){ if(e.target===ov && cfg.tapClose!==false) sv(null); };
+    return new Promise(function(res){ pRes=res; });
+  }
+
+  /* SUNDER alert */
+  function sAlert(msg,title,icon){
+    if(typeof msg==='object'&&msg&&msg.message) msg=msg.message;
+    open({ic:icon||'💬',t:title||'SewaAstra Partner',
+      html:'<div class="sxmsg">'+nl(escS(msg))+'</div>'+
+      '<div class="sxrow"><button class="bn o" onclick="v56Close()">✅ ठीक है</button></div>'});
+  }
+  window.sAlert=sAlert;
+  window.alert=function(m){ sAlert(m); };
+  /* koi bhi purana native prompt silent-cancel ho (सुंदर boxes use होंगे) */
+  window.prompt=function(){ return null; };
+
+  /* SUNDER confirm → Promise<boolean> */
+  function sxAsk(t,msg,ic,okL,noL){
+    open({ic:ic||'❓',t:t||'पक्का?',
+      html:'<div class="sxmsg">'+nl(escS(msg))+'</div>'+
+      '<div class="sxrow"><button class="bn gy" onclick="v56Close()">✕ '+(noL||'नहीं')+'</button>'+
+      '<button class="bn g" id="sxYesB">✅ '+(okL||'हाँ')+'</button></div>'});
+    document.getElementById('sxYesB').onclick=function(){ sv(true); };
+    return new Promise(function(res){ pRes=res; });
+  }
+  window.sxConfirmP=sxAsk;
+
+  /* SUNDER input → Promise<string|null> */
+  function sxIn(o){
+    open({ic:o.ic||'✏️',t:o.t||'जानकारी दें',bg:o.bg,
+      html:'<div class="sxmsg">'+nl(escS(o.msg||''))+'</div>'+
+      '<input class="sxbig" id="sxInp" type="text" inputmode="'+(o.num?'numeric':'text')+'" placeholder="'+escS(o.ph||'')+'" value="'+escS(o.def||'')+'" style="letter-spacing:'+(o.num?'8px':'2px')+'">'+
+      '<div class="sxerr" id="sxErr"></div>'+
+      '<div class="sxrow"><button class="bn gy" onclick="v56Close()">✕ रद्द</button>'+
+      '<button class="bn g" id="sxOkB">✅ '+escS(o.ok||'Save')+'</button></div>'});
+    var inp=document.getElementById('sxInp');
+    setTimeout(function(){ try{ inp.focus(); }catch(e){} },90);
+    function err(m){ var e=document.getElementById('sxErr'); e.innerText='⚠️ '+m; e.classList.add('on'); var c=document.querySelector('#sxOv .sxcard'); if(c){ c.classList.remove('sxshk'); void c.offsetWidth; c.classList.add('sxshk'); } }
+    function okH(){
+      var v=inp.value.trim();
+      if(o.num){ v=v.replace(/[^0-9]/g,''); if(!(parseInt(v,10)>0)){ err(o.err||'सही amount डालें'); return; } }
+      else if(!v){ err(o.err||'यह जानकारी भरना ज़रूरी है'); return; }
+      sv(o.num?String(parseInt(v,10)):v);
+    }
+    document.getElementById('sxOkB').onclick=okH;
+    inp.onkeydown=function(e){ if(e.key==='Enter') okH(); };
+    return new Promise(function(res){ pRes=res; });
+  }
+  window.sxInputP=sxIn;
+
+  /* WORK OTP — sunder (bade digits) */
+  window.v56OtpAsk=function(oid,cb){
+    var o=null; for(var i=0;i<ALL.length;i++) if(ALL[i].id===oid) o=ALL[i];
+    if(!o||!o.wOtp) return cb(false);
+    var w=String(o.wOtp);
+    open({ic:'🔐',t:'Work OTP — काम पूरा',bg:'linear-gradient(135deg,#1a1030,#4a2408)',tapClose:false,
+      html:'<div class="sxmsg">काम पूरा करने के लिए <b style="color:#ffd700;">Customer के app</b> में नीचे दिख रहा <b>🔐 Work OTP</b> उनसे पूछकर यहाँ डालें:</div>'+
+      '<input class="sxbig" id="sxInp" type="text" inputmode="numeric" maxlength="4" placeholder="— — — —" autocomplete="off">'+
+      '<div class="sxerr" id="sxErr">⚠️ OTP match नहीं हुआ — customer से दोबारा पूछें</div>'+
+      '<div style="text-align:center;font-size:9.5px;color:#8a94ab;font-weight:800;margin-top:9px;">बिना सही OTP काम पूरा नहीं होगा</div>'+
+      '<div class="sxrow"><button class="bn gy" id="sxNoB">✕ रद्द</button>'+
+      '<button class="bn o" id="sxOkB">✅ Verify & पूरा करें</button></div>'});
+    var inp=document.getElementById('sxInp');
+    setTimeout(function(){ try{ inp.focus(); }catch(e){} },90);
+    function tryOk(){
+      var v=String(inp.value||'').trim();
+      if(v!==w){
+        var er=document.getElementById('sxErr'); er.classList.add('on');
+        var c=document.querySelector('#sxOv .sxcard'); if(c){ c.classList.remove('sxshk'); void c.offsetWidth; c.classList.add('sxshk'); }
+        try{ if(navigator.vibrate) navigator.vibrate([90,60,90]); }catch(e){}
+        return;
+      }
+      finish(true);
+    }
+    function finish(ok){
+      var oo=document.getElementById('sxOv'); if(oo) oo.classList.remove('open');
+      if(cb) cb(ok);
+    }
+    document.getElementById('sxOkB').onclick=tryOk;
+    document.getElementById('sxNoB').onclick=function(){ finish(false); };
+    inp.onkeydown=function(e){ if(e.key==='Enter') tryOk(); };
+    ov.onclick=null; /* OTP box tap outside close नहीं */
+  };
+  console.log('%c ✨🔐💸 v5.6 — SUNDER BOXES + WITHDRAW ONLINE-ONLY ✅ ','background:#ff6b00;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+<script>
+/* ═══════════════ v5.6B — WITHDRAW (ONLINE-ONLY) + CASH/UPI/OTP सुंदर flows ═══════════════ */
+(function(){
+  if(window.__v56B) return; window.__v56B=1;
+  function cashMode(o){ return /cash|cod|नकद/i.test(o.mode||''); }
+  function onlinePaidSum(){
+    var m=me();
+    return ALL.filter(function(o){
+      if(o.status!=='Completed'||o.partnerPhone!==m) return false;
+      return !cashMode(o);
+    }).reduce(function(s,o){ return s+(o.total||0); },0);
+  }
+
+  /* 💰 BALANCE — सिर्फ Online भुगतान + APPROVED cash deposit */
+  v41Bal=function(cb){
+    var ph=me(); if(!ph){ if(cb)cb(); return; }
+    Promise.all([
+      FS.collection('partners').doc(ph).collection('withdrawals').get(),
+      FS.collection('partners').doc(ph).collection('deposits').get()
+    ]).then(function(r){
+      var wd=r[0].docs.map(function(d){return d.data();});
+      var dp=r[1].docs.map(function(d){return d.data();});
+      var wsum=wd.filter(function(w){ return w.status!=='Rejected'; }).reduce(function(x,w){ return x+(w.amt||0); },0);
+      var vd=dp.filter(function(d){ return d.status==='Approved'; }).reduce(function(x,d){ return x+(d.amt||0); },0);
+      var pend=dp.filter(function(d){ return d.status==='Pending'; }).reduce(function(x,d){ return x+(d.amt||0); },0);
+      var onl=onlinePaidSum();
+      v41BalAmt=Math.max(0, onl+vd-wsum);
+      var el=$('v41W');
+      if(el) el.innerHTML=
+        '<div style="font-size:11px;font-weight:800;color:#b78cff;margin-bottom:4px;">💳 Withdrawable (Online भुगतान + Approved deposit):</div>'+
+        'उपलब्ध: <b style="color:#15a04a;font-size:15px;">₹'+v41BalAmt.toLocaleString('en-IN')+'</b>'+
+        '<div style="font-size:9.5px;color:#998;margin-top:3px;line-height:1.7;">Online (UPI/card) कमाई: ₹'+onl.toLocaleString('en-IN')+'<br>✅ Approved cash deposit: ₹'+vd.toLocaleString('en-IN')+(pend?'<br>⏳ Pending verify: ₹'+pend.toLocaleString('en-IN')+' — approve होते ही जुड़ेगा':'')+'</div>';
+      var wl=$('v41WL');
+      if(wl) wl.innerHTML=wd.slice(0,8).map(function(w){
+        return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+esc(w.upi||'')+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
+      }).join('');
+      if(cb) cb();
+    }).catch(function(){ if($('v41W')) $('v41W').innerText='balance load नहीं हुआ'; if(cb) cb(); });
+  };
+
+  /* 💸 WITHDRAW — सुंदर amount box */
+  _wd2=function(){
+    var ph=me(); if(!ph) return;
+    var upi=(P.bank&&P.bank.upi)||'';
+    if(!upi) return window.sAlert('पहले प्रोफ़ाइल → 🏦 Bank / Payout में UPI ID save करें।\nPayout वहीं भेजा जाएगा।','UPI ज़रूरी है','🏦');
+    v41Bal(function(){
+      var bal=v41BalAmt;
+      window.sxInputP({ic:'💸',t:'Withdraw Request',num:true,
+        msg:'उपलब्ध balance: ₹'+bal.toLocaleString('en-IN')+'\n(सिर्फ Online भुगतान + Approved deposit ही निकलता है)',
+        ph:'कितने ₹ निकालने हैं?',ok:'🏦 Request भेजें'}).then(function(a){
+        if(a===null) return;
+        a=parseInt(a,10);
+        if(!(a>0)) return toast('❌ सही amount डालें');
+        if(a>v41BalAmt) return window.sAlert('आपका withdrawable balance ₹'+v41BalAmt.toLocaleString('en-IN')+' है।\nउससे ज़्यादा नहीं निकाल सकते।','Balance कम है','⚠️');
+        ldr('💸 Request भेज रहे हैं...');
+        FS.collection('partners').doc(ph).collection('withdrawals').add({
+          amt:a, upi:upi, name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
+          status:'Requested', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+        }).then(function(){
+          ldrX(); vib([80,40,80]);
+          window.sAlert('₹'+a.toLocaleString('en-IN')+' की withdraw request भेज दी गई!\n\nAdmin जल्द UPI payout करेंगे।','Request भेज दी ✅','💸');
+          v41Bal();
+        }).catch(function(e){ ldrX(); window.sAlert(e.message,'Error','❌'); });
+      });
+    });
+  };
+
+  /* 💵 CASH DEPOSIT — सुंदर amount + UTR */
+  v50Dep=function(){
+    var f=v50Cash();
+    if(f<=0) return window.sAlert('आपके पास कोई floating cash नहीं है — सब जमा है! 👌','सब Clear ✅','💵');
+    window.sxInputP({ic:'💵',t:'Cash Deposit (UPI)',num:true,
+      msg:'Floating cash: ₹'+f.toLocaleString('en-IN')+' / ₹2,000\nकितने ₹ जमा कर रहे हैं?',
+      ok:'अगला → UPI खोलें'}).then(function(a){
+      if(a===null) return;
+      a=parseInt(a,10);
+      if(!(a>0)||a>f) return toast('❌ सही amount डालें (max ₹'+f.toLocaleString('en-IN')+')');
+      var upi='upi://pay?pa=shoorshyam.vishwakarma@ibl&pn=SewaAstra&am='+a+'&cu=INR&tn=PartnerCashDeposit'+me();
+      try{ window.location.href=upi; }catch(e){}
+      window.sxInputP({ic:'🧾',t:'UTR / Ref नंबर',
+        msg:'UPI/PhonePe में ₹'+a.toLocaleString('en-IN')+' भेजने के बाद मिला UTR/Ref नंबर डालें:',
+        ph:'UTR नंबर',ok:'✅ Deposit दर्ज करें'}).then(function(ref){
+        if(ref===null) return;
+        if(String(ref).trim().length<6) return toast('❌ UTR ज़रूरी — बिना UTR जमा दर्ज नहीं होगा');
+        ldr('💸 दर्ज हो रहा है...');
+        FS.collection('partners').doc(me()).collection('deposits').add({
+          amt:a, ref:String(ref).trim(), status:'Pending', phone:me(), name:P.name||'', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+        }).then(function(){
+          ldrX(); vib([80,40,80]);
+          window.sAlert('₹'+a.toLocaleString('en-IN')+' का deposit दर्ज हो गया (UTR: '+String(ref).trim()+')।\n\nAdmin verify करेंगे — Approved होते ही floating cash कम + balance में जुड़ेगा।','Deposit दर्ज! 💸','✅');
+          v50Load(function(){ drawEarn(); });
+        }).catch(function(e){ ldrX(); window.sAlert(e.message,'Error','❌'); });
+      });
+    });
+  };
+
+  /* 💵 CASH COLLECT confirm — सुंदर */
+  v54Col=function(oid,amt){
+    var f=v50Cash();
+    if(f+amt>FLOAT_LIM) return window.sAlert('यह ₹'+amt+' लेने पर floating cash ₹'+(f+amt).toLocaleString('en-IN')+' हो जाएगा — limit ₹2,000 पार!\n\nपहले जमा करें (कमाई tab → 💵 Cash जमा करें), फिर collect करें।\nया customer से UPI/online payment लें।','💵 Limit पार हो जाएगी','🔒');
+    window.sxConfirmP('Cash Collect','Customer से ₹'+amt.toLocaleString('en-IN')+' cash ले लिया?\n\nदर्ज करें?','💵','हाँ, ले लिया','नहीं').then(function(ok){
+      if(!ok) return;
+      ldr('💵 दर्ज...');
+      FS.collection('orders').doc(oid).update({'payment.cash':true,'payment.verified':true,'payment.status':'Cash ✅ Collected','payment.cashAt':Date.now(),'payment.by':me()})
+        .then(function(){ ldrX(); vib([80,40,80]); toast('💵 ₹'+amt+' cash collect दर्ज!'); })
+        .catch(function(e){ ldrX(); window.sAlert(e.message,'Error','❌'); });
+    });
+  };
+
+  /* ❌ CANCEL REASON — सुंदर input */
+  _cnl2=function(oid){
+    window.sxInputP({ic:'❌',t:'Order Cancel',
+      msg:'Cancel करने का कारण लिखें:',ph:'जैसे: स्पेयर पार्ट नहीं मिला',ok:'❌ Cancel करें'}).then(function(r){
+      if(r===null) return;
+      FS.collection('orders').doc(oid).update({status:'Cancelled',cancelReason:r||'Partner cancelled',cancelledBy:'partner'})
+        .then(function(){ toast('❌ Cancel हो गया'); })
+        .catch(function(e){ toast(e.message); });
+    });
+  };
+
+  /* 💜 UTR verify — सुंदर */
+  vPay=function(oid,ref){
+    window.sxConfirmP('UTR Verify','PhonePe में UTR check किया?\n\nUTR: '+String(ref||'—'),'💜','VERIFY करें','नहीं').then(function(ok){
+      if(!ok) return;
+      FS.collection('orders').doc(oid).update({'payment.verified':true,'payment.status':'PAID (Partner Verified)','payment.verifiedAt':Date.now()})
+        .then(function(){ toast('✅ Payment Verified!'); vib(); })
+        .catch(function(e){ toast(e.message); });
+    });
+  };
+
+  /* 🎯 Daily target — सुंदर */
+  v41Tgt=function(){
+    window.sxInputP({ic:'🎯',t:'आज का Target',num:true,
+      msg:'आज की कमाई का target ₹ में:',def:localStorage.getItem('swp_target')||'1000',ok:'Set करें'}).then(function(t){
+      if(t!==null&&parseInt(t,10)>0){ localStorage.setItem('swp_target',String(parseInt(t,10))); drawEarn(); toast('🎯 Target set!'); }
+    });
+  };
+  console.log('%c 💰🔐💵 v5.6B — ONLINE-ONLY WITHDRAW + SUNDER FLOWS ✅ ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a351309d9afcffab',t:'MTc4ODQwMTEzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
