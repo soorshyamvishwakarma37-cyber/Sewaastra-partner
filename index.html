@@ -4275,6 +4275,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         }).catch(function(e){ ldrX(); toast('❌ '+e.message); });
     },'📸 Live Selfie — KYC के लिए');
   }
+  window.p65Selfie=p65Selfie;
 
   /* ── Extra KYC fields: gender, work city+range, bank ── */
   var CITIES=['Bhopal','Indore','Gwalior','Jabalpur','Ujjain','Sagar','Dewas','Ratlam','Rewa','Satna','Guna','Hoshangabad','अन्य'];
@@ -4305,12 +4306,39 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
       if(P65.gender) selG.value=P65.gender;
       if(CITIES.indexOf(P65.city)>-1) selC.value=P65.city;
       rng.value=P65.radius; document.getElementById('p65RadV').innerText=P65.radius;
-      sub.parentNode.insertBefore(d,sub);
+      var anchor=kf.querySelector('.cd');
+      if(anchor&&anchor.parentNode&&anchor!==d) anchor.parentNode.insertBefore(d,anchor.nextSibling);
+      else sub.parentNode.insertBefore(d,sub);
       docWatcher(); setTimeout(docBadges,150);
     }catch(e){}
   }
+  window.p65Inject=function(){ try{ p65Ext(); docWatcher(); docBadges(); }catch(e){} };
+  window.p65EditKyc=function(){ try{ v43Hide(); if(window.v47Kyc) window.v47Kyc(); setTimeout(function(){ if(window.p65Inject) window.p65Inject(); },250); }catch(e){} };
   var _kyc47=window.v47Kyc;
-  window.v47Kyc=function(){ if(_kyc47) _kyc47.apply(this,arguments); setTimeout(function(){ try{ p65Ext(); docWatcher(); docBadges(); }catch(e){} },150); };
+  window.v47Kyc=function(){ if(_kyc47) _kyc47.apply(this,arguments); setTimeout(window.p65Inject,150); };
+  /* Submitted (review) screen पर gender/bank edit का button */
+  var _vs65=window.v43Show;
+  window.v43Show=function(st){
+    if(_vs65) _vs65.apply(this,arguments);
+    if(st==='Submitted'){
+      try{ var x=document.getElementById('obX'); if(x&&!document.getElementById('p65EdK')){
+        var b=document.createElement('button'); b.id='p65EdK'; b.className='bn gy'; b.style.cssText='width:100%;margin-top:8px;padding:11px;';
+        b.innerHTML='✏️ Edit KYC — gender / शहर / bank / selfie जोड़ें';
+        b.onclick=function(){ try{ if(window.p65EditKyc) window.p65EditKyc(); }catch(e){} };
+        x.appendChild(b);
+      } }catch(e){}
+    }
+  };
+  /* observer fallback: kForm आते ही पक्का inject (किसी भी flow में) */
+  try{
+    (function(){
+      var _t=null;
+      function _f(){ try{ var kf=document.getElementById('kForm'); if(kf&&kf.querySelector('#kSub')&&!document.getElementById('p65Ext')){ if(window.p65Inject) window.p65Inject(); } }catch(e){} }
+      var mo=new MutationObserver(function(){ if(_t) clearTimeout(_t); _t=setTimeout(_f,250); });
+      try{ mo.observe(document.body,{childList:true,subtree:true}); }catch(e){}
+      setTimeout(_f,400); setTimeout(_f,1600);
+    })();
+  }catch(e){}
   var _doc47=window.v47Docs;
   window.v47Docs=function(){ if(_doc47) _doc47.apply(this,arguments); setTimeout(function(){
     try{ var inp=document.getElementById('ofselfie'); if(!inp) return; var tile=inp.closest('.kyd'); if(!tile) return;
@@ -4580,5 +4608,5 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a357146ebc849be3',t:'MTc4ODQ2Mjg5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a357491b9ac723e4',t:'MTc4ODQ2NTA0OA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
