@@ -348,6 +348,12 @@ function ago(ts){ var m=Math.floor((Date.now()-ts)/60000); return m<1?'अभी
 function hav(a,b){ if(!a||!b)return null; var R=6371,dA=(b.lat-a.lat)*Math.PI/180,dO=(b.lon-a.lon)*Math.PI/180; var x=Math.sin(dA/2)*Math.sin(dA/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dO/2)*Math.sin(dO/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
 function me(){ return localStorage.getItem('swp_phone')||''; }
 function pMask(s){ s=String(s==null?'':s); if(/^\d{10}$/.test(s)) return '••••••'+s.slice(-4); if(s.length<=4) return s; return s.slice(0,2)+'••••••'+s.slice(-2); }
+function isCashOrd(o){ return /cash|cod|नकद/i.test(String((o&&o.mode)||'')); }
+/* platform commission: SIRF ONLINE-payment orders पर लागू — CASH/COD पर नहीं.
+   order पर freeze (commPct) वरना live admin % (__PCOM) */
+function pComOf(o){ if(isCashOrd(o)) return 0; var c=(o&&o.commPct!=null)?Number(o.commPct):Number(window.__PCOM); return (c>0)?c:0; }
+function pNet(o){ var t=Number(o&&o.total)||0; if(t<=0) return 0; var c=pComOf(o); if(c<=0) return t; return Math.max(0,t-Math.round(t*c/100)); }
+function pComAmt(o){ var t=Number(o&&o.total)||0; var c=pComOf(o); return (c>0)?Math.min(t,Math.round(t*c/100)):0; }
 
 /* ═══ LOGIN ═══ */
 var confR = null;
@@ -544,7 +550,7 @@ function draw(){
   bd('bN',news.length); bd('bJ',jobs.length);
   var td=new Date().toDateString();
   $('s1').innerText=ALL.filter(function(o){return new Date(o.createdAt||0).toDateString()===td;}).length;
-  $('s2').innerText='₹'+done.filter(function(o){return new Date(o.createdAt||0).toDateString()===td;}).reduce(function(s,o){return s+(o.total||0);},0).toLocaleString('en-IN');
+  $('s2').innerText='₹'+done.filter(function(o){return new Date(o.createdAt||0).toDateString()===td;}).reduce(function(s,o){return s+pNet(o);},0).toLocaleString('en-IN');
   var seen=parseInt(localStorage.getItem('swp_feed_seen')||'0');
   var fr=ALL.filter(function(o){return (o.createdAt||0)>seen;}).length;
   var fb=$('fBd'); fb.style.display=fr?'flex':'none'; fb.innerText=fr;
@@ -554,7 +560,7 @@ function draw(){
     '<div class="mt">'+dotHtml(o.mobile)+'📅 '+esc(o.date)+' ⏰ '+esc(o.time)+' • 👤 '+pMask(o.mobile||'')+' • '+onTxt(o.mobile)+'</div>'+
     '<div class="it">🛠️ '+(o.items||[]).map(function(i){return esc(i.n)+' ×'+(i.qty||1);}).join(', ')+'</div>'+
     '<div class="ad">📍 '+esc(o.address||'')+'</div>'+
-    '<div class="bns"><button class="bn g" style="font-size:13px;padding:13px;" onclick="acc(\''+esc(o.id)+'\')">✅ ACCEPT करें</button></div></div>';
+    '<div class="bns"><button class="bn g" style="font-size:12px;padding:13px;" onclick="acc(\''+esc(o.id)+'\')">✅ ACCEPT — ₹'+pNet(o)+' मिलेगा</button></div></div>';
   }).join('') : '<div class="em"><span class="ic">📭</span><br><b>अभी कोई नया ऑर्डर नहीं</b><br><span style="font-size:11px;">ONLINE रहें — आते ही आवाज़ आएगी 🔔</span></div>';
 
   $('lsJ').innerHTML = jobs.length ? jobs.map(function(o){
@@ -563,7 +569,7 @@ function draw(){
     var shr=!!W[o.id];
     return '<div class="cd"><div class="rw"><span class="oid">'+esc(o.id)+'</span><span class="ch" style="background:'+SC[o.status]+'22;color:'+SC[o.status]+';">'+SH[o.status]+payTag(o)+'</span></div>'+
     '<div class="tl">'+tl+'</div>'+
-    '<div class="mt">'+dotHtml(o.mobile)+'💰 <b style="color:#15a04a;">₹'+o.total+'</b> ('+esc(o.mode||'')+') • '+onTxt(o.mobile)+' '+dch(o)+'</div>'+
+    '<div class="mt">'+dotHtml(o.mobile)+'💰 आपको <b style="color:#15a04a;">₹'+pNet(o)+'</b>'+(pComOf(o)>0?(' <span style="font-size:9px;color:#998;font-weight:700;">(कुल ₹'+o.total+')</span>'):'')+' • '+esc(o.mode||'')+' • '+onTxt(o.mobile)+' '+dch(o)+'</div>'+
     '<div class="it">🛠️ '+(o.items||[]).map(function(i){return esc(i.n)+' ×'+(i.qty||1);}).join(', ')+'</div>'+
     '<div class="ad">📍 '+esc(o.address||'')+(o.remark?'<br>📝 '+esc(o.remark):'')+'</div>'+
     '<button class="bn d" style="width:100%;margin:3px 0;padding:12px;font-size:12px;background:linear-gradient(90deg,#0b1220,#26364f);" onclick="nvOpen(\''+esc(o.id)+'\')">🧭 LIVE NAVIGATION</button>'+
@@ -611,7 +617,8 @@ function popup(o){
   if(rej[o.id]||$('op').classList.contains('open')) return;
   opOid=o.id;
   $('opI').innerText=o.id+' • '+(o.mode||'')+payTag(o);
-  $('opA').innerText='₹'+o.total;
+  var _com=pComOf(o);
+  $('opA').innerHTML='₹'+o.total+'<br><span style="font-size:10.5px;color:#8a94ab;font-weight:700;">'+(o.mobile&&_com>0?('आपको मिलेंगे <b style="color:#15a04a;">₹'+pNet(o)+'</b> ('+_com+'% commission कटा)'):'आपको मिलेंगे <b style="color:#15a04a;">₹'+pNet(o)+'</b>')+'</span>';
   $('opIt').innerHTML='🛠️ '+(o.items||[]).map(function(i){return esc(i.n)+' ×'+(i.qty||1);}).join(', ');
   $('opAd').innerHTML='📍 '+esc(o.address||'');
   $('opM').innerText='📅 '+(o.date||'')+' ⏰ '+(o.time||'')+' • 👤 '+pMask(o.mobile||'');
@@ -773,7 +780,7 @@ function openFeed(){
   var ev=[];
   ALL.forEach(function(o){
     if(o.createdAt)ev.push({ts:o.createdAt,ic:'🆕',bg:'#fff5ed',t:'नया ऑर्डर ₹'+o.total,s:o.id+' • '+(o.address||'').slice(0,40)});
-    if(o.t_Completed)ev.push({ts:o.t_Completed,ic:'🎉',bg:'#e6f7ed',t:'काम पूरा — ₹'+o.total+' कमाए!',s:o.id});
+    if(o.t_Completed)ev.push({ts:o.t_Completed,ic:'🎉',bg:'#e6f7ed',t:'काम पूरा — ₹'+pNet(o)+' कमाए!',s:o.id});
     if(o.status==='Cancelled')ev.push({ts:(o.createdAt||0)+1,ic:'❌',bg:'#fdecea',t:'Cancel — '+o.id,s:o.cancelReason||''});
     if(o.payment&&o.payment.verifiedAt)ev.push({ts:o.payment.verifiedAt,ic:'💜',bg:'#f3e8ff',t:'Payment verified ₹'+o.total,s:'UTR: '+(o.payment.ref||'')});
     if(o.rating)ev.push({ts:(o.t_Completed||o.createdAt||0)+2,ic:'⭐',bg:'#fff8e6',t:o.rating+'★ rating मिली!',s:o.id});
@@ -789,14 +796,14 @@ function drawEarn(){
   var m=me();
   var done=ALL.filter(function(o){return o.status==='Completed'&&(!o.partnerPhone||o.partnerPhone===m);});
   var td=new Date().toDateString(), wk=Date.now()-7*864e5;
-  function sum(a){return a.reduce(function(s,o){return s+(o.total||0);},0);}
+  function sum(a){return a.reduce(function(s,o){return s+pNet(o);},0);}
   var tD=done.filter(function(o){return new Date(o.createdAt||0).toDateString()===td;});
   var wD=done.filter(function(o){return (o.createdAt||0)>wk;});
   $('lsE').innerHTML='<div class="eh"><span style="font-size:10.5px;font-weight:800;opacity:.9;">कुल कमाई</span><b>₹'+sum(done).toLocaleString('en-IN')+'</b><span style="font-size:10.5px;opacity:.9;">'+done.length+' काम पूरे 🎉</span></div>'+
   '<div class="eg"><div class="ec"><b>₹'+sum(tD).toLocaleString('en-IN')+'</b><span>आज ('+tD.length+')</span></div><div class="ec"><b>₹'+sum(wD).toLocaleString('en-IN')+'</b><span>इस हफ्ते ('+wD.length+')</span></div></div>'+
   '<div class="tt">📜 पूरे किए काम</div>'+
   (done.sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}).slice(0,25).map(function(o){
-    return '<div class="cd" style="padding:10px 12px;"><div class="rw"><span class="oid" style="font-size:12px;">'+esc(o.id)+'</span><b style="color:#15a04a;">+₹'+o.total+payTag(o)+'</b></div><div class="mt" style="margin:2px 0 0;">'+(o.items||[]).map(function(i){return esc(i.n);}).join(', ')+' • '+esc(o.date)+(o.rating?' • ⭐'+o.rating:'')+'</div></div>';
+    return '<div class="cd" style="padding:10px 12px;"><div class="rw"><span class="oid" style="font-size:12px;">'+esc(o.id)+'</span><b style="color:#15a04a;">+₹'+pNet(o)+'</b></div><div class="mt" style="margin:2px 0 0;">'+(pComOf(o)>0?'🛠️ commission कटा: ₹'+pComAmt(o)+' • ':'')+(o.items||[]).map(function(i){return esc(i.n);}).join(', ')+' • '+esc(o.date)+(o.rating?' • ⭐'+o.rating:'')+'</div></div>';
   }).join('')||'<div class="em"><span class="ic">💰</span><br>अभी कोई काम पूरा नहीं</div>');
 }
 
@@ -975,7 +982,7 @@ function v41Done(){
 }
 function v41Earn(){
   var done=v41Done();
-  function s(a){ return a.reduce(function(x,o){return x+(o.total||0);},0); }
+  function s(a){ return a.reduce(function(x,o){return x+pNet(o);},0); }
   var days=[], mx=1, DN=['रवि','सोम','मंगल','बुध','गुरु','शुक्र','शनि'];
   for(var i=6;i>=0;i--){
     var d=new Date(Date.now()-i*864e5), ds=d.toDateString();
@@ -1010,7 +1017,7 @@ function v41Bal(){
   FS.collection('partners').doc(ph).collection('withdrawals').orderBy('ts','desc').get().then(function(sn){
     var wd=sn.docs.map(function(d){return d.data();});
     var wsum=wd.reduce(function(x,w){return x+(w.amt||0);},0);
-    var earned=v41Done().reduce(function(x,o){return x+(o.total||0);},0);
+    var earned=v41Done().reduce(function(x,o){return x+pNet(o);},0);
     v41BalAmt=Math.max(0,earned-wsum);
     if($('v41W')) $('v41W').innerHTML='उपलब्ध balance: <b style="color:#15a04a;font-size:13px;">₹'+v41BalAmt.toLocaleString('en-IN')+'</b>'+(wsum?' &nbsp;•&nbsp; अब तक निकाले: ₹'+wsum.toLocaleString('en-IN'):'');
     if($('v41WL')) $('v41WL').innerHTML=wd.slice(0,6).map(function(w){
@@ -1044,7 +1051,7 @@ function v41Csv(){
   if(!done.length) return toast('❌ अभी कोई पूरा काम नहीं');
   var rows=[['Order ID','Date','Items','Amount (Rs)','Payment','Rating']].concat(
     done.sort(function(a,b){return (b.createdAt||0)-(a.createdAt||0);}).map(function(o){
-      return [o.id,o.date||'',(o.items||[]).map(function(i){return i.n;}).join(' | '),o.total||0,(o.payment&&o.payment.status)||'',o.rating||''];
+      return [o.id,o.date||'',(o.items||[]).map(function(i){return i.n;}).join(' | '),pNet(o),(o.payment&&o.payment.status)||'',o.rating||''];
     }));
   var csv='\ufeff'+rows.map(function(r){ return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(','); }).join('\n');
   var a=document.createElement('a');
@@ -1210,7 +1217,7 @@ var _drawEarn2=drawEarn;
 drawEarn=function(){ _drawEarn2(); v43Gift(); };
 function v43Gift(){
   var done=v41Done();
-  var earned=done.reduce(function(x,o){return x+(o.total||0);},0);
+  var earned=done.reduce(function(x,o){return x+pNet(o);},0);
   v43Pts=done.length*20+Math.floor(earned/100);
   var old=document.getElementById('v43G'); if(old) old.remove();
   var host=document.createElement('div'); host.id='v43G';
@@ -2759,7 +2766,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
     return ALL.filter(function(o){
       if(o.status!=='Completed'||o.partnerPhone!==m) return false;
       return !cashMode(o);
-    }).reduce(function(s,o){ return s+(o.total||0); },0);
+    }).reduce(function(s,o){ return s+pNet(o); },0);
   }
 
   /* 💰 BALANCE — सिर्फ Online भुगतान + APPROVED cash deposit */
@@ -3546,7 +3553,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         function cashMode(o){ return /cash|cod|नकद/i.test(o.mode||''); }
         function onlSum(){
           var m=me();
-          return ALL.filter(function(o){ return o.status==='Completed'&&o.partnerPhone===m&&!cashMode(o); }).reduce(function(s,o){ return s+(Number(o.total)||0); },0);
+          return ALL.filter(function(o){ return o.status==='Completed'&&o.partnerPhone===m&&!cashMode(o); }).reduce(function(s,o){ return s+pNet(o); },0);
         }
         var ph=me(); if(!ph){ if(cb)cb(); return; }
         Promise.all([
@@ -3956,9 +3963,9 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   /* ── 2) KYC: COMMISSION CHECKBOX + TERMS & POLICY ── */
   window.P63={com:false,terms:false};
   var COM=10;
-  function comTxt(){ return '📋 SewaAstra Platform Commission: <b id="p63ComB" style="color:#ffd60a;">'+COM+'%</b> (हर पूरे काम पर — Admin अपडेट करता है)।'; }
+  function comTxt(){ return '📋 SewaAstra Platform Commission: <b id="p63ComB" style="color:#ffd60a;">'+COM+'%</b> (सिर्फ ONLINE payment वाले ऑर्डर पर — CASH/COD पर कोई कमीशन नहीं)।'; }
   var POLICY=[ '1. हर partner का KYC (Aadhaar/PAN/Selfie) सत्यापित करना ज़रूरी है — उसके बाद ही order मिलते हैं।',
-    '2. प्लेटफ़ॉर्म कमीशन हर पूरे (Completed) order पर लागू होता है; दर Admin time-समय पर अपडेट करता है।',
+    '2. प्लेटफ़ॉर्म कमीशन सिर्फ ONLINE payment वाले पूरे (Completed) order पर लागू होता है — CASH/COD पर नहीं; दर Admin time-समय पर अपडेट करता है।',
     '3. सभी Online भुगतान सीधे SewaAstra के UPI/bank में जाते हैं; partner payout Admin द्वारा withdraw पर मिलता है।',
     '4. Cash वाले orders: floating cash limit ₹2,000 — उससे ज़्यादा cash न रखें, UTR के साथ deposit करें।',
     '5. Withdraw केवल उपलब्ध (Online + Approved deposit + Referral bonus) balance में होता है।',
@@ -4123,7 +4130,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
       for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); months.push({y:d.getFullYear(),m:d.getMonth(),t:0,c:0}); }
       var byM={};
       months.forEach(function(x){ byM[x.y+'-'+x.m]=x; });
-      done.forEach(function(o){ var dt=new Date(o.createdAt||0); if(isNaN(dt))return; var k=dt.getFullYear()+'-'+dt.getMonth(); if(byM[k]){ byM[k].t+=(Number(o.total)||0); byM[k].c++; } });
+      done.forEach(function(o){ var dt=new Date(o.createdAt||0); if(isNaN(dt))return; var k=dt.getFullYear()+'-'+dt.getMonth(); if(byM[k]){ byM[k].t+=pNet(o); byM[k].c++; } });
       var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
       var lines=[];
       lines.push(['Month','Orders','Amount(₹)'].join(','));
@@ -4135,7 +4142,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
       done.slice(0,500).forEach(function(o){
         var it=(o.items||[]).map(function(i){ return i.n; }).join(' | ');
         var pay=(o.payment&&o.payment.verified)?'Paid':((o.mode||'')+'/'+((o.payment&&o.payment.status)||''));
-        lines.push([ (o.date||''), o.id, '"'+it.replace(/"/g,"'")+'"', (o.mode||''), o.total, pay].join(','));
+        lines.push([ (o.date||''), o.id, '"'+it.replace(/"/g,"'")+'"', (o.mode||''), pNet(o), pay].join(','));
       });
       var csv='\ufeff'+lines.join('\r\n');
       var b=new Blob([csv],{type:'text/csv;charset=utf-8'});
@@ -4515,5 +4522,63 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35699bb5a123228',t:'MTc4ODQ1Nzg2NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ PARTNER v6.5 — 💰 COMMISSION CUT LIVE: order net amount par partner को assign/credit ═══════════════ */
+(function(){
+  if(window.__p66) return; window.__p66=1;
+  /* Admin commission (config/global.commission). Default 10% (KYC/Admin card वही बताते हैं);
+     Admin ने 0 या कोई और % set किया तो वही मान्य। */
+  window.__PCOM=10;
+  try{ window.__PCOM=Number(localStorage.getItem('swp_pcom')||'10')||10; }catch(e){}
+  try{
+    FS.collection('config').doc('global').onSnapshot(function(d){
+      if(d.exists&&d.data()&&d.data().commission!=null){
+        window.__PCOM=Math.max(0,Number(d.data().commission)||0);
+        try{ localStorage.setItem('swp_pcom',String(window.__PCOM)); }catch(e){}
+        /* partner को बताओ कि अभी कितना commission लागू है */
+        try{ if(typeof toast==='function') toast('💰 Commission '+window.__PCOM+'% — सिर्फ ONLINE payment वाले ऑर्डर पर; CASH पर नहीं'); }catch(e){}
+      }
+    },function(){});
+  }catch(e){}
+  function findO(oid){ try{ for(var i=0;i<ALL.length;i++) if(ALL[i].id===oid) return ALL[i]; }catch(e){} return null; }
+
+  /* जब काम Complete हो → उसी order पर commission freeze (commPct/netAmt) — बाद में Admin % बदले तो भी history सही रहे */
+  var _adv=window.adv;
+  if(typeof _adv==='function'){
+    window.adv=function(oid,cur){
+      try{
+        var o=findO(oid); var nx='';
+        try{ nx=(FLOW&&FLOW[FLOW.indexOf(cur)+1])||''; }catch(e){}
+        if(o&&nx==='Completed'){
+          var c=Number(pComOf(o))||Number(window.__PCOM)||0;
+          var t=Number(o.total)||0; var cm=Math.round(t*c/100);
+          if(t>0) FS.collection('orders').doc(oid).set({commPct:c,commAmt:Math.min(t,Math.max(0,cm)),netAmt:Math.max(0,t-cm),commCalcAt:Date.now()},{merge:true}).catch(function(){});
+        }
+      }catch(e){}
+      return _adv(oid,cur);
+    };
+  }
+  /* Accept होते ही net बताओ */
+  var _acc=window.acc;
+  if(typeof _acc==='function'){
+    window.acc=function(oid){
+      var o=findO(oid);
+      var r=_acc.apply(this,arguments);
+      setTimeout(function(){
+        try{
+          var o2=findO(oid); if(!o2) return;
+          var c=pComOf(o2);
+          if(c>0) toast('✅ Order आपका! '+c+'% commission कटकर आपको ₹'+pNet(o2)+' मिलेंगे');
+        }catch(e){}
+      },500);
+      return r;
+    };
+  }
+  console.log('%c 💰 PARTNER v6.5 — COMMISSION CUT LIVE ✅ ','background:#14532d;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a357146ebc849be3',t:'MTc4ODQ2Mjg5MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
