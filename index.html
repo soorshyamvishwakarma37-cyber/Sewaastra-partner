@@ -267,6 +267,7 @@ body.dark #chB{background:#0d1320;}
     <div class="it" id="opIt" style="text-align:center;padding:0 14px;"></div>
     <div class="ad" id="opAd" style="margin:6px 14px;"></div>
     <div class="mt" id="opM" style="text-align:center;"></div>
+    <div class="mt" id="opD" style="text-align:center;font-weight:900;color:var(--ok);display:none;font-size:12.5px;"></div>
     <button class="opb" onclick="opGo()">✅ ACCEPT — काम पक्का करें</button>
     <button class="opx" onclick="opNo()">❌ अभी नहीं</button>
   </div>
@@ -346,6 +347,7 @@ function beep(){
 function ago(ts){ var m=Math.floor((Date.now()-ts)/60000); return m<1?'अभी':m<60?m+' min पहले':m<1440?Math.floor(m/60)+' घंटे पहले':Math.floor(m/1440)+' दिन पहले'; }
 function hav(a,b){ if(!a||!b)return null; var R=6371,dA=(b.lat-a.lat)*Math.PI/180,dO=(b.lon-a.lon)*Math.PI/180; var x=Math.sin(dA/2)*Math.sin(dA/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dO/2)*Math.sin(dO/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
 function me(){ return localStorage.getItem('swp_phone')||''; }
+function pMask(s){ s=String(s==null?'':s); if(/^\d{10}$/.test(s)) return '••••••'+s.slice(-4); if(s.length<=4) return s; return s.slice(0,2)+'••••••'+s.slice(-2); }
 
 /* ═══ LOGIN ═══ */
 var confR = null;
@@ -549,7 +551,7 @@ function draw(){
 
   $('lsN').innerHTML = news.length ? news.map(function(o){
     return '<div class="cd nw"><div class="rw"><span class="oid">'+esc(o.id)+'</span><span>'+dch(o)+'<span class="ch" style="background:#fff5ed;color:#ff6b00;">₹'+o.total+' • '+esc(o.mode||'')+payTag(o)+'</span></span></div>'+
-    '<div class="mt">'+dotHtml(o.mobile)+'📅 '+esc(o.date)+' ⏰ '+esc(o.time)+' • 👤 '+esc(o.mobile||'')+' • '+onTxt(o.mobile)+'</div>'+
+    '<div class="mt">'+dotHtml(o.mobile)+'📅 '+esc(o.date)+' ⏰ '+esc(o.time)+' • 👤 '+pMask(o.mobile||'')+' • '+onTxt(o.mobile)+'</div>'+
     '<div class="it">🛠️ '+(o.items||[]).map(function(i){return esc(i.n)+' ×'+(i.qty||1);}).join(', ')+'</div>'+
     '<div class="ad">📍 '+esc(o.address||'')+'</div>'+
     '<div class="bns"><button class="bn g" style="font-size:13px;padding:13px;" onclick="acc(\''+esc(o.id)+'\')">✅ ACCEPT करें</button></div></div>';
@@ -612,17 +614,32 @@ function popup(o){
   $('opA').innerText='₹'+o.total;
   $('opIt').innerHTML='🛠️ '+(o.items||[]).map(function(i){return esc(i.n)+' ×'+(i.qty||1);}).join(', ');
   $('opAd').innerHTML='📍 '+esc(o.address||'');
-  $('opM').innerText='📅 '+(o.date||'')+' ⏰ '+(o.time||'')+' • 👤 '+(o.mobile||'');
-  $('op').classList.add('open');
-  var s=30; $('opS').innerText=s; $('opT').style.setProperty('--p','100%');
-  clearInterval(opInt);
+  $('opM').innerText='📅 '+(o.date||'')+' ⏰ '+(o.time||'')+' • 👤 '+pMask(o.mobile||'');
+  $('op').classList.add('open'); $('op').classList.add('ringing');
+  var opD=document.getElementById('opD');
+  function showD(){
+    if(!opD) return;
+    var d=(o.loc&&loc)?hav(loc,o.loc):null;
+    if(d==null){ opD.style.display='none'; return; }
+    opD.style.display='block';
+    opD.innerHTML='📍 Customer दूरी: <b>'+(d<1?Math.round(d*1000)+' m':d.toFixed(1)+' km')+'</b>';
+  }
+  var t0=Date.now(); clearInterval(opInt);
+  /* 🔊 initial burst 3 beeps */
+  var burst=0;
+  var bI=setInterval(function(){ try{ beep(); if(navigator.vibrate) navigator.vibrate([90,45,90]); }catch(e){} if(++burst>=3) clearInterval(bI); },550);
+  showD();
   opInt=setInterval(function(){
-    s--; $('opS').innerText=s; $('opT').style.setProperty('--p',(s/30*100)+'%');
-    if(s%2===0&&s>0)beep();
-    if(s<=0)opClose();
+    var el=Math.floor((Date.now()-t0)/1000);
+    var s=Math.max(0,30-el);
+    $('opS').innerText=s;
+    $('opT').style.setProperty('--p',(100-((el%30)/30*100))+'%');
+    /* 🔔 sound खत्म होने के बाद भी ring जारी — Accept/Reject तक */
+    if(el>0&&el%3===0){ try{ beep(); if(navigator.vibrate) navigator.vibrate([110,55,110]); }catch(e){} }
+    showD();
   },1000);
 }
-function opClose(){ clearInterval(opInt); $('op').classList.remove('open'); opOid=null; }
+function opClose(){ clearInterval(opInt); $('op').classList.remove('open'); $('op').classList.remove('ringing'); opOid=null; }
 function opGo(){ if(opOid)acc(opOid); opClose(); }
 function opNo(){ if(opOid){rej[opOid]=1;sessionStorage.setItem('swp_rej',JSON.stringify(rej));} opClose(); toast('Tab में फिर भी मिलेगा'); }
 
@@ -816,12 +833,9 @@ function drawProfile(){
   var b=P.bank||{};
   host.innerHTML=
   '<div class="cd"><div class="rw"><b style="font-size:12.5px;">📋 Profile Completion</b><b style="color:var(--pr);">'+pc+'%</b></div><div class="pcb"><span style="width:'+pc+'%;"></span></div><div style="font-size:10px;color:#998;font-weight:700;margin-top:5px;">'+(pc<100?'100% = ज़्यादा ऑर्डर! KYC + Bank पूरा करें 🚀':'🎉 Profile पूरी — verified partner!')+'</div></div>'+
-  '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🪪 KYC Documents</b>'+stC+'</div><div class="kyg">'+
-  KDOCS.map(function(d){
-    var im=kyc[d.k];
-    return '<div class="kyd '+(im?'dn':'')+'" onclick="document.getElementById(\'kf'+d.k+'\').click()">'+(im?'<img src="'+im+'"><span class="ok2"><i class="fa fa-check"></i></span>':'<span class="i2">'+d.i+'</span>')+'<span class="n2">'+d.n+(im?' ✓':' — टैप करें')+'</span><input type="file" id="kf'+d.k+'" accept="image/*" style="display:none;" onchange="upKyc(\''+d.k+'\',this)"></div>';
-  }).join('')+'</div>'+
-  (st!=='Approved'?'<button class="bn o" style="width:100%;margin-top:9px;padding:11px;" onclick="subKyc()">📤 KYC Submit करें</button>':'')+'</div>'+
+  (st==='Approved'
+    ? '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🪪 KYC Status</b>'+stC+'</div><div style="font-size:10.5px;color:#15a04a;font-weight:800;margin-top:6px;line-height:1.6;">✅ KYC approved है। आपके documents सिर्फ KYC के समय दिखाए गए थे — अब privacy के लिए छिपे हैं। कोई जानकारी बदलनी हो तो admin से कहें।</div></div>'
+    : '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🪪 KYC बाकी है</b>'+stC+'</div><button class="bn o" style="width:100%;margin-top:8px;padding:11px;" onclick="v47Kyc()">➡️ KYC पूरा करें — पूरी जानकारी + documents</button></div>')+
   '<div class="cd"><b style="font-size:12.5px;">🏦 Bank / Payout</b>'+
   '<input class="pi" id="bH" placeholder="Account Holder नाम" value="'+esc(b.holder||'')+'">'+
   '<input class="pi" id="bA" placeholder="Account Number" value="'+esc(b.acc||'')+'">'+
@@ -3913,7 +3927,8 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   function gApply(code){ try{ if(!gReady()){ gLoad(); return false; } var c=gHost().querySelector('.goog-te-combo'); c.value=code; c.dispatchEvent(new Event('change',{bubbles:true})); return true; }catch(e){ return false; } }
   window.uAppLang=function(code){
     try{ localStorage.setItem('swp_uilang',code); }catch(e){} _stored=code;
-    if(code==='hi'){ dictOff(); try{ gApply('hi'); }catch(e){} try{ toast('🌐 Original (हिन्दी)'); }catch(e){} return; }
+    dictOff();  /* ek baar me sirf ek language */
+    if(code==='hi'){ try{ gApply('hi'); }catch(e){} try{ toast('🌐 Original (हिन्दी)'); }catch(e){} return; }
     if(code==='en') dictOn();
     var go=gApply(code);
     try{ toast(go?'🌐 पूरी App translate हो रही है...':'🌐 English basic apply हुआ — internet पर Google पूरा करेगा'); }catch(e){}
@@ -3997,5 +4012,170 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3552692a8c42666',t:'MTc4ODQ0MjY2Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ PARTNER v6.3 — DOORI+RING • EXTRA-JOB SUNDER • INCOME 6-MONTH+CSV • ONBOARDING FEE • TRAINING VIDEO • MASK ═══════════════ */
+(function(){
+  if(window.__p64) return; window.__p64=1;
+  var CFG={fee:0,offType:'none',offVal:0,note:'',vdo:''};
+  function escP(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+
+  /* ── STYLES: 5) Extra-job edit box sunder + 4) popup ring ── */
+  var st=document.createElement('style'); st.id='p64st'; st.textContent=
+    '.ringing .opc{border:2px solid var(--pr)!important;animation:opRing 1.15s ease-in-out infinite!important}'+
+    '@keyframes opRing{0%,100%{box-shadow:0 0 0 0 rgba(255,107,0,.45)}50%{box-shadow:0 0 0 14px rgba(255,107,0,0)}}'+
+    '.ringing #opT{animation:opTp 1s linear infinite!important}'+
+    '@keyframes opTp{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}'+
+    '#v59Ov{background:rgba(5,9,18,.74)!important;backdrop-filter:blur(7px)!important;align-items:flex-end!important;justify-content:center!important;padding:0!important}'+
+    '#v59Ov .v59o{width:100%!important;max-width:560px!important;margin:0!important;border-radius:26px 26px 0 0!important;background:var(--card,#101a2e)!important;color:var(--tx,#e6e9f2)!important;box-shadow:0 -14px 55px rgba(0,0,0,.55)!important;animation:p64Up .3s cubic-bezier(.2,.9,.3,1)!important;max-height:90vh!important;overflow-y:auto!important}'+
+    '@keyframes p64Up{from{transform:translateY(90px);opacity:0}to{transform:none;opacity:1}}'+
+    '.v59h{background:linear-gradient(135deg,#7a3b00,#c25e00)!important;padding:16px 15px!important;border-radius:0!important}'+
+    '.v59h b{font-size:14.5px!important;color:#fff!important}'+
+    '.v59h span{color:rgba(255,255,255,.85)!important}'+
+    '.v59rm{border-radius:50%!important;background:#3a1110!important;color:#ff8a80!important;border:1px solid #6d2320!important;width:30px!important;height:30px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;font-size:13px!important}'+
+    '.stp2{display:flex!important;align-items:center!important;gap:4px!important}'+
+    '.stp2 button{width:28px!important;height:28px!important;border-radius:50%!important;border:1px solid var(--bd)!important;background:var(--prl,#241a10)!important;color:var(--tx)!important;font-weight:900!important;cursor:pointer!important;font-size:14px!important}'+
+    '.v59sum{background:#0f1626!important;border:1px solid var(--bd)!important;border-radius:14px!important;padding:11px 13px!important}'+
+    '.v59sv{background:linear-gradient(135deg,#0f9d45,#2bc96e)!important;border-radius:14px!important}'+
+    '.v59cn{background:#202a40!important;color:#aab6cf!important;border-radius:14px!important}'+
+    '.v59add{border-radius:16px!important;background:rgba(255,255,255,.02)!important}'+
+    '.v59i,select.v59i{border-radius:12px!important;background:#0b1220!important}'+
+    '.v59warn{border-radius:12px!important;border:1px solid #574400!important}';
+  document.head.appendChild(st);
+
+  /* wrap v59Render / open: bottom-sheet class lagao */
+  var _v59w=window.v59Edit;
+  if(typeof _v59w==='function'){
+    window.v59Edit=function(){ try{ _v59w.apply(this,arguments); }catch(e){} setTimeout(function(){ try{ var o=document.getElementById('v59Ov'); if(o&&o.firstElementChild) o.firstElementChild.classList.add('v59o'); }catch(e){} },120); };
+  }
+
+  /* ── config watch (onboarding fee + training video info) ── */
+  try{
+    FS.collection('config').doc('global').onSnapshot(function(d){
+      if(d.exists){ var x=d.data(); CFG.fee=Number(x.obFee)||0; CFG.offType=x.obOffType||'none'; CFG.offVal=Number(x.obOffVal)||0; CFG.note=String(x.obNote||''); }
+    },function(){});
+  }catch(e){}
+  function p64Payable(){
+    var f=CFG.fee; if(f<=0) return {amt:0,free:true,orig:0};
+    if(CFG.offType==='free') return {amt:0,free:true,orig:f};
+    if(CFG.offType==='flat') return {amt:Math.max(0,f-CFG.offVal),free:(f-CFG.offVal)<=0,orig:f};
+    if(CFG.offType==='percent'){ var a=f-Math.round(f*CFG.offVal/100); return {amt:Math.max(0,a),free:a<=0,orig:f}; }
+    return {amt:f,free:false,orig:f};
+  }
+  function p64ObDone(){ try{ return !!(P&&P.onboarding&&P.onboarding.paid); }catch(e){ return false; } }
+  window.p64ObPay=function(){ /* UPI link */ var p=p64Payable(); try{ FS.collection('config').doc('global').get().then(function(d){ var upi=''; if(d.exists) upi=String(d.data().upiId||''); if(!upi) upi='soorshyam37@oksbi'; var l='upi://pay?pa='+encodeURIComponent(upi)+'&pn=SewaAstra&am='+p.amt+'&cu=INR&tn=Onboarding%20Fee'; window.open(l,'_blank'); toast('✅ UPI app खुलेगा — pay करके UTR नीचे डालें'); }).catch(function(){}); }catch(e){} };
+  window.p64ObSub=function(){
+    var u=(document.getElementById('p64Ut')||{}).value||''; u=String(u).trim();
+    if(u.length<6) return sAlert('UPI/UTR reference number डालें (pay के बाद आया)।','UTR चाहिए','🔤');
+    ldr('Onboarding save...');
+    var p=p64Payable();
+    FS.collection('partners').doc(me()).set({onboarding:{paid:true,amt:p.amt,orig:p.orig,utr:u,at:Date.now()}},{merge:true})
+      .then(function(){ ldrX(); sAlert('🎉 Onboarding fee ₹'+(p.amt||0)+' दर्ज हो गई (UTR: '+u+')।\n\nAdmin जल्द verify करके सब unlock करेंगे।','Onboarding Done ✅','🧾'); try{ if(typeof P==='object') P.onboarding={paid:true}; }catch(e){} setTimeout(function(){ try{ drawProfile(); }catch(e){} },300); })
+      .catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+  };
+  /* training */
+  window.p64Tr=function(){
+    var ov=document.createElement('div'); ov.style.cssText='position:fixed;inset:0;z-index:600000;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:14px;';
+    ov.innerHTML='<div style="width:100%;max-width:640px;background:#0b1220;border:1px solid var(--bd);border-radius:18px;overflow:hidden;">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:linear-gradient(135deg,#101a2e,#0d6efd);color:#fff;"><b>🎬 SewaAstra Partner Training</b><span style="font-size:22px;cursor:pointer;" onclick="this.parentNode.parentNode.parentNode.remove()">✕</span></div>'+
+      '<div id="p64Vd" style="padding:10px;text-align:center;color:#8a94ab;font-weight:700;font-size:12px;">🎥 Training video load हो रही है...</div></div>';
+    document.body.appendChild(ov);
+    FS.collection('config').doc('partnerTraining').get().then(function(d){
+      var h=document.getElementById('p64Vd'); if(!h) return;
+      if(d.exists&&d.data().vdo) h.innerHTML='<video controls autoplay playsinline style="width:100%;max-height:60vh;border-radius:10px;background:#000;" src="'+d.data().vdo+'"></video>'+(d.data().caption?'<div style="margin-top:8px;font-size:11px;color:#aab6cf;font-weight:700;">'+escP(d.data().caption)+'</div>':'');
+      else h.innerHTML='<div style="padding:20px;">📭 Admin ने अभी training video नहीं डाली — जल्द आएगी।<br><button class="bn gy" style="margin-top:10px;" onclick="this.closest(\'div\').parentNode.parentNode.parentNode.remove()">✕ बंद करें</button></div>';
+    }).catch(function(){ var h=document.getElementById('p64Vd'); if(h) h.innerHTML='📭 Training video उपलब्ध नहीं'; });
+  };
+
+  /* profile में onboarding + training cards डालो (sirf approved & KYC के बाद) */
+  function profCards(){
+    try{
+      if(!v48Kyc()) return;
+      var host=document.getElementById('pX'); if(!host) return;
+      var old=document.getElementById('p64ObC'); if(old) old.remove();
+      var old2=document.getElementById('p64TrC'); if(old2) old2.remove();
+      var ref=null;
+      var cds=host.querySelectorAll('.cd');
+      for(var i=0;i<cds.length;i++){ if(cds[i].textContent.indexOf('Help')>-1){ ref=cds[i]; break; } }
+      var ins=(ref&&ref.parentNode)?ref:host;
+      var p=p64Payable();
+      var obH='';
+      if(p64ObDone()) obH='<div class="cd" id="p64ObC" style="border-color:#0f5c2e;"><div class="rw"><b style="font-size:12.5px;">🧾 Onboarding Fee</b><span class="kst" style="background:#e6f7ed;color:#0f7a37;">✅ PAID ₹'+(Number(P.onboarding&&P.onboarding.amt)||0)+'</span></div><div style="font-size:10px;color:#15a04a;font-weight:800;margin-top:4px;">UTR: '+(P.onboarding&&P.onboarding.utr?escP(P.onboarding.utr):'—')+'</div></div>';
+      else if(p.orig>0) obH='<div class="cd" id="p64ObC" style="border-color:#7a5a00;"><div class="rw"><b style="font-size:12.5px;">🧾 Onboarding / Activation Fee</b></div>'+
+        (CFG.note?'<div style="font-size:10px;color:#ffd970;font-weight:800;margin:4px 0;">🎁 '+escP(CFG.note)+'</div>':'')+
+        '<div style="font-size:22px;font-weight:900;color:#ffd60a;margin:4px 0;">'+(p.free?'FREE 🎉':'₹'+p.amt.toLocaleString('en-IN'))+'<span style="font-size:11px;color:#998;text-decoration:line-through;">'+(p.free&&p.orig>0?(' ₹'+p.orig):'')+'</span></div>'+
+        (p.free?'':'<div style="display:flex;gap:7px;flex-wrap:wrap;"><button class="bn w" style="flex:1.3;" onclick="p64ObPay()">💳 UPI से pay करें</button><input id="p64Ut" class="pi" style="flex:1.4;min-width:120px;" placeholder="UTR / Ref no."><button class="bn o" onclick="p64ObSub()">✅ भरें</button></div>')+
+        '<div style="font-size:9.5px;color:#8a94ab;font-weight:700;margin-top:5px;">Pay करने के बाद UTR डालें — Admin verify करेंगे।</div></div>';
+      if(obH) ins.insertAdjacentHTML('beforeend',obH);
+      var tr='<div class="cd" id="p64TrC" style="border-color:#1d3a5f;"><div class="rw"><b style="font-size:12.5px;">🎬 Training</b></div><button class="bn b" style="width:100%;margin-top:8px;padding:11px;" onclick="p64Tr()">▶️ Partner Training Video देखें</button><div style="font-size:9px;color:#8a94ab;font-weight:700;margin-top:4px;">Admin गैलरी से upload करता है — partner यहीं देखते हैं</div></div>';
+      ins.insertAdjacentHTML('beforeend',tr);
+    }catch(e){}
+  }
+  var _dp=window.drawProfile;
+  window.drawProfile=function(){ if(_dp) _dp.apply(this,arguments); setTimeout(function(){ try{ profCards(); }catch(e){} },120); };
+
+  /* ── 6) Income 6 महीने + Statement CSV ── */
+  function p64Done(){ var m=me(); return (window.ALL||[]).filter(function(o){ return o.status==='Completed'&&(!o.partnerPhone||o.partnerPhone===m); }); }
+  window.p64Csv=function(){
+    try{
+      var done=p64Done().sort(function(a,b){ return (b.createdAt||0)-(a.createdAt||0); });
+      var now=new Date(), months=[];
+      for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); months.push({y:d.getFullYear(),m:d.getMonth(),t:0,c:0}); }
+      var byM={};
+      months.forEach(function(x){ byM[x.y+'-'+x.m]=x; });
+      done.forEach(function(o){ var dt=new Date(o.createdAt||0); if(isNaN(dt))return; var k=dt.getFullYear()+'-'+dt.getMonth(); if(byM[k]){ byM[k].t+=(Number(o.total)||0); byM[k].c++; } });
+      var M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var lines=[];
+      lines.push(['Month','Orders','Amount(₹)'].join(','));
+      var grand=0;
+      months.forEach(function(x){ grand+=x.t; lines.push([M[x.m]+" '"+String(x.y).slice(2), x.c, x.t].join(',')); });
+      lines.push(['TOTAL (6 months)','',grand].join(','));
+      lines.push('');
+      lines.push(['Date','Order','Items','Mode','Amount(₹)','Payment'].join(','));
+      done.slice(0,500).forEach(function(o){
+        var it=(o.items||[]).map(function(i){ return i.n; }).join(' | ');
+        var pay=(o.payment&&o.payment.verified)?'Paid':((o.mode||'')+'/'+((o.payment&&o.payment.status)||''));
+        lines.push([ (o.date||''), o.id, '"'+it.replace(/"/g,"'")+'"', (o.mode||''), o.total, pay].join(','));
+      });
+      var csv='\ufeff'+lines.join('\r\n');
+      var b=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      var a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='SewaAstra-Income-6Months-'+me()+'.csv'; document.body.appendChild(a); a.click();
+      setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },800);
+      toast('📥 Statement download हो गया (CSV)');
+    }catch(e){ sAlert(e.message,'Error','❌'); }
+  };
+  function addInc(){
+    try{
+      var host=document.getElementById('lsE'); if(!host) return;
+      var old=document.getElementById('p64Inc'); if(old) old.remove();
+      var done=p64Done();
+      var now=new Date(), months=[];
+      for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); months.push({y:d.getFullYear(),m:d.getMonth(),t:0,c:0,name:'',n:''}); }
+      var byM={}; months.forEach(function(x){ byM[x.y+'-'+x.m]=x; });
+      done.forEach(function(o){ var dt=new Date(o.createdAt||0); if(isNaN(dt))return; var k=dt.getFullYear()+'-'+dt.getMonth(); if(byM[k]){ byM[k].t+=(Number(o.total)||0); byM[k].c++; } });
+      var MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      months.forEach(function(x){ x.name=MN[x.m]+" '"+String(x.y).slice(2); x.n=(x.c?x.t:0); });
+      var grand=months.reduce(function(a,b){return a+b.n;},0);
+      var mx=Math.max(1,months.reduce(function(a,b){return Math.max(a,b.n);},0));
+      var card=document.createElement('div'); card.id='p64Inc'; card.className='cd'; card.style.cssText='border-color:#14532d;margin-top:8px;';
+      card.innerHTML='<div class="rw"><b style="font-size:13px;">📈 Income — पिछले 6 महीने</b><b style="color:#2bc96e;">₹'+grand.toLocaleString('en-IN')+'</b></div>'+
+        '<div style="display:flex;align-items:flex-end;gap:5px;height:80px;margin-top:10px;">'+
+        months.map(function(x){
+          var h=Math.max(3,Math.round(x.n/mx*60));
+          return '<div style="flex:1;text-align:center;" title="'+x.name+'"><div style="font-size:8px;font-weight:800;color:#2bc96e;height:11px;">'+(x.n?'₹'+x.n:'')+'</div><div style="height:'+h+'px;background:linear-gradient(180deg,#2bc96e,#0f5c2e);border-radius:6px 6px 0 0;"></div><div style="font-size:8.5px;color:#8a94ab;font-weight:800;margin-top:3px;">'+x.name+'</div></div>';
+        }).join('')+'</div>'+
+        '<div style="display:flex;gap:7px;margin-top:11px;"><button class="bn g" style="flex:1;padding:11px;" onclick="p64Csv()">📥 Statement Download (CSV)</button></div>'+
+        '<div style="font-size:9px;color:#8a94ab;font-weight:700;margin-top:5px;">'+(done.length||0)+' पूरे काम • हर महीने की earning • CSV में पूरा detail (Date, Order, Items, Amount, Payment)</div>';
+      var ref=document.getElementById('v41E');
+      if(ref&&ref.parentNode===host) ref.insertAdjacentElement('afterend',card); else host.insertAdjacentElement('beforeend',card);
+    }catch(e){}
+  }
+  var _de=window.drawEarn;
+  window.drawEarn=function(){ if(_de) _de.apply(this,arguments); setTimeout(function(){ try{ addInc(); }catch(e){} },200); };
+  console.log('%c 🧰 PARTNER v6.3 — RING+DOORI • EXTRA-JOB • INCOME-6M • ONBOARDING • TRAINING ✅ ','background:#14532d;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a355b69848eb4454',t:'MTc4ODQ0ODU2MQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
