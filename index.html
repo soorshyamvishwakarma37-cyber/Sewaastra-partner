@@ -2301,12 +2301,11 @@ function v54Btns(){
 var _acc54=acc;
 acc=function(oid){
   _acc54(oid);
-  setTimeout(function(){
-    var o=ALL.filter(function(x){return x.id===oid;})[0];
-    if(o&&!o.wOtp&&o.partnerPhone===me()){
-      FS.collection('orders').doc(oid).update({wOtp:String(1000+Math.floor(Math.random()*9000))}).catch(function(){});
-    }
-  },4000);
+  /* ⚡ OTP TURANT — accept होते ही generate (4s wait नहीं) */
+  var o=ALL.filter(function(x){return x.id===oid;})[0];
+  if(!o||!o.wOtp){
+    FS.collection('orders').doc(oid).update({wOtp:String(1000+Math.floor(Math.random()*9000)),wOtpAt:Date.now()}).catch(function(){});
+  }
 };
 var _adv54=adv;
 adv=function(oid,cur){
@@ -2501,7 +2500,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
       if(!lr){ try{ localStorage.setItem(key,String(Date.now())); }catch(e){} return; }
       FS.collection('orders').doc(o.id).collection('chats').where('sender','in',['customer','admin']).where('ts','>',lr).get().then(function(sn){
         var n=sn.size||0;
-        if(v55U[o.id]!==n){ v55U[o.id]=n; paint(); dot(); if(n>0){ try{ vib([40,40,60]); }catch(e){} } }
+        if(v55U[o.id]!==n){ v55U[o.id]=n; paint(); dot(); if(n>0){ try{ vib([60,40,60,40,120]); if(window.beep){ beep(); setTimeout(function(){ try{ beep(); }catch(e){} },280); } }catch(e){} } }
       }).catch(function(){});
     });
     /* हटे हुए jobs के unread clear */
@@ -2860,5 +2859,506 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 })();
 
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a351309d9afcffab',t:'MTc4ODQwMTEzMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ v5.7 — SKILL/CATEGORY WISE ORDERS (admin नई categories भी) ═══════════════ */
+(function(){
+  if(window.__v57P) return; window.__v57P=1;
+
+  var ALIAS={
+    'mobile':['mobile','mobile repair','phone','smartphone'],
+    'ac':['ac','ac service','split ac','ac repair','acservice','acrepair','air conditioner'],
+    'fridge':['fridge','refrigerator','cooling','deep clean'],
+    'wm':['wm','washing','washing machine','washingmachine','laundry','washer'],
+    'tv':['tv','smart tv','television','led tv'],
+    'elec':['electrician','electrical','electric','elec','wiring','switch'],
+    'plumbing':['plumber','plumbing','pipe','leakage','tap','bathroom fitting'],
+    'ro':['ro','water purifier','ro service','water filter'],
+    'geyser':['geyser','water heater','heater'],
+    'microwave':['microwave','oven','micro'],
+    'cctv':['cctv','camera','security camera','dvr'],
+    'general':['general','other','kadam','helper','misc']
+  };
+  function norm(s){ return String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]/g,''); }
+  function uni(s){ return String(s==null?'':s).toLowerCase().replace(/[\s\u00a0]+/g,'').trim(); }
+
+  function mySkills(){
+    var arr=[];
+    try{ if(P&&P.skills&&P.skills.length) arr=arr.concat(P.skills); }catch(e){}
+    try{ if(P&&P.mainSkill&&arr.indexOf(P.mainSkill)<0) arr.push(P.mainSkill); }catch(e){}
+    try{ var ls=localStorage.getItem('swp_skills'); if(ls){ var a2=JSON.parse(ls); if(a2&&a2.length) a2.forEach(function(x){ if(arr.indexOf(x)<0) arr.push(x); }); } }catch(e){}
+    return arr;
+  }
+
+  function orderCats(o){
+    var out=[];
+    try{
+      if(o.cats && o.cats.length){ o.cats.forEach(function(c){ if(c&&(c.name||c.key)) out.push({key:c.key||'',name:c.name||c.key||''}); }); return out; }
+      if(o.items && o.items.length){
+        o.items.forEach(function(it){ if(it && it.cat) out.push({key:it.cat, name:it.catName||it.cat}); });
+        if(out.length) return out;
+      }
+    }catch(e){}
+    return null; /* unknown/legacy */
+  }
+
+  function catTokens(c){
+    var t=[norm(c.key),norm(c.name)];
+    if(ALIAS[c.key]) ALIAS[c.key].forEach(function(a){ t.push(norm(a)); });
+    return t;
+  }
+
+  /* kya ye order is partner ki skills/category se match karta hai? */
+  function ok(o){
+    try{
+      var sk=mySkills();
+      if(!sk.length) return true;                 /* skills set नहीं → सब दिखेगा (ब्लॉक नहीं) */
+      var cs=orderCats(o);
+      if(!cs || !cs.length) return true;          /* category नहीं (पुराना) → सबको दिखेगा */
+      for(var i=0;i<cs.length;i++){
+        var c=cs[i], toks=catTokens(c);
+        for(var j=0;j<sk.length;j++){
+          var s=sk[j];
+          if(uni(s)===uni(c.name)||uni(s)===uni(c.key)) return true;   /* Hindi/unicode exact */
+          var sn=norm(s);
+          for(var k=0;k<toks.length;k++){
+            if(toks[k]===sn || (sn.length>2 && toks[k].indexOf(sn)>-1) || (sn.length>2 && sn.indexOf(toks[k])>-1)) return true;
+          }
+        }
+      }
+      return false;
+    }catch(e){ return true; }
+  }
+
+  /* 1) NEW ORDER POPUP — sirf apni category */
+  try{
+    var _pop57=popup;
+    popup=function(o){ try{ if(!ok(o)) return; }catch(e){} _pop57(o); };
+  }catch(e){}
+
+  /* 2) AUTO ACCEPT — apni category hi */
+  try{
+    var _aa57=autoAssign;
+    autoAssign=function(n){ try{ n=(n||[]).filter(ok); }catch(e){} _aa57(n); };
+  }catch(e){}
+
+  /* 3) ACCEPT guard — security: doosri category ka order accept नहीं */
+  try{
+    var _acc57=acc;
+    acc=function(oid){
+      try{
+        var o=null; for(var i=0;i<ALL.length;i++) if(ALL[i].id===oid) o=ALL[i];
+        if(o && o.status==='Order Placed' && !ok(o)) return sAlert('यह order किसी और category का है।\n\nआपको सिर्फ अपनी skills/category के orders दिखते हैं — प्रोफाइल → 🛠️ Skills में अपनी category चुनें।','⛔ Category mismatch','🔒');
+      }catch(e){}
+      _acc57(oid);
+    };
+  }catch(e){}
+
+  /* 4) LIST filter + badge + hint */
+  function list(){
+    try{
+      var box=document.getElementById('lsN'); if(!box) return;
+      var cards=box.querySelectorAll('.cd.nw');
+      if(!cards.length){ var bN=document.getElementById('bN'); if(bN){ bN.style.display='none'; } return; }
+      var vis=0, hidden=0;
+      for(var i=0;i<cards.length;i++){
+        var oidEl=cards[i].querySelector('.oid');
+        var id=oidEl?oidEl.textContent.trim():'';
+        var o=null; for(var j=0;j<ALL.length;j++) if(ALL[j].id===id){ o=ALL[j]; break; }
+        var show=(!o)||ok(o);
+        cards[i].style.display=show?'':'none';
+        if(show) vis++; else hidden++;
+      }
+      var bN2=document.getElementById('bN'); if(bN2){ if(vis){ bN2.style.display='flex'; bN2.innerText=vis; } else bN2.style.display='none'; }
+      if(!vis && hidden){
+        var em=box.querySelector('.em');
+        if(!em){
+          var sk=mySkills().slice(0,3).join(', ');
+          box.insertAdjacentHTML('beforeend','<div class="em" style="margin-top:8px;"><span class="ic">🔍</span><br><b>आपकी category के orders नहीं</b><br><span style="font-size:11px;">आपकी skills: '+(sk||'—')+'<br>प्रोफाइल → 🛠️ Skills में और categories जोड़ सकते हैं</span></div>');
+        }
+      }
+    }catch(e){}
+  }
+  try{
+    var _dr57=draw;
+    draw=function(){ _dr57(); try{ list(); }catch(e){} };
+  }catch(e){}
+
+  /* 5) ADMIN की नई CATEGORIES भी skills में — app_config/main से चिप्स */
+  var v57Conf=false;
+  function confListen(){
+    try{
+      FS.collection('app_config').doc('main').onSnapshot(function(d){
+        if(!d.exists) return;
+        try{
+          var x=d.data();
+          var cats=JSON.parse(x.categoriesData||'[]');
+          var added=0;
+          (cats||[]).forEach(function(c){
+            if(c && c.name){
+              var nm=String(c.name).trim();
+              if(nm && SKILLS.indexOf(nm)<0){ SKILLS.push(nm); added++; }
+            }
+          });
+          if(added){ try{ drawProfile(); }catch(e){} try{ v44Tix(); }catch(e){} }
+        }catch(e){}
+      },function(){});
+    }catch(e){}
+  }
+  function bootCheck(){ if(!v57Conf && booted){ v57Conf=true; confListen(); } }
+  setTimeout(bootCheck,2500);
+  setInterval(bootCheck,6000);
+
+  /* 6) skills save hone par bhi yahi list use hogi (togSk already P.skills save karta hai) */
+  console.log('%c 🎯 v5.7 — SKILL-WISE ORDERS (नई categories भी) ✅ ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>
+/* ═══════════════ v5.8 — NEAREST WORK-CENTER ORDERS (GPS/Area radius) ═══════════════ */
+(function(){
+  if(window.__v58P) return; window.__v58P=1;
+
+  function v58Center(){
+    try{ if(loc&&loc.lat) return {lat:loc.lat,lon:loc.lon}; }catch(e){}
+    try{ if(P.workCenter&&P.workCenter.lat) return {lat:P.workCenter.lat,lon:P.workCenter.lon}; }catch(e){}
+    return null;
+  }
+  function v58Radius(){ try{ return Math.max(2, Number(P.radiusKm)||8); }catch(e){ return 8; } }
+  function v58DistKm(o){
+    var c=v58Center(); if(!c) return null;
+    if(!o.loc||!o.loc.lat) return null;
+    var a=c,b=o.loc,R=6371;
+    var dA=(b.lat-a.lat)*Math.PI/180,dO=(b.lon-a.lon)*Math.PI/180;
+    var x=Math.sin(dA/2)*Math.sin(dA/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dO/2)*Math.sin(dO/2);
+    return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+  }
+  function v58Near(o){
+    try{
+      var c=v58Center(); if(!c) return true;            /* center नहीं → सब */
+      if(!o.loc||!o.loc.lat) return true;               /* order location नहीं → दिखे (कोई न खोए) */
+      var d=v58DistKm(o);
+      return d==null || d<=v58Radius();
+    }catch(e){ return true; }
+  }
+  window.v58Near=v58Near; window.v58DistKm=v58DistKm;
+
+  /* 1) POPUP gate — दूर का order कोई आवाज़/ring नहीं */
+  try{
+    var _pop58=popup;
+    popup=function(o){ try{ if(!v58Near(o)) return; }catch(e){} _pop58(o); };
+  }catch(e){}
+
+  /* 2) AUTO-ACCEPT — pehle से radius check, दोबारा safe */
+  try{
+    var _aa58=autoAssign;
+    autoAssign=function(n){ try{ n=(n||[]).filter(function(o){ return v58Near(o); }); }catch(e){} _aa58(n); };
+  }catch(e){}
+
+  /* 3) ACCEPT guard */
+  try{
+    var _acc58=acc;
+    acc=function(oid){
+      try{
+        var o=null; for(var i=0;i<ALL.length;i++) if(ALL[i].id===oid) o=ALL[i];
+        if(o&&o.status==='Order Placed'&&!v58Near(o)){
+          var d=v58DistKm(o), rad=v58Radius();
+          return sAlert('यह order आपके Work Area से '+(d==null?'काफी दूर':d.toFixed(1)+' km')+' है (radius: '+rad+' km)।\n\nनए orders सिर्फ आपके Area के मिलते हैं — प्रोफ़ाइल → 📍 Work Area से radius बढ़ा सकते हैं।','⛔ Area से बाहर का order','📍');
+        }
+      }catch(e){}
+      _acc58(oid);
+    };
+  }catch(e){}
+
+  /* 4) LIST filter + NEAREST-FIRST ordering + area hint */
+  function listSort(){
+    try{
+      var box=document.getElementById('lsN'); if(!box) return;
+      var cards=[].slice.call(box.querySelectorAll('.cd.nw'));
+      if(!cards.length) return;
+      var pairs=[];
+      cards.forEach(function(cd){
+        var oidEl=cd.querySelector('.oid'); var id=oidEl?oidEl.textContent.trim():'';
+        var o=null; for(var i=0;i<ALL.length;i++) if(ALL[i].id===id){ o=ALL[i]; break; }
+        var near=!o||v58Near(o);
+        cd.style.display=near?'':'none';
+        if(near){ var d=o? v58DistKm(o):null; pairs.push({cd:cd,d:(d==null?1e12:d)}); }
+      });
+      if(pairs.length>1){ pairs.sort(function(a,b){ return a.d-b.d; }); pairs.forEach(function(p){ box.appendChild(p.cd); }); }
+      /* badge update */
+      var bN=document.getElementById('bN');
+      if(bN){ if(pairs.length){ bN.style.display='flex'; bN.innerText=pairs.length; } else bN.style.display='none'; }
+      /* empty-area message */
+      var anyVis=pairs.length, anyHidden=cards.length-pairs.length;
+      if(!anyVis && anyHidden){
+        if(!box.querySelector('.em')){
+          var c=v58Center(); var txt=c?('radius '+v58Radius()+' km'):'—';
+          box.insertAdjacentHTML('beforeend','<div class="em" style="margin-top:8px;"><span class="ic">📍</span><br><b>आपके Area में अभी कोई order नहीं</b><br><span style="font-size:11px;">Area: '+(txt)+' • GPS on रखें<br>प्रोफ़ाइल → 📍 Work Area से area/radius बदलें</span></div>');
+        }
+      }
+    }catch(e){}
+  }
+  try{
+    var _dr58=draw;
+    draw=function(){ _dr58(); try{ listSort(); }catch(e){} };
+  }catch(e){}
+
+  /* 5) feed/activity में bhi सिर्फ area वाले नए counts */
+  try{
+    var _of58=openFeed;
+    openFeed=function(){ try{ ALL=ALL||[]; }catch(e){} _of58(); };
+  }catch(e){}
+  console.log('%c 📍 v5.8 — NEAREST WORK-CENTER ORDERS ✅ ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>
+/* ═══════════════ PARTNER v5.9 — VISIT WORK-EDIT (नया OTP) SIRF अपनी CATEGORY के ITEMS ═══════════════ */
+(function(){
+  if(window.__v59) return; window.__v59=1;
+  var ST=document.createElement('style');
+  ST.innerText=
+  '#v59Ov{position:fixed;inset:0;z-index:90000;display:none;align-items:center;justify-content:center;background:rgba(5,9,20,.72);backdrop-filter:blur(4px);padding:16px}'+
+  '#v59Ov.on{display:flex}'+
+  '.v59b{width:100%;max-width:470px;max-height:90vh;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--bd);border-radius:24px;overflow:hidden;box-shadow:0 34px 100px rgba(0,0,0,.6);animation:v59in .25s}'+
+  '@keyframes v59in{from{transform:scale(.94) translateY(14px);opacity:0}to{transform:none;opacity:1}}'+
+  '.v59h{background:linear-gradient(120deg,#0b1220,#3a1c0a);color:#fff;padding:15px 16px;display:flex;justify-content:space-between;align-items:center}'+
+  '.v59h b{font-size:13.5px}'+
+  '.v59h span{font-size:9.5px;color:#ffd970;font-weight:800}'+
+  '.v59c{overflow-y:auto;padding:13px 14px 0}'+
+  '.v59it{display:flex;align-items:center;gap:9px;border:1px solid var(--bd);border-radius:14px;padding:9px 11px;margin-bottom:8px;background:#111a2b}'+
+  '.v59it .nm{flex:1;min-width:0}'+
+  '.v59it .nm b{font-size:12px;display:block}'+
+  '.v59it .nm i{font-size:9px;color:#ffd970;font-weight:800;font-style:normal}'+
+  '.v59it .ln{font-weight:900;font-size:12.5px;color:#ffd970;white-space:nowrap}'+
+  '.stp2{display:flex;align-items:center;gap:2px;border:1px solid var(--bd);border-radius:20px;overflow:hidden}'+
+  '.stp2 button{width:30px;height:30px;border:none;background:#0f1626;color:#fff;font-size:15px;font-weight:900;cursor:pointer}'+
+  '.stp2 b{min-width:26px;text-align:center;font-size:13px}'+
+  '.v59rm{border:none;background:#3a1418;color:#ff8a80;width:30px;height:30px;border-radius:10px;cursor:pointer;font-size:13px}'+
+  '.v59add{border:1.5px dashed #2c3a5c;border-radius:14px;padding:10px;margin-top:8px}'+
+  '.v59add .tt{font-size:11px;font-weight:900;margin-bottom:6px;color:#ffd970}'+
+  'select,input.v59i{width:100%;background:#0f1626;border:1.5px solid var(--bd);border-radius:10px;color:var(--tx);padding:8px 10px;font-size:12px;outline:none;font-weight:600;margin-top:6px}'+
+  '.v59row{display:flex;gap:8px;align-items:flex-end}'+
+  '.v59row>div{flex:1}'+
+  '.v59f{padding:12px 14px 16px;border-top:1px solid var(--bd);background:#0e1524}'+
+  '.v59sum{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:13px}'+
+  '.v59sum b{color:#2bc96e;font-size:16px}'+
+  '.v59sum small{color:#8a94ab;font-weight:700;font-size:9.5px;display:block}'+
+  '.v59btns{display:flex;gap:8px;margin-top:10px}'+
+  '.v59btns button{flex:1;border:none;border-radius:13px;padding:12px;font-weight:900;font-size:12px;cursor:pointer}'+
+  '.v59sv{background:linear-gradient(135deg,#0f9d45,#2bc96e);color:#fff}'+
+  '.v59cn{background:#222b40;color:#aab6cf}'+
+  '.v59ok{background:linear-gradient(135deg,#ff6b00,#ff9a3d);color:#fff}'+
+  '.v59warn{font-size:9.5px;color:#ffb74d;font-weight:800;line-height:1.5;background:#2a2006;border:1px solid #574400;border-radius:10px;padding:7px 9px;margin-top:8px}';
+  document.head.appendChild(ST);
+
+  var st={oid:null, items:[], disc:0, visit:10, firstCat:'general', firstCatName:'General', svc:[]};
+  var v59SvcCache=null;
+
+  function hasActive(oid){ var o=null; for(var i=0;i<ALL.length;i++) if(ALL[i].id===oid) o=ALL[i]; return o; }
+  function rand4(){ return String(1000+Math.floor(Math.random()*9000)); }
+
+  function norm(s){ return String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]/g,''); }
+  function uni(s){ return String(s==null?'':s).toLowerCase().replace(/[\s\u00a0]+/g,'').trim(); }
+  function skills(){
+    var a=[]; try{ if(P.skills&&P.skills.length) a=a.concat(P.skills); }catch(e){}
+    try{ if(P.mainSkill&&a.indexOf(P.mainSkill)<0) a.push(P.mainSkill); }catch(e){}
+    return a;
+  }
+  function match(skKey, cKey, cName){
+    if(uni(skKey)===uni(cName)||uni(skKey)===uni(cKey)) return true;
+    var sn=norm(skKey), cn=norm(cName), ck=norm(cKey);
+    if(sn&&(sn===cn||sn===ck||(cn.indexOf(sn)>-1&&sn.length>2)||(ck.indexOf(sn)>-1&&sn.length>2))) return true;
+    return false;
+  }
+
+  /* catalog services → sirf partner की category वाले */
+  function loadSvc(){
+    if(v59SvcCache) return v59SvcCache;
+    v59SvcCache=new Promise(function(res){
+      FS.collection('app_config').doc('main').get().then(function(d){
+        var arr=[];
+        if(d.exists){
+          try{
+            var x=d.data();
+            var cats=JSON.parse(x.categoriesData||'[]');
+            var md=JSON.parse(x.mainData||'{}');
+            var sk=skills();
+            Object.keys(md).forEach(function(k){
+              var cn=(cats.find(function(c){return c.key===k;})||{name:k}).name;
+              var okAny=!sk.length;
+              sk.forEach(function(s){ if(match(s,k,cn)) okAny=true; });
+              if(!okAny) return;
+              (md[k]||[]).forEach(function(o){
+                if(o&&o.n) arr.push({k:k,kn:cn,n:o.n,p:Number(o.p)||0});
+              });
+            });
+          }catch(e){}
+        }
+        res(arr);
+      }).catch(function(){ res([]); });
+    });
+    return v59SvcCache;
+  }
+
+  /* entry */
+  window.v59Edit=function(oid){
+    var o=hasActive(oid);
+    if(!o) return toast('❌ order नहीं मिला');
+    if(o.partnerPhone!==me()) return sAlert('यह आपका order नहीं है।','⛔','🔒');
+    if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return sAlert('यह order अब editable नहीं (status: '+o.status+')','⚠️','✏️');
+    /* हमेशा नया OTP — customer के app पर जाता है */
+    var otp=rand4();
+    FS.collection('orders').doc(oid).update({wUOtp:otp,wUOtpAt:Date.now(),editReqBy:me(),editReqAt:Date.now()})
+      .then(function(){
+        sAlert('नया Work-Edit OTP customer के app में भेज दिया गया!\n\nअब customer से वह OTP पूछकर डालें — OTP सही होते ही आप अपनी category के items से order update कर पाएँगे।','नया OTP भेजा ✅','🔐');
+        v59AskOtp(oid,otp);
+      })
+      .catch(function(e){ sAlert(e.message,'Error','❌'); });
+  };
+
+  /* OTP input (sunder) */
+  function v59AskOtp(oid,expected){
+    var ov=document.createElement('div'); ov.className='ov'; ov.id='v59AskOv';
+    ov.innerHTML='<div class="mb" style="max-width:380px;">'+
+      '<div class="mh"><b>🔐 Customer का नया OTP</b><span class="mx" onclick="v59AskCancel()">✕</span></div>'+
+      '<div style="padding:16px 18px 20px;text-align:center;">'+
+      '<div style="font-size:11px;color:#998;font-weight:700;line-height:1.6;">Customer के app में left-नीचे ✏️ नया OTP दिख रहा है — उनसे पूछकर यहाँ डालें:</div>'+
+      '<input id="v59otpI" maxlength="4" inputmode="numeric" style="width:100%;text-align:center;font-size:26px;font-weight:900;letter-spacing:10px;padding:12px 6px;border:2px solid var(--bd);border-radius:14px;background:#0b1220;color:#ffd700;outline:none;margin-top:12px;">'+
+      '<div id="v59otpE" style="color:#ff8a80;font-size:10.5px;font-weight:800;margin-top:8px;display:none;">❌ OTP गलत — दोबारा पूछें</div>'+
+      '<div style="display:flex;gap:8px;margin-top:14px;">'+
+        '<button class="bn gy" style="flex:1;padding:12px;" onclick="v59AskCancel()">✕ रद्द</button>'+
+        '<button class="bn o" style="flex:1.4;padding:12px;" id="v59otpB">✅ Verify</button>'+
+      '</div></div></div>';
+    document.body.appendChild(ov); ov.classList.add('open');
+    var inp=ov.querySelector('#v59otpI'); setTimeout(function(){ try{ inp.focus(); }catch(e){} },100);
+    function tryOk(){
+      var v=(inp.value||'').trim();
+      if(v!==String(expected)){
+        var er=ov.querySelector('#v59otpE'); er.style.display='block'; try{ inp.value=''; inp.focus(); }catch(e){}
+        return;
+      }
+      ov.remove();
+      v59OpenSheet(oid);
+    }
+    ov.querySelector('#v59otpB').onclick=tryOk;
+    inp.onkeydown=function(e){ if(e.key==='Enter') tryOk(); };
+  }
+  window.v59AskCancel=function(){ var el=document.getElementById('v59AskOv'); if(el) el.remove(); clearOtp(st.oid); };
+
+  /* SHEET */
+  function v59OpenSheet(oid){
+    FS.collection('orders').doc(oid).get().then(function(d){
+      if(!d.exists) return toast('❌ order नहीं मिला');
+      var o=d.data();
+      st.oid=oid;
+      st.items=(o.items||[]).map(function(i){ return {n:i.n,p:Number(i.p)||0,qty:(i.qty||1),cat:i.cat||'',catName:i.catName||'',custom:!!i.custom}; });
+      st.disc=Number(o.discount)||0;
+      st.visit=(Number(o.total)-Number(o.subtotal)+st.disc);
+      if(!(st.visit>0)) st.visit=10;
+      st.firstCat='general'; st.firstCatName='General';
+      try{ if(st.items.length){ st.firstCat=st.items[0].cat||'general'; st.firstCatName=st.items[0].catName||'General'; } }catch(e){}
+      v59SvcCache=null;
+      loadSvc().then(function(arr){ st.svc=arr; v59Render(); });
+    });
+  }
+  function v59Sum(){ return st.items.reduce(function(s,i){ return s+(i.p*(i.qty||1)); },0); }
+  function v59Render(){
+    var old=document.getElementById('v59Ov'); if(old) old.remove();
+    var ov=document.createElement('div'); ov.id='v59Ov';
+    var sub=v59Sum(), tot=Math.max(0, sub-st.disc+st.visit);
+    var opts=st.svc.map(function(s,i){
+      return '<option value="'+i+'">'+esc(s.kn)+' → '+esc(s.n)+' (₹'+s.p+')</option>';
+    }).join('');
+    var itemsHTML=st.items.map(function(i,ix){
+      return '<div class="v59it"><div class="nm"><b>'+esc(i.n)+'</b><i>'+(i.catName||i.cat||'—')+(i.custom?' • extra':'')+'</i></div>'+
+      '<div class="stp2"><button onclick="v59Q('+ix+',-1)">−</button><b>'+i.qty+'</b><button onclick="v59Q('+ix+',1)">+</button></div>'+
+      '<b class="ln">₹'+((i.p)*(i.qty||1)).toLocaleString('en-IN')+'</b>'+
+      '<button class="v59rm" onclick="v59Rm('+ix+')">🗑️</button></div>';
+    }).join('');
+    ov.innerHTML='<div class="v59b">'+
+      '<div class="v59h"><div><b>✏️ Order update (Visit पर)</b><br><span>'+esc(st.oid)+' • sirf '+esc(st.firstCatName||'आपकी category')+'</span></div><button class="bn r" onclick="v59Close()">✕</button></div>'+
+      '<div class="v59c">'+
+        '<div class="v59warn">ℹ️ काम कम/ज्यादा हुआ है तो नीचे से item की qty घटाओ-बढ़ाओ, हटाओ, या अपनी category की service जोड़ो। Save पर सिर्फ इस order में update होगा।</div>'+
+        '<div style="margin-top:8px;">'+(itemsHTML||'<div class="em">कोई item नहीं</div>')+'</div>'+
+        '<div class="v59add"><div class="tt">➕ अपनी category से service जोड़ें</div>'+
+          (st.svc.length?'<div class="v59row"><div><select id="v59Sel">'+(opts||'')+'</select></div><div style="flex:0 0 88px;"><input id="v59SelQ" type="number" min="1" value="1" style="text-align:center;"></div></div>'+
+           '<div style="margin-top:7px;"><button class="bn o" style="width:100%;padding:9px;" onclick="v59AddSel()">➕ जोड़ें</button></div>'
+          :'<div style="font-size:10px;color:#ffb74d;font-weight:800;">आपकी skills/category से कोई service कैटलॉग में नहीं मिली — नीचे custom extra डालें।</div>')+
+        '</div>'+
+        '<div class="v59add" style="margin-top:8px;"><div class="tt">🔧 Extra काम (custom)</div>'+
+          '<div class="v59row"><div><input id="v59ExN" placeholder="काम का नाम — जैसे: अतिरिक्त पाइप बदला" style="margin-top:0;"></div>'+
+          '<div style="flex:0 0 110px;"><input id="v59ExP" type="number" min="0" placeholder="₹ rate" style="margin-top:0;"></div></div>'+
+          '<div style="margin-top:7px;"><button class="bn b" style="width:100%;padding:9px;" onclick="v59AddEx()">➕ Extra जोड़ें</button></div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="v59f"><div class="v59sum"><span>नया Total<small>Items ₹'+sub.toLocaleString('en-IN')+' − छूट ₹'+st.disc+' + Visit ₹'+st.visit+'</small></span><b id="v59Tot">₹'+tot.toLocaleString('en-IN')+'</b></div>'+
+      '<div class="v59btns"><button class="v59cn" onclick="v59Close()">✕ रद्द</button><button class="v59sv" onclick="v59Save()">✅ OTP Verified — Update order</button></div></div>'+
+    '</div>';
+    document.body.appendChild(ov); ov.classList.add('on');
+  }
+  window.v59Q=function(ix,d){ try{ if(st.items[ix]){ st.items[ix].qty=Math.max(1,(st.items[ix].qty||1)+d); v59Re(); } }catch(e){} };
+  window.v59Rm=function(ix){ try{ st.items.splice(ix,1); v59Re(); }catch(e){} };
+  window.v59AddSel=function(){
+    var sel=document.getElementById('v59Sel'); var q=parseInt((document.getElementById('v59SelQ')||{value:1}).value||'1',10);
+    var s=st.svc[sel?parseInt(sel.value,10):0]; if(!s) return toast('❌ service चुनो');
+    q=Math.max(1,q);
+    var ex=st.items.find(function(x){ return !x.custom && x.n===s.n; });
+    if(ex) ex.qty=(ex.qty||1)+q; else st.items.push({n:s.n,p:s.p,qty:q,cat:s.k,catName:s.kn});
+    if(!st.firstCat||st.firstCat==='general'){ st.firstCat=s.k; st.firstCatName=s.kn; }
+    v59Re();
+  };
+  window.v59AddEx=function(){
+    var n=(document.getElementById('v59ExN')||{value:''}).value.trim();
+    var p=parseInt((document.getElementById('v59ExP')||{value:''}).value||'0',10);
+    if(!n) return toast('❌ काम का नाम लिखो');
+    st.items.push({n:n,p:p,qty:1,cat:st.firstCat,catName:st.firstCatName,custom:true});
+    v59Re();
+  };
+  function v59Re(){ var old=document.getElementById('v59Ov'); if(old) old.remove(); v59Render(); }
+  window.v59Close=function(){ var ov=document.getElementById('v59Ov'); if(ov) ov.remove(); clearOtp(st.oid); };
+  function clearOtp(oid){
+    if(!oid) return;
+    try{ FS.collection('orders').doc(oid).update({wUOtp:firebase.firestore.FieldValue.delete(),editReqBy:firebase.firestore.FieldValue.delete()}).catch(function(){}); }catch(e){}
+  }
+  window.v59Save=function(){
+    var sub=v59Sum(), tot=Math.max(0, sub-st.disc+st.visit);
+    var oid=st.oid;
+    var items=st.items.map(function(i){ return {n:i.n,p:i.p,qty:i.qty,cat:i.cat||'',catName:i.catName||'',custom:!!i.custom}; });
+    if(!items.length) return sAlert('कम से कम एक item रखो।','⚠️','✏️');
+    ldr('💾 Update हो रहा है...');
+    var upd={items:items, subtotal:sub, total:tot, edited:true, editedAt:Date.now(), editedBy:me(), editCat:st.firstCat, editCatName:st.firstCatName,
+      wUOtp:firebase.firestore.FieldValue.delete(), editReqBy:firebase.firestore.FieldValue.delete(), editReqAt:firebase.firestore.FieldValue.delete()};
+    FS.collection('orders').doc(oid).update(upd).then(function(){
+      ldrX(); vib([80,40,80]);
+      var o2=document.getElementById('v59Ov'); if(o2) o2.remove();
+      sAlert('Order update हो गया!\n\nनया total: ₹'+tot.toLocaleString('en-IN')+'\nCustomer के bill/history में live दिखेगा।','Update ✅','✏️');
+      try{ draw(); }catch(e){}
+    }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+  };
+
+  /* button inject on active job cards */
+  function btnScan(){
+    try{
+      var box=document.getElementById('lsJ'); if(!box) return;
+      var jobs=ALL.filter(function(o){ return ['Accepted','On the Way','Working'].indexOf(o.status)>-1&&o.partnerPhone===me(); });
+      var cards=box.children;
+      for(var i=0;i<jobs.length&&i<cards.length;i++){
+        var o=jobs[i], card=cards[i];
+        if(!card||card.querySelector('.v59eb')) continue;
+        if(!card.querySelector('.bns')) continue;
+        card.insertAdjacentHTML('beforeend','<button class="v59eb bn d" style="width:100%;margin:6px 0 0;padding:11px;font-size:11.5px;background:linear-gradient(90deg,#3a1c0a,#6b3a00);" onclick="v59Edit(\''+esc(o.id)+'\')">✏️ काम बदलें / Extra (Visit OTP)</button>');
+      }
+    }catch(e){}
+  }
+  var _d59=draw;
+  draw=function(){ _d59(); try{ btnScan(); }catch(e){} };
+  setInterval(function(){ try{ btnScan(); }catch(e){} },2500);
+  console.log('%c ✏️🔐 v5.9 — VISIT WORK-EDIT (नया OTP, अपनी category) ✅ ','background:#e65100;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a351e0dab9b248da',t:'MTc4ODQwODM0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
