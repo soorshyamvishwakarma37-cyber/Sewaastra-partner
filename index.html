@@ -2297,25 +2297,33 @@ function v54Btns(){
   }
 }
 
-/* 🔐 2) WORK OTP — accept पर बनता है, complete से पहले customer से लेना ज़रूरी */
+/* 🔐 2) WORK OTP — accept पर बनता है; "काम पूरा" पर FRESH OTP + 60s TIMER (customer app दिखाता है) */
 var _acc54=acc;
 acc=function(oid){
   _acc54(oid);
-  /* ⚡ OTP TURANT — accept होते ही generate (4s wait नहीं) */
   var o=ALL.filter(function(x){return x.id===oid;})[0];
   if(!o||!o.wOtp){
     FS.collection('orders').doc(oid).update({wOtp:String(1000+Math.floor(Math.random()*9000)),wOtpAt:Date.now()}).catch(function(){});
   }
 };
+function freshCode(){ return String(1000+Math.floor(Math.random()*9000)); }
 var _adv54=adv;
 adv=function(oid,cur){
   var nx=FLOW[FLOW.indexOf(cur)+1];
   if(nx==='Completed'){
     var o=ALL.filter(function(x){return x.id===oid;})[0];
-    if(o&&o.wOtp){
-      v56OtpAsk(oid,function(ok){
-        if(ok===true){ toast('✅ OTP verified!'); _adv54(oid,cur); }
-      });
+    if(o){
+      /* 🆕 हर बार NAYA OTP — accept वाला पुराना नहीं; 1 मिनट (60s) में expire */
+      var fOtp=freshCode(), now=Date.now();
+      FS.collection('orders').doc(oid).update({wOtp:fOtp,wOtpAt:now,cOtp:fOtp,cOtpAt:now,cReqAt:now})
+        .then(function(){
+          o.wOtp=fOtp; o.wOtpAt=now; o.cOtp=fOtp; o.cOtpAt=now;
+          toast('🔐 नया Complete-OTP customer app पर — 60s में expire!');
+          v56OtpAsk(oid,function(ok){
+            if(ok===true){ toast('✅ OTP verified — काम पूरा 🎉'); _adv54(oid,cur); }
+          });
+        })
+        .catch(function(e){ toast('❌ '+e.message); });
       return;
     }
   }
@@ -2681,34 +2689,43 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   }
   window.sxInputP=sxIn;
 
-  /* WORK OTP — sunder (bade digits) */
+  /* WORK OTP — sunder (bade digits) + COMPLETE पर FRESH 60s LIVE TIMER */
   window.v56OtpAsk=function(oid,cb){
     var o=null; for(var i=0;i<ALL.length;i++) if(ALL[i].id===oid) o=ALL[i];
     if(!o||!o.wOtp) return cb(false);
-    var w=String(o.wOtp);
+    var w=String(o.wOtp), dl=(Number(o.wOtpAt)||Date.now())+60000, tick=null;
     open({ic:'🔐',t:'Work OTP — काम पूरा',bg:'linear-gradient(135deg,#1a1030,#4a2408)',tapClose:false,
-      html:'<div class="sxmsg">काम पूरा करने के लिए <b style="color:#ffd700;">Customer के app</b> में नीचे दिख रहा <b>🔐 Work OTP</b> उनसे पूछकर यहाँ डालें:</div>'+
+      html:'<div class="sxmsg">काम पूरा करने के लिए customer के app पर <b style="color:#ffd700;">1 मिनट (60s) timer</b> के साथ नया OTP generate हुआ है। उनसे पूछकर यहाँ डालें:</div>'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-top:11px;">'+
+        '<div style="flex:1;height:8px;border-radius:10px;background:#131c2e;overflow:hidden;"><div id="sxCdBar" style="height:100%;width:100%;border-radius:10px;background:linear-gradient(90deg,#2bc96e,#ffd60a,#ff6b00);"></div></div>'+
+        '<b id="sxCd" style="color:#ffd60a;font-size:12px;min-width:38px;text-align:right;">1:00</b></div>'+
       '<input class="sxbig" id="sxInp" type="text" inputmode="numeric" maxlength="4" placeholder="— — — —" autocomplete="off">'+
       '<div class="sxerr" id="sxErr">⚠️ OTP match नहीं हुआ — customer से दोबारा पूछें</div>'+
-      '<div style="text-align:center;font-size:9.5px;color:#8a94ab;font-weight:800;margin-top:9px;">बिना सही OTP काम पूरा नहीं होगा</div>'+
+      '<div style="text-align:center;font-size:9.5px;color:#8a94ab;font-weight:800;margin-top:9px;">⏰ 60s बाद OTP खत्म — फिर "काम पूरा" दोबारा दबाने पर नया OTP बनेगा</div>'+
       '<div class="sxrow"><button class="bn gy" id="sxNoB">✕ रद्द</button>'+
       '<button class="bn o" id="sxOkB">✅ Verify & पूरा करें</button></div>'});
     var inp=document.getElementById('sxInp');
+    var bar=document.getElementById('sxCdBar'), cd=document.getElementById('sxCd');
     setTimeout(function(){ try{ inp.focus(); }catch(e){} },90);
+    function shake(){ var er=document.getElementById('sxErr'); er.classList.add('on'); var c=document.querySelector('#sxOv .sxcard'); if(c){ c.classList.remove('sxshk'); void c.offsetWidth; c.classList.add('sxshk'); } try{ if(navigator.vibrate) navigator.vibrate([90,60,90]); }catch(e){} }
+    function remain(){ return dl-Date.now(); }
+    function paint(){
+      var r=remain();
+      if(r<=0){ stop(); if(cd) cd.innerText='0:00'; if(bar) bar.style.width='0%';
+        var er=document.getElementById('sxErr'); if(er){ er.innerText='⚠️ OTP expire (60s) — ✕ रद्द → "काम पूरा" फिर दबाएँ, नया OTP आएगा'; er.classList.add('on'); } return; }
+      var s=Math.ceil(r/1000), mm=Math.floor(s/60), ss=s-mm*60;
+      if(cd) cd.innerText=mm+':'+(ss<10?'0':'')+ss;
+      if(bar) bar.style.width=Math.max(0,(r/60000)*100)+'%';
+    }
+    function stop(){ if(tick){ clearInterval(tick); tick=null; } }
+    paint(); tick=setInterval(paint,1000);
     function tryOk(){
       var v=String(inp.value||'').trim();
-      if(v!==w){
-        var er=document.getElementById('sxErr'); er.classList.add('on');
-        var c=document.querySelector('#sxOv .sxcard'); if(c){ c.classList.remove('sxshk'); void c.offsetWidth; c.classList.add('sxshk'); }
-        try{ if(navigator.vibrate) navigator.vibrate([90,60,90]); }catch(e){}
-        return;
-      }
+      if(v!==w){ shake(); return; }
+      if(remain()<=0){ var e2=document.getElementById('sxErr'); if(e2){ e2.innerText='⚠️ OTP expire हो गया — ✕ रद्द → "काम पूरा" दोबारा दबाएँ'; e2.classList.add('on'); } shake(); return; }
       finish(true);
     }
-    function finish(ok){
-      var oo=document.getElementById('sxOv'); if(oo) oo.classList.remove('open');
-      if(cb) cb(ok);
-    }
+    function finish(ok){ stop(); var oo=document.getElementById('sxOv'); if(oo) oo.classList.remove('open'); if(cb) cb(ok); }
     document.getElementById('sxOkB').onclick=tryOk;
     document.getElementById('sxNoB').onclick=function(){ finish(false); };
     inp.onkeydown=function(e){ if(e.key==='Enter') tryOk(); };
@@ -3839,5 +3856,146 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3530921afe0ff6a',t:'MTc4ODQyMDQ4NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ PARTNER v6.3 — REAL FULL-APP TRANSLATE + KYC COMMISSION/TERMS ═══════════════ */
+(function(){
+  if(window.__p63) return; window.__p63=1;
+
+  /* ── 1) REAL TRANSLATE (दोनों apps में वही engine) ── */
+  var DICT={
+    'नया ऑर्डर':'New Order','मेरे Active काम':'My Active Jobs','मेरे काम':'My Jobs','काम पूरा हुआ':'Work Completed','काम शुरू किया':'Work Started',
+    'नया ऑर्डर आया':'New Order Arrived','नए ऑर्डर':'New Orders','ऑर्डर मिला':'Order Received','ऑर्डर सफल':'Order Successful','ऑर्डर आपका':'Order is Yours',
+    'आपका ऑर्डर':'Your Order','ऑर्डर आईडी':'Order ID','ऑर्डर इतिहास':'Order History','स्टेटस अपडेट':'Status Update','ऑर्डर':'Order','काम':'Job','सेवा':'Service','सर्विस':'Service',
+    'भुगतान':'Payment','पेमेंट':'Payment','ऑनलाइन':'Online','ऑफलाइन':'Offline','ऑनलाइन रहें':'Stay Online','मोबाइल नंबर':'Mobile Number','नंबर':'Number','पता':'Address',
+    'तारीख':'Date','समय':'Time','कुल':'Total','छूट':'Discount','राशि':'Amount','कीमत':'Price','दूरी':'Distance','नज़दीक':'Nearby','मिनट':'Minutes','घंटे':'Hours','किलोमीटर':'Kilometer',
+    'रास्ते में':'On the Way','स्वीकृत':'Accepted','पूर्ण':'Completed','रद्द':'Cancelled','नया':'New','स्वीकार करें':'Accept','अभी नहीं':'Not Now','रद्द करें':'Cancel',
+    'कमाई':'Earnings','निकालें':'Withdraw','जमा':'Deposit','बैलेंस':'Balance','वॉलेट':'Wallet','रेफर':'Refer','दोस्त':'Friend','शेयर करें':'Share','कमीशन':'Commission','कमिशन':'Commission',
+    'रेटिंग':'Rating','रिव्यू':'Reviews','समीक्षा':'Review','स्टार':'Star','प्रोफ़ाइल':'Profile','प्रोफाइल':'Profile','सेटिंग्स':'Settings','मदद':'Help','भाषा':'Language','अनुवाद':'Translate',
+    'ऐप':'App','लॉगिन':'Login','लॉगआउट':'Logout','रजिस्टर':'Register','सेव करें':'Save','जोड़ें':'Add','हटाएँ':'Remove','देखें':'View','खोलें':'Open','बंद करें':'Close','हाँ':'Yes','नहीं':'No',
+    'खोजें':'Search','आज':'Today','कल':'Tomorrow','मेरा':'My','मेरी':'My','आपका':'Your','आपकी':'Your','हमारा':'Our','कृपया':'Please','त्रुटि':'Error','सफल':'Success',
+    'बटन':'Button','कोड':'Code','उपलब्ध':'Available','पैसे':'Money','रुपये':'Rupees','सिक्के':'Coins','इनाम':'Reward','रीडीम':'Redeem','पूरा':'Complete','चालू':'Running','बंद':'Off',
+    'कौशल':'Skill','अनुभव':'Experience','वाहन':'Vehicle','दस्तावेज़':'Documents','अपलोड':'Upload','फोटो':'Photo','गैलरी':'Gallery','नाम':'Name','आधार':'Aadhaar','पैन':'PAN',
+    'सबमिट करें':'Submit','मंज़ूरी':'Approval','लंबित':'Pending','अनुमोदित':'Approved','वेरिफाई':'Verify','ओटीपी':'OTP','लाइव':'Live','जीपीएस':'GPS','अलर्ट':'Alert','सूचना':'Notice',
+    'काम बदलें':'Change Work','अतिरिक्त':'Extra','बदलाव':'Update','हैंडलिंग':'Handling','चार्ज':'Charge','डिलीवरी':'Delivery','निर्देश':'Instructions','रिमार्क':'Remark',
+    'कैटेगरी':'Category','आइटम':'Item','मूल्य':'Rate','विकल्प':'Options','चुनें':'Choose','स्टेटस':'Status','लोकेशन':'Location','जगह':'Place','एरिया':'Area','रेडियस':'Radius',
+    'धन्यवाद':'Thank You','सहमत':'Agree','नियम':'Rules','शर्तें':'Terms','नीति':'Policy','पढ़ें':'Read','कंपनी':'Company','साइन':'Sign','अधिकृत':'Authorised','हस्ताक्षर':'Signature',
+    'भेजें':'Send','प्रतीक्षा करें':'Please Wait','लोड हो रहा':'Loading','समस्या':'Problem','शिकायत':'Complaint','इमरजेंसी':'Emergency','तुरंत':'Immediately','कॉल':'Call','चैट':'Chat',
+    'बुकिंग':'Booking','कन्फर्म':'Confirm','स्कैन':'Scan','क्यूआर':'QR','नोटिफिकेशन':'Notification','सुरक्षा':'Security','और':'and','या':'or','सब':'All','जल्दी':'Soon','फिर':'Then'
+  };
+  var _keys=Object.keys(DICT).sort(function(a,b){ return b.length-a.length; });
+  var _stored='hi'; try{ _stored=localStorage.getItem('swp_uilang')||'hi'; }catch(e){}
+  var _orig=new WeakMap(), _trOn=false;
+  function escRe(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+  var _lbOk=true; try{ new RegExp('(?<=a)b'); }catch(e){ _lbOk=false; }
+  function trText(txt){ if(!txt) return txt; _keys.forEach(function(k){ var kw=escRe(k); if(_lbOk){ var re=new RegExp('(?<![\\p{L}\\p{N}])'+kw+'(?![\\p{L}\\p{N}])','gu'); txt=txt.replace(re,function(){ return DICT[k]; }); } else { var re2=new RegExp('(^|[^\\p{L}\\p{N}])'+kw+'(?=$|[^\\p{L}\\p{N}])','gu'); txt=txt.replace(re2,function(a,b){ return b+DICT[k]; }); } }); return txt; }
+  function walk(root){
+    if(!_trOn) return;
+    try{
+      var arr=[],w=document.createTreeWalker(root||document.body,NodeFilter.SHOW_TEXT,null);
+      while(w.nextNode()) arr.push(w.currentNode);
+      arr.forEach(function(node){
+        var p=node.parentNode; if(!p) return; var tag=p.nodeName;
+        if(tag==='SCRIPT'||tag==='STYLE'||tag==='TEXTAREA'||tag==='INPUT'||tag==='SELECT'||tag==='NOSCRIPT'||tag==='CODE') return;
+        var t=node.nodeValue||''; if(!t.trim()) return;
+        if(_orig.get(node)===undefined) _orig.set(node,t);
+        var nt=trText(t); if(nt!==t) node.nodeValue=nt;
+      });
+    }catch(e){}
+  }
+  var _mo=null,_tm=null;
+  function watch(){ if(_mo) return; _mo=new MutationObserver(function(){ if(_tm)clearTimeout(_tm); _tm=setTimeout(function(){ walk(document.body); },350); }); try{ _mo.observe(document.body,{childList:true,subtree:true,characterData:true}); }catch(e){} }
+  function dictOn(){ _trOn=true; watch(); walk(document.body); }
+  function dictOff(){ _trOn=false; var all=document.querySelectorAll('body *'); for(var i=0;i<all.length;i++){ var el=all[i]; for(var j=0;j<el.childNodes.length;j++){ var c=el.childNodes[j]; if(c.nodeType===3){ var o=_orig.get(c); if(o!==undefined) c.nodeValue=o; } } } }
+  function gHost(){ var h=document.getElementById('swGtEl'); if(!h){ h=document.createElement('div'); h.id='swGtEl'; h.style.cssText='position:absolute;top:-9999px;left:-9999px;width:8px;height:8px;overflow:hidden;opacity:.01;pointer-events:none;'; document.body.appendChild(h);} return h; }
+  function gReady(){ try{ return !!(window.google&&google.translate&&gHost().querySelector('.goog-te-combo')); }catch(e){ return false; } }
+  function gLoad(){ try{ if(document.querySelector('script[src*="translate_a/element.js"]')) return; window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en,bn,gu,kn,ml,mr,pa,ta,te,ur,ne,as,or',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); } }catch(e){} }; var sc=document.createElement('script'); sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb'; document.head.appendChild(sc); }catch(e){} }
+  function gApply(code){ try{ if(!gReady()){ gLoad(); return false; } var c=gHost().querySelector('.goog-te-combo'); c.value=code; c.dispatchEvent(new Event('change',{bubbles:true})); return true; }catch(e){ return false; } }
+  window.uAppLang=function(code){
+    try{ localStorage.setItem('swp_uilang',code); }catch(e){} _stored=code;
+    if(code==='hi'){ dictOff(); try{ gApply('hi'); }catch(e){} try{ toast('🌐 Original (हिन्दी)'); }catch(e){} return; }
+    if(code==='en') dictOn();
+    var go=gApply(code);
+    try{ toast(go?'🌐 पूरी App translate हो रही है...':'🌐 English basic apply हुआ — internet पर Google पूरा करेगा'); }catch(e){}
+  };
+  var LGS=[['hi','हिन्दी (Original)'],['en','English'],['bn','বাংলা'],['gu','ગુજરાતી'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['ta','தமிழ்'],['te','తెలుగు'],['ur','اردو'],['ne','नेपाली'],['as','অসমীয়া'],['or','ଓଡ଼ିଆ']];
+  window.swGtShow=function(){
+    try{
+      if(!document.querySelector('script[src*="translate_a/element.js"]')) gLoad();
+      var o=document.getElementById('swGtOv');
+      if(!o){ o=document.createElement('div'); o.id='swGtOv'; o.style.cssText='position:fixed;inset:0;z-index:9999992;display:none;align-items:center;justify-content:center;background:rgba(5,10,25,.55);padding:16px;'; document.body.appendChild(o); }
+      o.innerHTML='<div style="max-width:430px;width:100%;background:var(--card,#101a2e);color:var(--tx,#e6e9f2);border:1px solid var(--bd,#26324d);border-radius:22px;overflow:hidden;animation:v63in .22s">'+
+        '<div style="background:linear-gradient(135deg,#101a2e,#0d6efd);color:#fff;padding:15px 16px;display:flex;justify-content:space-between;align-items:center;"><div><b style="font-size:14.5px;">🌐 पूरी App को भाषा में बदलें</b><br><span style="font-size:9.5px;opacity:.92;">Full-screen scan — A-Z सब translate</span></div><span style="font-size:22px;cursor:pointer;" onclick="swGtHide()">✕</span></div>'+
+        '<div style="padding:12px 14px;max-height:62vh;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">'+LGS.map(function(l){ return '<button type="button" onclick="swGtSet(\''+l[0]+'\')" style="padding:12px 8px;border-radius:11px;border:1.5px solid var(--bd,#26324d);background:#0f1626;color:var(--tx,#e6e9f2);font-weight:800;font-size:12.5px;cursor:pointer;">'+l[1]+'</button>'; }).join('')+'</div>'+
+        '<div style="padding:9px 16px 13px;font-size:9.5px;color:#8a94ab;border-top:1px dashed var(--bd,#26324d);text-align:center;">English = offline scan भी + internet पर Google पूरा • balance/orders reset नहीं</div>'+
+      '</div>';
+      o.style.display='flex';
+    }catch(e){}
+  };
+  window.swGtHide=function(){ try{ var o=document.getElementById('swGtOv'); if(o) o.style.display='none'; }catch(e){} };
+  window.swGtSet=function(code){ try{ uAppLang(code); swGtHide(); }catch(e){} };
+  var st2=document.createElement('style'); st2.textContent='@keyframes v63in{from{transform:scale(.93) translateY(16px);opacity:0}to{transform:none;opacity:1}}'; document.head.appendChild(st2);
+  if(_stored&&_stored==='en') setTimeout(function(){ dictOn(); },1200);
+  setInterval(function(){ try{ walk(document.body); }catch(e){} },6000);
+
+  /* ── 2) KYC: COMMISSION CHECKBOX + TERMS & POLICY ── */
+  window.P63={com:false,terms:false};
+  var COM=10;
+  function comTxt(){ return '📋 SewaAstra Platform Commission: <b id="p63ComB" style="color:#ffd60a;">'+COM+'%</b> (हर पूरे काम पर — Admin अपडेट करता है)।'; }
+  var POLICY=[ '1. हर partner का KYC (Aadhaar/PAN/Selfie) सत्यापित करना ज़रूरी है — उसके बाद ही order मिलते हैं।',
+    '2. प्लेटफ़ॉर्म कमीशन हर पूरे (Completed) order पर लागू होता है; दर Admin time-समय पर अपडेट करता है।',
+    '3. सभी Online भुगतान सीधे SewaAstra के UPI/bank में जाते हैं; partner payout Admin द्वारा withdraw पर मिलता है।',
+    '4. Cash वाले orders: floating cash limit ₹2,000 — उससे ज़्यादा cash न रखें, UTR के साथ deposit करें।',
+    '5. Withdraw केवल उपलब्ध (Online + Approved deposit + Referral bonus) balance में होता है।',
+    '6. झूठी जानकारी, धोखाधड़ी या गलत काम पर account permanent block हो सकता है।',
+    '7. Customer से order के अलावा कोई extra पैसा निजी तौर पर न माँगें।',
+    '8. किसी भी dispute के लिए App में 🎫 Support Ticket भेजें — Admin resolve करता है।' ];
+  function showPol(){
+    try{ window.sAlert('SewaAstra Terms & Policy\n\n'+POLICY.join('\n')+'\n\nकमीशन: '+COM+'% (प्लेटफ़ॉर्म सेवा शुल्क)','📜 Terms & Policy','📋'); }catch(e){ alert('Policy'); }
+  }
+  window.p63Policy=function(){ showPol(); };
+  function kycCard(){
+    try{
+      var kf=document.getElementById('kForm'); if(!kf||document.getElementById('p63Ky')) return;
+      var sub=document.getElementById('kSub'); if(!sub) return;
+      var d=document.createElement('div'); d.id='p63Ky'; d.className='cd';
+      d.style.cssText='border-color:#574400;background:linear-gradient(180deg,#161103,#1c1708);';
+      d.innerHTML='<b style="font-size:12.5px;">💰 SewaAstra Commission & Policy (काम शुरू करने से पहले ज़रूरी)</b>'+
+        '<div style="margin-top:6px;">'+comTxt()+' <button class="bn gy" style="padding:5px 12px;margin-left:4px;font-size:10px;" onclick="p63Refresh()">🔄</button></div>'+
+        '<label style="display:flex;gap:9px;align-items:flex-start;margin-top:10px;cursor:pointer;background:#0f1626;border:1px solid var(--bd);border-radius:12px;padding:10px;font-size:11.5px;font-weight:700;">'+
+          '<input type="checkbox" id="p63Ag" style="width:18px;height:18px;margin:0;transform:none;" onchange="P63.com=this.checked">'+
+          '<span>मैं SewaAstra की कमीशन दर (<b id="p63ComL" style="color:#ffd60a;">'+COM+'%</b>) और भुगतान नियमों से <b>सहमत</b> हूँ।</span></label>'+
+        '<label style="display:flex;gap:9px;align-items:flex-start;margin-top:8px;cursor:pointer;background:#0f1626;border:1px solid var(--bd);border-radius:12px;padding:10px;font-size:11.5px;font-weight:700;">'+
+          '<input type="checkbox" id="p63Tp" style="width:18px;height:18px;margin:0;transform:none;" onchange="P63.terms=this.checked">'+
+          '<span>मैंने SewaAstra की <span style="color:#7fb3ff;text-decoration:underline;cursor:pointer;" onclick="event.preventDefault();event.stopPropagation();p63Policy()">Terms & Policy</span> पढ़ ली और मानता/मानती हूँ।</span></label>'+
+        '<button class="bn b" style="width:100%;margin-top:9px;padding:10px;" onclick="p63Policy()">📜 पूरी Terms & Policy पढ़ें</button>';
+      sub.parentNode.insertBefore(d,sub);
+    }catch(e){}
+  }
+  var _k47=window.v47Kyc;
+  window.v47Kyc=function(){ try{ _k47.apply(this,arguments); }catch(e){} setTimeout(function(){ try{ kycCard(); p63Com(); }catch(e){} },80); };
+  function p63Com(){
+    FS.collection('config').doc('global').get().then(function(d){
+      if(d.exists&&Number(d.data().commission)) COM=Number(d.data().commission)||10;
+      var b=document.getElementById('p63ComB'); if(b) b.innerText=COM+'%';
+      var l=document.getElementById('p63ComL'); if(l) l.innerText=COM+'%';
+    }).catch(function(){});
+  }
+  window.p63Refresh=function(){ try{ p63Com(); toast('✅ Commission rate refresh'); }catch(e){} };
+  try{ FS.collection('config').doc('global').onSnapshot(function(d){ if(d.exists){ var c=Number(d.data().commission)||0; if(c){ COM=c; var b=document.getElementById('p63ComB'); if(b) b.innerText=COM+'%'; var l=document.getElementById('p63ComL'); if(l) l.innerText=COM+'%'; } } },function(){}); }catch(e){}
+  var _s63=window.v47Sub;
+  window.v47Sub=function(){
+    try{ if(!window.P63.com) return window.sAlert('KYC Submit के लिए ऊपर "Commission ... सहमत हूँ" ✓ ज़रूरी है।','पहले Commission accept करें','💰'); }catch(e){}
+    try{ if(!window.P63.terms) return window.sAlert('KYC Submit के लिए "Terms & Policy ... मानता/मानती हूँ" ✓ ज़रूरी है।','पहले Policy accept करें','📜'); }catch(e){}
+    _s63.apply(this,arguments);
+  };
+  /* नीचे profile wale purane submit पर भी gate (अगर कोई use करे) */
+  try{ var _sk63=window.subKyc; if(typeof _sk63==='function'){ window.subKyc=function(){ try{ if(!window.P63.com) return window.sAlert('पहले Commission checkbox accept करें।','💰','💰'); if(!window.P63.terms) return window.sAlert('पहले Terms & Policy accept करें।','📜','📜'); }catch(e){} _sk63(); }; } }catch(e){}
+
+  console.log('%c 🌐💰📜 PARTNER v6.3 — REAL TRANSLATE + KYC COMMISSION/TERMS ✅ ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3552692a8c42666',t:'MTc4ODQ0MjY2Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
