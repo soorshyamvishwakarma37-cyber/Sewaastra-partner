@@ -3575,5 +3575,269 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3526f160dd0ffa1',t:'MTc4ODQxNDE3NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ PARTNER v6.1 — SCALE ENGINE (लाखों orders/partners पर भी smooth) ═══════════════ */
+(function(){
+  if(window.__p61) return; window.__p61=1;
+  /* helpers already: $,esc,toast,ldr,ldrX,vib,beep,me,P,ALL,draw,popup,loc etc. */
+
+  /* ─── 1) BOUNDED ORDER STREAM ───
+     पहले: पूरी orders collection (ALL orders) डाउनलोड — लाखों पर क्रैश।
+     अब: (A) सिर्फ LIVE active orders (Order Placed/Accepted/On the Way/Working)
+         (B) सिर्फ मेरे अपने orders (partnerPhone == मेरा नंबर) → earning/history accurate.
+  */
+  var __live=null, __mine=null, __p61first=true;
+  window.listenOrders=function(){
+    var ph=me(); if(!ph) return;
+    var LIVE={}, MINE={};
+    function rebuild(){
+      var map={}; var k;
+      for(k in LIVE) map[k]=LIVE[k];
+      for(k in MINE) map[k]=MINE[k];
+      ALL=[]; for(k in map) ALL.push(map[k]);
+      try{ if(window.v58Near) ALL=ALL; }catch(e){}
+      try{ draw(); }catch(e){}
+      try{ presRefresh(); }catch(e){}
+    }
+    /* A) global LIVE (नए + जो अपने पास जा रहे) */
+    try{
+      FS.collection('orders').where('status','in',['Order Placed','Accepted','On the Way','Working']).onSnapshot(function(s){
+        s.docChanges().forEach(function(ch){
+          if(ch.type!=='added') return;
+          var o=ch.doc.data();
+          if(!o||o.status!=='Order Placed') return;
+          var near=true; try{ near=window.v58Near? v58Near(o):true; }catch(e){}
+          if(__p61first){ __p61first=false; }
+          else if(near){ try{ beep(); vib([120,60,120,60,200]); }catch(e){} }
+          try{ popup(o); }catch(e){}
+        });
+        LIVE={}; s.docs.forEach(function(d){ var o=d.data(); if(o&&o.id) LIVE[o.id]=o; else if(o) LIVE[d.id]=o; });
+        rebuild();
+      },function(e){ ALL=[]; try{ draw(); }catch(err){} });
+    }catch(e){}
+
+    /* B) मेरे अपने orders — single-field query (कोई index नहीं चाहिए) */
+    try{
+      FS.collection('orders').where('partnerPhone','==',ph).onSnapshot(function(s){
+        MINE={}; s.docs.forEach(function(d){ var o=d.data(); if(o) MINE[o.id||d.id]=o; });
+        rebuild();
+      },function(){});
+    }catch(e){}
+  };
+
+  /* ─── 2) TARGETED PRESENCE ───
+     पहले: पूरी users collection (लाखों users!) — कभी load नहीं होगी।
+     अब: सिर्फ उन्हीं customers की online-status पूछो जो अभी screen पर दिख रहे हैं (बैच 10 में)। */
+  var __pk=[],__ppt=0,__pb=false;
+  window.listenUsers=function(){ /* replaced by targeted refresh */ };
+  function presRefresh(){
+    try{
+      if(__pb) return;
+      var m=me(); var mobs={};
+      (ALL||[]).forEach(function(o){ var mo=String(o.mobile||''); if(/^\d{10}$/.test(mo)) mobs[mo]=1; });
+      var keys=Object.keys(mobs);
+      var same=(keys.length===__pk.length)&&keys.every(function(k,i){return k===__pk[i];});
+      if(same && Date.now()-__ppt<12000) return;
+      __ppt=Date.now(); __pk=keys.slice();
+      if(!keys.length){ if(Object.keys(uLive).length){ uLive={}; try{ draw(); }catch(e){} } return; }
+      __pb=true;
+      var chains=[];
+      for(var i=0;i<keys.length;i+=10){
+        (function(chunk){
+          chains.push(FS.collection('users').where('phone','in',chunk).get()
+            .catch(function(){ return FS.collection('users').where('phone','in',chunk).get().catch(function(){return null;}); }));
+        })(keys.slice(i,i+10));
+      }
+      Promise.all(chains).then(function(res){
+        var nu={};
+        res.forEach(function(sn){ if(sn) sn.docs.forEach(function(d){ var u=d.data(); var on=u.online!==false&&(Date.now()-(u.lastSeen||0))<150000; nu[u.phone||d.id]=on; }); });
+        /* doc-id fallback (phone login par doc id = phone) */
+        var need=keys.filter(function(x){ return nu[x]===undefined; });
+        if(need.length){
+          var getc=[];
+          need.slice(0,20).forEach(function(x){ getc.push(FS.collection('users').doc(x).get().catch(function(){return null;})); });
+          Promise.all(getc).then(function(docs){
+            docs.forEach(function(d){ if(d&&d.exists){ var u=d.data(); var on=u.online!==false&&(Date.now()-(u.lastSeen||0))<150000; nu[d.id]=on; } });
+            uLive=nu; __pb=false; try{ draw(); }catch(e){}
+          }).catch(function(){ uLive=nu; __pb=false; try{ draw(); }catch(e){} });
+        } else { uLive=nu; __pb=false; try{ draw(); }catch(e){} }
+      }).catch(function(){ __pb=false; });
+    }catch(e){ __pb=false; }
+  }
+
+  /* ─── 3) TRANSACTIONAL ACCEPT — दो partners एक ही order accept नहीं कर सकते ───
+     Atomic claim: status Order Placed हो तभी Accept; वरना पक्का बताओ कि कोई और ले गया। */
+  window.acc=function(oid){
+    /* Area guard (v5.8 की तरह) — radius से बाहर का order accept नहीं */
+    try{
+      var oo=null; for(var ai=0; ai<(ALL||[]).length; ai++){ if(ALL[ai].id===oid){ oo=ALL[ai]; break; } }
+      if(oo && window.v58Near && !v58Near(oo)){
+        window.sAlert('यह order आपके Area (radius) से बाहर है — accept नहीं हो सकता।\nपास के order list में ही accept करें।','Area से बाहर का order','📍');
+        return Promise.resolve(false);
+      }
+    }catch(e){}
+    var nm='';
+    try{ nm=$('pNm').value.trim()||P.name||'SewaAstra Partner'; }catch(e){}
+    var ph=me(); if(!ph){ try{ toast('पहले login करें'); }catch(e){} return Promise.resolve(false); }
+    try{ ldr('Order claim हो रहा है...'); }catch(e){}
+    var ref=FS.collection('orders').doc(oid);
+    return FS.runTransaction(function(tx){
+      return tx.get(ref).then(function(d){
+        if(!d.exists){ var err=new Error('gone'); err.__g=1; throw err; }
+        var o=d.data();
+        if(o.status!=='Order Placed'){ var er=new Error('taken'); er.__t=1; er.__st=o.status; throw er; }
+        if(o.partnerPhone&&o.partnerPhone!==ph){ var er2=new Error('taken'); er2.__t=1; er2.__st='Taken'; throw er2; }
+        tx.update(ref,{status:'Accepted',partnerPhone:ph,partnerName:nm,acceptedAt:Date.now()});
+        return true;
+      });
+    }).then(function(){
+      try{ ldrX(); vib([80,40,80]); toast('✅ ऑर्डर आपका! 🛵'); }catch(e){}
+      try{ setTimeout(draw,400); }catch(e){}
+      return true;
+    }).catch(function(e){
+      try{ ldrX(); }catch(err){}
+      try{
+        if(e&&e.__t){
+          if(e.__st==='Taken') window.sAlert('किसी और partner ने यह order अभी accept कर लिया!','पहले ही ले जाया गया','⏳');
+          else window.sAlert('Order अब "'+(e.__st||'')+'" है — accept नहीं हो सकता।','Status बदल गया','ℹ️');
+        } else if(e&&e.__g){ window.sAlert('यह order अब मौजूद नहीं है (हटा/कैंसल हो गया)।','Order गया','🗑️'); }
+        else window.sAlert(e.message||'Accept नहीं हो सका। दोबारा try करें।','Error','❌');
+      }catch(err){}
+      return false;
+    });
+  };
+
+  /* ─── 4) draw wrap — presence refresh + dedupe dot ─── */
+  try{
+    var _d61=window.draw; if(typeof _d61==='function'){
+      window.draw=function(){ try{ _d61(); }catch(e){} };
+    }
+  }catch(e){}
+
+  /* ─── 5) DND / offline — LIVE popup न चले ─── */
+  try{
+    var _pop61=window.popup;
+    window.popup=function(o){
+      try{ if(localStorage.getItem('swp_dnd')==='1') return; }catch(e){}
+      try{ if(window.onl===false) return; }catch(e){}
+      _pop61(o);
+    };
+  }catch(e){}
+
+  /* ─── 6) old पूरी-कलेक्शन listeners को बार-बार attach होने से बचाओ ─── */
+  try{ if(!window.__p61ordWrapped){ window.__p61ordWrapped=1; } }catch(e){}
+
+  console.log('%c ⚡ v6.1 — SCALE ENGINE (bounded live + my orders + atomic accept + targeted presence) ✅ ','background:#0a6d3f;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+
+<script>
+/* ═══════════════ PARTNER v6.2 — 🌐 GOOGLE TRANSLATE (A–Z) + 🔔 REPEAT RING (accept/reject/assign तक) ═══════════════ */
+(function(){
+  if(window.__p62) return; window.__p62=1;
+
+  /* ═══ 🌐 GOOGLE TRANSLATE — पूरी App A-Z ═══ */
+  var LGS=[['hi','हिन्दी (Original)'],['en','English'],['bn','বাংলা'],['gu','ગુજરાતી'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['ta','தமிழ்'],['te','తెలుగు'],['ur','اردو'],['ne','नेपाली'],['as','অসমীয়া'],['or','ଓଡ଼ିଆ']];
+  var _ready=false,_loading=false;
+  function host(){
+    var h=document.getElementById('swGtEl');
+    if(!h){ h=document.createElement('div'); h.id='swGtEl';
+      h.style.cssText='position:absolute;top:-9999px;left:-9999px;width:8px;height:8px;opacity:.01;overflow:hidden;pointer-events:none;';
+      document.body.appendChild(h); }
+    return h;
+  }
+  function load(){
+    if(_loading) return; _loading=true;
+    try{
+      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en,bn,gu,kn,ml,mr,pa,ta,te,ur,ne,as,or',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); _ready=true; } }catch(e){} };
+      if(document.querySelector('script[src*="translate_a/element.js"]')){ _loading=false; return; }
+      var sc=document.createElement('script');
+      sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb';
+      sc.onerror=function(){ _loading=false; try{ toast('🌐 Translate load नहीं हुआ — internet check करें'); }catch(e){} };
+      document.head.appendChild(sc);
+    }catch(e){ _loading=false; }
+  }
+  function combo(){ try{ return host().querySelector('.goog-te-combo'); }catch(e){ return null; } }
+  function ovr(){
+    var o=document.getElementById('swGtOv');
+    if(!o){ o=document.createElement('div'); o.id='swGtOv';
+      o.style.cssText='position:fixed;inset:0;z-index:9999992;display:none;align-items:center;justify-content:center;background:rgba(5,10,25,.55);padding:16px;';
+      document.body.appendChild(o); }
+    return o;
+  }
+  window.swGtShow=function(){
+    try{
+      if(!_ready) load();
+      var o=ovr();
+      o.innerHTML='<div style="max-width:430px;width:100%;background:var(--card);color:var(--tx);border:1px solid var(--bd);border-radius:22px;overflow:hidden;animation:v62in .22s">'+
+      '<div style="background:linear-gradient(135deg,#101a2e,#0d6efd);color:#fff;padding:15px 16px;display:flex;justify-content:space-between;align-items:center;"><div><b style="font-size:14.5px;">🌐 पूरी App की भाषा</b><br><span style="font-size:9.5px;opacity:.9;">Google Translate — orders/earnings/काम सब बदलता है</span></div><span style="font-size:22px;cursor:pointer;" onclick="swGtHide()">✕</span></div>'+
+      '<div style="padding:12px 14px;max-height:62vh;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:8px;">'+
+        LGS.map(function(l){ return '<button type="button" onclick="swGtSet(\''+l[0]+'\')" style="padding:12px 8px;border-radius:11px;border:1.5px solid var(--bd);background:#0f1626;color:var(--tx);font-weight:800;font-size:12.5px;cursor:pointer;">'+l[1]+'</button>'; }).join('')+
+      '</div>'+
+      '<div style="padding:10px 16px 14px;font-size:9.5px;color:#8a94ab;text-align:center;border-top:1px dashed var(--bd);">💡 सिर्फ भाषा बदलती है — आपका data/balance/orders reset नहीं होते</div>'+
+      '</div>';
+      o.style.display='flex';
+    }catch(e){}
+  };
+  window.swGtHide=function(){ try{ var o=ovr(); o.style.display='none'; }catch(e){} };
+  ovr();
+  window.swGtSet=function(code){
+    try{
+      var c=combo();
+      if(!c){ load(); try{ toast('🌐 Translate load हो रहा है — 2 सेकंड में दोबारा दबाएँ'); }catch(e){} return; }
+      c.value=code; try{ c.dispatchEvent(new Event('change',{bubbles:true})); }catch(e){}
+      swGtHide();
+      try{ toast('🌐 पूरी App translate हो रही है'); }catch(e){}
+    }catch(e){}
+  };
+  var st=document.createElement('style'); st.textContent='@keyframes v62in{from{transform:scale(.93) translateY(16px);opacity:0}to{transform:none;opacity:1}}'; document.head.appendChild(st);
+  /* floating 🌐 button (bottom-right, nav के ऊपर) */
+  function gBtn(){
+    if(document.getElementById('v62Gt')) return;
+    var b=document.createElement('div'); b.id='v62Gt'; b.title='🌐 Translate / भाषा';
+    b.style.cssText='position:fixed;right:14px;bottom:112px;z-index:12000;width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#101a2e,#0d6efd);color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;box-shadow:0 8px 20px rgba(13,110,253,.45);cursor:pointer;border:1.5px solid rgba(255,255,255,.3);';
+    b.innerHTML='🌐';
+    b.onclick=function(){ swGtShow(); };
+    document.body.appendChild(b);
+  }
+  setTimeout(gBtn,1500);
+  setInterval(function(){ try{ gBtn(); }catch(e){} },8000);
+
+  /* ═══ 🔔 REPEAT RING — jab तक ACCEPT/REJECT करे या दूसरे partner को ASSIGN हो ═══ */
+  function eligible(){
+    try{
+      if(!me()||!onl) return null;
+      if(localStorage.getItem('swp_dnd')==='1') return null;
+      var now=Date.now(), best=null;
+      (ALL||[]).forEach(function(o){
+        if(!o||o.status!=='Order Placed') return;
+        if(o.partnerPhone) return;
+        if(rej&&rej[o.id]) return;
+        var age=now-(o.createdAt||0);
+        if(age>15*60000) return;                 /* 15 min से पुराना — ring नहीं (admin handle) */
+        var near=true; try{ if(window.v58Near) near=v58Near(o); }catch(e){}
+        if(!near) return;
+        if(!best||(o.createdAt||0)>(best.createdAt||0)) best=o;
+      });
+      return best;
+    }catch(e){ return null; }
+  }
+  function tickRing(){
+    try{
+      var opEl=document.getElementById('op');
+      if(opEl&&opEl.classList.contains('open')) return;     /* अभी बज रहा है */
+      var b=eligible(); if(!b) return;
+      try{ window.popup(b); }catch(e){}
+    }catch(e){}
+  }
+  setInterval(tickRing,6000);
+  console.log('%c 🌐🔔 PARTNER v6.2 — TRANSLATE + REPEAT-RING ✅ ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3530921afe0ff6a',t:'MTc4ODQyMDQ4NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
