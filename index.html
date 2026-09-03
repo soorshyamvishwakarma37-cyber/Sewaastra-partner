@@ -856,21 +856,27 @@ function drawProfile(){
 }
 function upKyc(k,inp){
   var f=inp.files&&inp.files[0]; if(!f)return;
-  ldr('📤 Upload...');
+  ldr(k==='selfie'?'📤 Selfie compress+upload...':'📤 Photo compress+upload...');
   var rd=new FileReader();
   rd.onload=function(e){
     var im=new Image();
     im.onload=function(){
-      var mx=800,w=im.width,h=im.height;
-      if(w>mx){h=h*mx/w;w=mx;} if(h>mx){w=w*mx/h;h=mx;}
-      var cv=document.createElement('canvas');cv.width=w;cv.height=h;
-      cv.getContext('2d').drawImage(im,0,0,w,h);
-      var b64=cv.toDataURL('image/jpeg',.55);
-      if(b64.length>700000){ldrX();return toast('❌ फोटो बड़ी है — दोबारा लें');}
+      var md=(k==='selfie')?500:620, w=im.width, h=im.height;
+      if(w>md){h=h*md/w;w=md;} if(h>md){w=w*md/h;h=md;}
+      var q=.5, b64='';
+      for(var pass=0; pass<4; pass++){
+        var cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+        try{ cv.getContext('2d').drawImage(im,0,0,w,h); }catch(e){ ldrX(); return toast('❌ Image पढ़ नहीं पाए'); }
+        b64=cv.toDataURL('image/jpeg', q);
+        if(b64.length<=160000) break;         /* ~120KB — turant upload */
+        q-=.12; w=Math.round(w*.82); h=Math.round(h*.82);
+      }
+      if(b64.length>400000){ ldrX(); return toast('❌ फिर भी बड़ी — कोई और (छोटी) photo चुनें'); }
       FS.collection('partners').doc(me()).collection('kyc').doc(k).set({img:b64,ts:Date.now(),at:new Date().toLocaleString('en-IN')})
-        .then(function(){kyc[k]=b64;ldrX();toast('✅ Save हो गया');vib();drawProfile();})
-        .catch(function(er){ldrX();alert('❌ '+er.message);});
+        .then(function(){ kyc[k]=b64; ldrX(); if(k==='selfie'){ toast('✅ Selfie upload हो गई (compress ⚡)'); } else { toast('✅ Photo upload हो गई (compress ⚡)'); } vib(); drawProfile(); try{ window.v47Docs&&v47Docs(); }catch(e){} })
+        .catch(function(er){ ldrX(); alert('❌ '+er.message); });
     };
+    im.onerror=function(){ ldrX(); toast('❌ Photo नहीं पढ़ी गई — दोबारा चुनें'); };
     im.src=e.target.result;
   };
   rd.readAsDataURL(f);
@@ -1838,8 +1844,9 @@ function v47Kyc(){
   '<input class="pi" id="p65BU" placeholder="UPI ID * (payout यहीं आएगा)" value="'+esc((P.bank&&P.bank.upi)||'')+'"></div>'+
   '<div class="cd"><b style="font-size:12.5px;">📸 Live Selfie (कैमरा — document नहीं)</b>'+
   '<div style="display:flex;gap:9px;align-items:center;">'+(kyc.selfie?'<img src="'+esc(kyc.selfie)+'" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid #2bc96e;">':'<span style="font-size:32px;">🤳</span>')+
-  '<div style="flex:1;"><button type="button" class="bn o" style="width:100%;padding:11px;" onclick="window.p65Selfie()">📸 Live Selfie लें</button>'+
-  '<div style="font-size:9px;color:#8a94ab;font-weight:700;margin-top:3px;">KYC + काम-शुरू verification इसी चेहरे से होगा।</div></div></div></div>'+
+  '<div style="flex:1;"><button type="button" class="bn o" style="width:100%;padding:11px;" onclick="window.p65Selfie()">📸 कैमरा — Live Selfie लें</button>'+
+  '<button type="button" class="bn b" style="width:100%;margin-top:6px;padding:9px;" onclick="document.getElementById(\'ofselfie\').click()">🖼️ Gallery से चुनें (auto-compress)</button>'+
+  '<div style="font-size:9px;color:#8a94ab;font-weight:700;margin-top:3px;">कोई भी तरीका चुनें — फोटो अपने आप छोटी (compress) होकर तुरंत upload होगी।</div></div></div></div>'+
   '<div class="cd"><b style="font-size:12.5px;">📸 Document Photos (Aadhaar Front/Back + PAN — चारों ज़रूरी)</b><div id="kDocs"></div></div>'+
   '<button class="bn o" id="kSub" style="width:100%;padding:14px;font-size:13.5px;" onclick="v47Sub()"></button>'+
   '<div class="cd" style="font-size:10.5px;color:#988;line-height:1.7;margin-top:10px;">🔒 आपकी जानकारी सुरक्षित Firebase में save होती है — सिर्फ admin verification के लिए।</div>'+
@@ -4270,10 +4277,10 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
       .catch(function(){ w.innerHTML='<div style="width:100%;max-width:380px;background:#0e1524;border:1px solid var(--bd);border-radius:16px;padding:20px;text-align:center;color:#ff8a80;font-weight:800;font-size:13px;">❌ Camera नहीं खुली (permission?)\n<br><button class="p65pl p65v1" style="margin-top:12px;background:#3a1110;" onclick="window.__p65CamCl()">✕ बंद</button></div>'; });
     w.querySelector('#p65Cap').onclick=function(){
       if(!stream) return;
-      var cv=document.createElement('canvas'); cv.width=480; cv.height=Math.round(480*vid.videoHeight/vid.videoWidth||360);
+      var cv=document.createElement('canvas'); cv.width=400; cv.height=Math.round(400*vid.videoHeight/vid.videoWidth||300);
       var c=cv.getContext('2d');
       c.translate(cv.width,0); c.scale(-1,1); c.drawImage(vid,0,0,cv.width,cv.height);
-      var b64=cv.toDataURL('image/jpeg',.7);
+      var b64=cv.toDataURL('image/jpeg',.5);
       window.__p65CamCl();
       if(cb) cb(b64);
     };
@@ -4355,10 +4362,10 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   }catch(e){}
   var _doc47=window.v47Docs;
   window.v47Docs=function(){ if(_doc47) _doc47.apply(this,arguments); setTimeout(function(){
-    try{ var inp=document.getElementById('ofselfie'); if(!inp) return; var tile=inp.closest('.kyd'); if(!tile) return;
-      if(!kyc.selfie){ tile.onclick=function(){ p65Selfie(); }; var n=tile.querySelector('.n2'); if(n) n.innerHTML='📸 Live Selfie — टैप करके लें'; }
+    try{ var inp=document.getElementById('ofselfie'); if(!inp) return; var n=inp.closest('.kyd'); if(!n) return;
+      var l=n.querySelector('.n2'); if(l&&!kyc.selfie) l.innerHTML='Selfie — टैप करें (गैलरी, auto-compress)';
     }catch(e){}
-  },80); };
+  },60); };
 
   /* ── v47Sub override: full validation + single save with extra fields ── */
   var _sub47=window.v47Sub;
@@ -4449,7 +4456,6 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   var _upK=window.upKyc;
   window.upKyc=function(k,inp){
     var inK=!!document.getElementById('kForm');
-    if(k==='selfie'&&inK){ toast('❌ Selfie gallery से नहीं — कैमरा से 📸 Live Selfie लें'); if(inp) inp.value=''; return; }
     if(inK){
       var aa=String(((document.getElementById('kAa')||{}).value||'')).trim();
       if(k.indexOf('aadhaar')===0&&!p65Vh(aa)){ toast('❌ पहले सही 12-अंकों का Aadhaar नंबर डालें (auto-verify) — फिर photo upload'); if(inp) inp.value=''; return; }
@@ -4622,5 +4628,5 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3576cbac96780b6',t:'MTc4ODQ2NjUwNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3578577ef2f3b55',t:'MTc4ODQ2NzUyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
