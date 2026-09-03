@@ -462,10 +462,8 @@ function listenPartner(){
     if(P.kycStatus==='Approved' && !localStorage.getItem('swp_kyc_ok')){ localStorage.setItem('swp_kyc_ok','1'); toast('🎉 KYC APPROVED — verified partner!'); vib([90,50,90,50,180]); }
     drawProfile();
   }, function(e){ console.log('partner listen:', e.message); });
-  FS.collection('partners').doc(ph).collection('kyc').get().then(function(s){
-    s.docs.forEach(function(d){ kyc[d.id]=d.data().img; });
-    drawProfile();
-  }).catch(function(){});
+  /* 🔒 KYC photos अब server से नहीं खींचते (privacy: sirf Admin देख सकता है) —
+     partner की tiles/selfie सिर्फ local device draft से दिखती हैं */
 }
 
 /* ═══ ONLINE ═══ */
@@ -1290,7 +1288,7 @@ autoAssign=function(n){
 setInterval(function(){ if(!loc && P.workCenter && P.workCenter.lat) loc={lat:P.workCenter.lat,lon:P.workCenter.lon}; },5000);
 
 /* PROFILE में नए cards */
-var LANGS=['हिंदी','English','मराठी','ગુજરાતી','ਪੰਜਾਬੀ','اردو'];
+var LANGS=['हिंदी','English'];
 var _drawProfile2=drawProfile;
 drawProfile=function(){ _drawProfile2(); try{ v44Profile(); }catch(e){} };
 function v44Profile(){
@@ -1321,7 +1319,7 @@ function v44Fill(){
   '<div class="cd"><b style="font-size:12.5px;">⚙️ Work Settings</b>'+
     '<div class="srw" style="margin-top:7px;">🚗 वाहन <select id="vhS" class="pi" style="width:130px;margin:0;">'+['Bike','Scooter','Cycle','Car','पैदल'].map(function(v){return '<option '+(P.vehicle===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select></div>'+
     '<div class="srw">💼 अनुभव (साल) <input type="number" id="exS" class="pi" style="width:70px;margin:0;text-align:center;" min="0" max="50" value="'+(P.expYears||0)+'"></div>'+
-    '<div style="font-size:11px;font-weight:800;margin-top:8px;">🗣️ भाषाएँ</div><div style="margin-top:5px;">'+
+    '<div style="font-size:11px;font-weight:800;margin-top:8px;">🗣️ App भाषा (Hindi / English)</div><div style="margin-top:5px;">'+
     LANGS.map(function(l){var on=(P.langs||[]).indexOf(l)>-1;return '<span class="skc '+(on?'on':'')+'" onclick="this.classList.toggle(\'on\')" data-lg="'+l+'">'+l+'</span>';}).join('')+'</div>'+
     '<div class="srw" style="margin-top:8px;">🕒 Duty समय <span><input type="time" id="dfS" class="pi" style="width:92px;margin:0;" value="'+(P.dutyFrom||'09:00')+'"> – <input type="time" id="dtS" class="pi" style="width:92px;margin:0;" value="'+(P.dutyTo||'20:00')+'"></span></div>'+
     '<div class="srw">📅 साप्ताहिक छुट्टी <select id="woS" class="pi" style="width:110px;margin:0;">'+['कोई नहीं','रविवार','सोमवार','मंगलवार','बुधवार','गुरुवार','शुक्रवार','शनिवार'].map(function(v){return '<option '+(P.weeklyOff===v?'selected':'')+'>'+v+'</option>';}).join('')+'</select></div>'+
@@ -3812,7 +3810,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   if(window.__p62) return; window.__p62=1;
 
   /* ═══ 🌐 GOOGLE TRANSLATE — पूरी App A-Z ═══ */
-  var LGS=[['hi','हिन्दी (Original)'],['en','English'],['bn','বাংলা'],['gu','ગુજરાતી'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['ta','தமிழ்'],['te','తెలుగు'],['ur','اردو'],['ne','नेपाली'],['as','অসমীয়া'],['or','ଓଡ଼ିଆ']];
+var LGS=[['hi','हिन्दी'],['en','English']];
   var _ready=false,_loading=false;
   function host(){
     var h=document.getElementById('swGtEl');
@@ -3824,7 +3822,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   function load(){
     if(_loading) return; _loading=true;
     try{
-      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en,bn,gu,kn,ml,mr,pa,ta,te,ur,ne,as,or',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); _ready=true; } }catch(e){} };
+      window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); _ready=true; } }catch(e){} };
       if(document.querySelector('script[src*="translate_a/element.js"]')){ _loading=false; return; }
       var sc=document.createElement('script');
       sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb';
@@ -3964,7 +3962,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   function dictOff(){ _trOn=false; var all=document.querySelectorAll('body *'); for(var i=0;i<all.length;i++){ var el=all[i]; for(var j=0;j<el.childNodes.length;j++){ var c=el.childNodes[j]; if(c.nodeType===3){ var o=_orig.get(c); if(o!==undefined) c.nodeValue=o; } } } }
   function gHost(){ var h=document.getElementById('swGtEl'); if(!h){ h=document.createElement('div'); h.id='swGtEl'; h.style.cssText='position:absolute;top:-9999px;left:-9999px;width:8px;height:8px;overflow:hidden;opacity:.01;pointer-events:none;'; document.body.appendChild(h);} return h; }
   function gReady(){ try{ return !!(window.google&&google.translate&&gHost().querySelector('.goog-te-combo')); }catch(e){ return false; } }
-  function gLoad(){ try{ if(document.querySelector('script[src*="translate_a/element.js"]')) return; window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en,bn,gu,kn,ml,mr,pa,ta,te,ur,ne,as,or',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); } }catch(e){} }; var sc=document.createElement('script'); sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb'; document.head.appendChild(sc); }catch(e){} }
+  function gLoad(){ try{ if(document.querySelector('script[src*="translate_a/element.js"]')) return; window.swGtCb=function(){ try{ if(window.google&&google.translate){ new google.translate.TranslateElement({pageLanguage:'hi',autoDisplay:false,includedLanguages:'hi,en',layout:google.translate.TranslateElement.InlineLayout.SIMPLE},'swGtEl'); } }catch(e){} }; var sc=document.createElement('script'); sc.src='https://translate.google.com/translate_a/element.js?cb=swGtCb'; document.head.appendChild(sc); }catch(e){} }
   function gApply(code){ try{ if(!gReady()){ gLoad(); return false; } var c=gHost().querySelector('.goog-te-combo'); c.value=code; c.dispatchEvent(new Event('change',{bubbles:true})); return true; }catch(e){ return false; } }
   window.uAppLang=function(code){
     try{ localStorage.setItem('swp_uilang',code); }catch(e){} _stored=code;
@@ -3974,7 +3972,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
     var go=gApply(code);
     try{ toast(go?'🌐 पूरी App translate हो रही है...':'🌐 English basic apply हुआ — internet पर Google पूरा करेगा'); }catch(e){}
   };
-  var LGS=[['hi','हिन्दी (Original)'],['en','English'],['bn','বাংলা'],['gu','ગુજરાતી'],['kn','ಕನ್ನಡ'],['ml','മലയാളം'],['mr','मराठी'],['pa','ਪੰਜਾਬੀ'],['ta','தமிழ்'],['te','తెలుగు'],['ur','اردو'],['ne','नेपाली'],['as','অসমীয়া'],['or','ଓଡ଼ିଆ']];
+var LGS=[['hi','हिन्दी'],['en','English']];
   window.swGtShow=function(){
     try{
       if(!document.querySelector('script[src*="translate_a/element.js"]')) gLoad();
@@ -4799,5 +4797,74 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a357ff8ec80f3cee',t:'MTc4ODQ3MjUyMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ PARTNER v6.8 — 🔒 ONBOARDING-FEE HARD GATE: KYC Approved + fee बाकी = Home/Training बंद ═══════════════ */
+(function(){
+  if(window.__p68) return; window.__p68=1;
+  var shown=false;
+  function paid(){ try{ return !!(P&&P.onboarding&&P.onboarding.paid); }catch(e){ return false; } }
+  function obDue(){
+    try{
+      var g=window.__p65Cfg||{}, fee=Number(g.fee)||0;
+      if(fee<=0) return {amt:0,orig:0,free:true};
+      var off=g.off||'none', val=Number(g.val)||0;
+      if(off==='free') return {amt:0,orig:fee,free:true};
+      if(off==='flat'){ var a=Math.max(0,fee-val); return {amt:a,orig:fee,free:a<=0}; }
+      if(off==='percent'){ var a2=Math.max(0,fee-Math.round(fee*val/100)); return {amt:a2,orig:fee,free:a2<=0}; }
+      return {amt:fee,orig:fee,free:false};
+    }catch(e){ return {amt:0,orig:0,free:true}; }
+  }
+  function blocked(){
+    try{
+      if(!booted) return false;
+      if((P.kycStatus||'')!=='Approved') return false;
+      if(paid()) return false;
+      var d=obDue();
+      return d.amt>0;
+    }catch(e){ return false; }
+  }
+  function render(){
+    var o=document.getElementById('obOv'), x=document.getElementById('obX');
+    if(!o||!x) return;
+    var d=obDue(), amt=d.amt||0, _ph=''; try{ _ph=me(); }catch(e){}
+    o.style.display='block'; o.style.zIndex='9999990';
+    shown=true;
+    try{ var p=document.getElementById('p65ObW'); if(p&&p.parentNode) p.parentNode.removeChild(p); }catch(e){}
+    if(document.getElementById('v68Ob')) return;
+    x.innerHTML=
+      '<div id="v68Ob" style="text-align:center;padding:24px 6px 8px;">'+
+        '<div style="font-size:56px;">🧾</div>'+
+        '<h2 style="font-size:19px;margin:12px 0 6px;">KYC APPROVED ✅ — अब Onboarding Fee ज़रूरी</h2>'+
+        '<div style="font-size:12.5px;color:#988;line-height:1.7;">App में काम/ऑर्डर शुरू करने से पहले onboarding fee पूरी करनी होगी।<br>Pay करके UTR डालें — Admin verify करेगा।</div>'+
+        '<div class="cd" style="margin-top:16px;border:1.5px solid #7a5a00;">'+
+          '<div style="font-size:11px;color:#8a94ab;font-weight:800;">Onboarding Fee'+(d.free?'':' <s style="opacity:.55;">₹'+Number(d.orig||0).toLocaleString('en-IN')+'</s>')+'</div>'+
+          '<div style="font-size:30px;font-weight:900;color:#ffd60a;margin:3px 0;">'+(d.free?'FREE 🎉':'₹'+amt.toLocaleString('en-IN'))+'</div>'+
+        '</div>'+
+        '<div style="display:flex;gap:8px;margin-top:12px;"><button class="bn w" style="flex:1.4;padding:13px;" onclick="window.__p65ObPay()">💳 UPI से Pay करें</button></div>'+
+        '<input id="p65ObUt" placeholder="UTR / Ref no. (pay के बाद UPI app में)" style="width:100%;box-sizing:border-box;text-align:center;font-weight:900;letter-spacing:1px;margin-top:8px;padding:11px;border-radius:11px;border:1px solid var(--bd);background:var(--card,#0f1626);color:var(--tx,#fff);">'+
+        '<button class="bn o" style="width:100%;margin-top:8px;padding:13px;font-size:13.5px;" onclick="p65ObSub()">✅ UTR भरा — Onboarding पूरा करें</button>'+
+        '<div style="font-size:10px;color:#8a94ab;font-weight:700;margin-top:8px;">UTR डालते ही app अपने-आप खुल जाएगा। Payment के बिना अभी आगे नहीं बढ़ सकते।</div>'+
+        '<div class="bns" style="margin-top:14px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190?text=Onboarding%20fee%20UTR%20verify%20karein%20-%20'+_ph+'" target="_blank">💬 WhatsApp</a></div>'+
+        '<button class="bn d" style="width:100%;margin-top:10px;padding:11px;" onclick="lgOut()">🚪 Logout</button>'+
+      '</div>';
+  }
+  function check(){
+    try{
+      if(blocked()){ render(); return; }
+      if(shown){
+        shown=false;
+        var o=document.getElementById('obOv');
+        if(o){ o.style.display='none'; o.style.zIndex='8500'; }
+        if(booted){ try{ if(window.v43Gate) window.v43Gate(); }catch(e){} }
+      }
+    }catch(e){}
+  }
+  setInterval(check,1000);
+  setTimeout(check,1000); setTimeout(check,2500); setTimeout(check,4500);
+  console.log('%c 🔒 PARTNER v6.8 — ONBOARDING-FEE HARD GATE ✅ ','background:#7a5a00;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3583d754de0446e',t:'MTc4ODQ3NTA1Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
