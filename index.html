@@ -3360,5 +3360,220 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 })();
 
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a351e0dab9b248da',t:'MTc4ODQwODM0OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<script>
+/* ═══════════════ PARTNER v6.0 — REFERRAL ₹ BONUS + WALLET + ORGANIZED SETTINGS + VISIT EDIT-FALLBACK ═══════════════ */
+(function(){
+  if(window.__p60) return; window.__p60=1;
+  var ST=document.createElement('style');
+  ST.innerText=
+  '#v60Ov{position:fixed;inset:0;z-index:95000;display:none;align-items:center;justify-content:center;background:rgba(5,9,20,.76);backdrop-filter:blur(5px);padding:14px}'+
+  '#v60Ov.on{display:flex}'+
+  '.v60b{width:100%;max-width:480px;max-height:92vh;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--bd);border-radius:24px;overflow:hidden;animation:v60in .24s;box-shadow:0 30px 90px rgba(0,0,0,.6)}'+
+  '@keyframes v60in{from{transform:scale(.93) translateY(16px);opacity:0}to{transform:none;opacity:1}}'+
+  '.v60h{background:linear-gradient(120deg,#101a2e,#14213a);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bd)}'+
+  '.v60h b{font-size:14px}.v60h span{font-size:8.5px;color:#ffd970;font-weight:800;letter-spacing:1px}'+
+  '.v60g{overflow-y:auto;padding:12px 14px 16px}'+
+  '.v60sec{margin:9px 0 4px;font-size:10px;font-weight:900;letter-spacing:1px;color:#ffd970;text-transform:uppercase}'+
+  '.v60row{display:flex;align-items:center;gap:10px;background:#0f1626;border:1px solid var(--bd);border-radius:13px;padding:10px 12px;margin-top:7px}'+
+  '.v60row .ic{font-size:16px}.v60row .tx{flex:1;min-width:0}.v60row .tx b{display:block;font-size:12px}.v60row .tx i{font-size:9.5px;color:#8a94ab;font-weight:700;font-style:normal}'+
+  '.v60row .go{color:#ffd970;font-weight:900;font-size:14px}'+
+  '.sw2{width:40px;height:22px;border-radius:20px;background:#26324d;position:relative;flex:0 0 auto;cursor:pointer;border:none;transition:.2s}'+
+  '.sw2.on{background:#15a04a}.sw2:after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}.sw2.on:after{left:20px}'+
+  '.v60rng{width:110px;accent-color:var(--pr)}';
+  document.head.appendChild(ST);
+
+  function close60(){ var o=document.getElementById('v60Ov'); if(o) o.classList.remove('on'); }
+  function open60(){
+    var o=document.getElementById('v60Ov');
+    if(!o){ o=document.createElement('div'); o.id='v60Ov'; document.body.appendChild(o); }
+    build60(o); o.classList.add('on');
+  }
+  window.v60Close=close60;
+  function goP(sel){
+    close60();
+    try{
+      var btn=document.querySelector('.nv button:last-child'); if(btn&&!btn.classList.contains('act')) tab('P',btn);
+    }catch(e){}
+    setTimeout(function(){
+      try{
+        var el=sel?document.querySelector(sel):null;
+        if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); }
+        else document.querySelector('.bo').scrollIntoView({behavior:'smooth'});
+      }catch(e){}
+    },250);
+  }
+  function mkRow(ic,tx,sub,act){ return '<div class="v60row" data-act="'+act+'" style="cursor:pointer;"><span class="ic">'+ic+'</span><div class="tx"><b>'+tx+'</b>'+(sub?'<i>'+sub+'</i>':'')+'</div><span class="go">›</span></div>'; }
+  function togRow(ic,tx,sub,btn){ return '<div class="v60row"><span class="ic">'+ic+'</span><div class="tx"><b>'+tx+'</b>'+(sub?'<i>'+sub+'</i>':'')+'</div>'+btn+'</div>'; }
+  function togBtn(id,on,fn){ return '<button class="sw2 '+(on?'on':'')+'" id="'+id+'" onclick="'+fn+'"></button>'; }
+  function build60(o){
+    var name=esc(P.name||localStorage.getItem('swp_name')||'Partner');
+    var ver=P.kycStatus==='Approved';
+    var rad=Number(P.radiusKm)||8;
+    var ref=Math.max(0,Number(P.refBonus)||0), rpaid=Number(P.refPaid)||0;
+    var dnd=localStorage.getItem('swp_dnd')==='1';
+    var sndOn=!(document.getElementById('sndC')&&!document.getElementById('sndC').checked);
+    var vceOn=localStorage.getItem('swp_voice')!=='0';
+    var drkOn=localStorage.getItem('swp_dark')==='1';
+    o.innerHTML=
+    '<div class="v60b">'+
+      '<div class="v60h"><div><b>⚙️ सम्पूर्ण सेटिंग्स</b><br><span>'+esc(name)+' • '+(ver?'✔ VERIFIED':'⏳ KYC pending')+'</span></div><button class="bn r" style="margin:0;" onclick="v60Close()">✕</button></div>'+
+      '<div class="v60g">'+
+        '<div class="v60sec">🧑‍🔧 प्रोफाइल व KYC</div>'+
+        mkRow('👤','नाम / प्रोफाइल','अपना नाम जो customer को दिखे','name')+
+        mkRow('🪪','KYC Documents','Aadhaar, PAN, Selfie — Approved = ज़्यादा ऑर्डर','kyc')+
+        mkRow('🏦','Bank / UPI payout','Payout यहीं UPI पर आएगा','bank')+
+        '<div class="v60sec">⚙️ काम सेटिंग्स</div>'+
+        mkRow('🛠️','Skills','जिन category में order दिखेंगे + work-edit','skills')+
+        mkRow('🚗','Work Settings','Vehicle, duty समय, छुट्टी, min job','work')+
+        mkRow('📍','Work Area (center/PIN)', esc(P.wkCity||'सेट नहीं')+' • radius '+rad+' km','area')+
+        '<div class="v60row"><span class="ic">📏</span><div class="tx"><b>Order Radius</b><i>GPS/area center से कितनी दूर तक</i></div><input class="v60rng" type="range" min="2" max="30" value="'+rad+'" oninput="document.getElementById(\'v60RV\').innerText=this.value" onchange="v60Rad(this.value)"><b id="v60RV" style="color:var(--pr);min-width:26px;text-align:center;">'+rad+'</b></div>'+
+        togRow('📵','Break / DND','popup, ring, auto-accept बंद',togBtn('v60DND',dnd,'v60Dnd(this)'))+
+        '<div class="v60sec">💰 पैसा व Referral</div>'+
+        mkRow('💸','Withdraw','UPI से — Online कमाई + Referral bonus','wd')+
+        mkRow('🤝','Refer & Earn (₹100 तक)','अब तक ₹'+ref+' • '+(rpaid||0)+'/5 orders','ref')+
+        '<div class="v60sec">🔔 ऐप</div>'+
+        togRow('🔔','नए ऑर्डर की आवाज़','',togBtn('v60Snd',sndOn,'v60Snd(this)'))+
+        togRow('🗣️','Voice announcement','',togBtn('v60Vce',vceOn,'v60Vce(this)'))+
+        togRow('🌙','Dark Mode','',togBtn('v60Drk',drkOn,'v60Drk(this)'))+
+        mkRow('📲','App Install','Phone home-screen पर install करें','inst')+
+        mkRow('🆘','Support / Help','Admin call • WhatsApp • Ticket','sup')+
+        '<div style="margin-top:14px;"><button class="bn r" style="width:100%;padding:13px;" onclick="lgOut()">🚪 Logout</button></div>'+
+      '</div>'+
+    '</div>';
+    /* wire taps by data-act */
+    o.querySelectorAll('.v60row[data-act]').forEach(function(r){
+      var a=r.getAttribute('data-act');
+      r.onclick=function(){
+        if(a==='name') goP('#pNm');
+        else if(a==='kyc') goP('#pX');
+        else if(a==='bank') goP('#pX');
+        else if(a==='skills') goP('#v44X');
+        else if(a==='work') goP('#v44X');
+        else if(a==='area') goP('#v44X');
+        else if(a==='wd'){ close60(); try{ v41Wd(); }catch(e){ sAlert('Withdraw खोल नहीं पाए — पहले Online payment का पूरा काम चाहिए।','💸','⚠️'); } }
+        else if(a==='ref'){ v60Ref(); }
+        else if(a==='inst'){ close60(); try{ v41Inst(); }catch(e){} }
+        else if(a==='sup'){ close60(); goP('#pX'); }
+      };
+    });
+  }
+  /* toggles */
+  window.v60Rad=function(v){ try{ savRad(v); toast('📏 Radius '+v+' km'); }catch(e){} };
+  window.v60Dnd=function(el){ el.classList.toggle('on'); var on=el.classList.contains('on'); localStorage.setItem('swp_dnd',on?'1':''); FS.collection('partners').doc(me()).set({dnd:on},{merge:true}).catch(function(){}); toast(on?'📵 Break ON — popup/ring/auto बंद':'🔔 DND OFF'); };
+  window.v60Snd=function(el){ el.classList.toggle('on'); var s=$('sndC'); if(s) s.checked=el.classList.contains('on'); toast(el.classList.contains('on')?'🔔 आवाज़ ON':'🔕 आवाज़ OFF'); };
+  window.v60Vce=function(el){ el.classList.toggle('on'); localStorage.setItem('swp_voice',el.classList.contains('on')?'1':'0'); var v=$('vceC'); if(v) v.checked=el.classList.contains('on'); toast(el.classList.contains('on')?'🗣️ Voice ON':'🔇 Voice OFF'); };
+  window.v60Drk=function(el){ el.classList.toggle('on'); var d=$('drkC'); if(d) d.checked=el.classList.contains('on'); try{ togDark(); }catch(e){} };
+
+  /* ═══ Settings launcher button (Profile top) ═══ */
+  function v60Btn(){
+    try{
+      var host=document.querySelector('#secP'); if(!host||document.getElementById('v60L')) return;
+      var b=document.createElement('button'); b.id='v60L';
+      b.style.cssText='width:100%;margin:0 0 8px;padding:13px;border:none;border-radius:14px;background:linear-gradient(90deg,#14213a,#0d6efd);color:#fff;font-weight:900;font-size:13px;cursor:pointer;box-shadow:0 6px 18px rgba(13,110,253,.25);';
+      b.innerHTML='⚙️ सम्पूर्ण सेटिंग्स — एक जगह खुला-खुला';
+      b.onclick=open60;
+      var tt=host.querySelector('.tt'); host.insertBefore(b, tt?tt.nextSibling:host.firstChild);
+    }catch(e){}
+  }
+  function v60Try(){ try{ if(me()&&P&&P.name!==undefined) v60Btn(); }catch(e){} }
+  setTimeout(v60Try,2500);
+  setInterval(function(){ try{ if(!document.getElementById('v60L')) v60Btn(); }catch(e){} },6000);
+
+  /* ═══ REFERRAL HUB (₹ bonus — customer ke 5 पूरे orders) ═══ */
+  window.v60Ref=function(){
+    close60();
+    var ph=me(), ref=Math.max(0,Number(P.refBonus)||0), paid=Number(P.refPaid)||0;
+    var prog=[10,10,15,15,50].slice(0,paid).reduce(function(a,b){return a+b;},0);
+    var share='https://wa.me/?text='+encodeURIComponent('🤝 SewaAstra पर अपने घर की service लो! मेरा refer code: '+ph+' — अपने app में Wallet → Refer code में डाल देना। मुझे आपके 5 पूरे orders पर ₹ bonus मिलता है! 🔧\nApp: ');
+    var ov=document.createElement('div'); ov.className='ov'; ov.id='v60RefOv';
+    ov.innerHTML='<div class="mb" style="max-width:420px;">'+
+      '<div class="mh"><b>🤝 Refer & Earn — ₹100 तक bonus</b><span class="mx" onclick="v60RefX()">✕</span></div>'+
+      '<div style="padding:15px 16px;max-height:66vh;overflow-y:auto;">'+
+      '<div style="background:linear-gradient(135deg,#101a2e,#3a1c0a);border-radius:14px;padding:13px;color:#fff;text-align:center;">'+
+        '<div style="font-size:9px;font-weight:800;opacity:.8;letter-spacing:1px;">आपका REFER CODE</div>'+
+        '<div style="font-size:26px;font-weight:900;letter-spacing:4px;margin:6px 0;">'+esc(ph)+'</div>'+
+        '<div style="font-size:10.5px;opacity:.85;">दोस्त को यह code दो → वह app के <b>Wallet → Refer code</b> में डाले</div>'+
+      '</div>'+
+      '<div style="font-size:11.5px;color:#998;font-weight:700;margin-top:12px;line-height:1.7;">जब वो customer अपने 5 ऑर्डर पूरे करे, आपको हर milestone पर ₹ bonus मिलता है — सीधे आपकी <b>withdrawable balance</b> में (कैश नहीं, admin payout से):</div>'+
+      '<div style="margin-top:7px;">'+[10,10,15,15,50].map(function(v,i){
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed #26324d;font-size:11px;font-weight:800;"><span>'+(i<paid?'✅':'⏳')+' Order #'+(i+1)+' complete</span><b style="color:#2bc96e;">+₹'+v+'</b></div>';
+      }).join('')+'</div>'+
+      '<div style="background:#0f1626;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:11px;font-weight:800;display:flex;justify-content:space-between;"><span>अब तक मिला bonus</span><b style="color:#2bc96e;">₹'+ref.toLocaleString('en-IN')+'</b></div>'+
+      '<a href="'+share+'" target="_blank" style="display:block;text-align:center;background:#25d366;color:#fff;font-weight:900;padding:13px;border-radius:13px;margin-top:12px;text-decoration:none;">💬 WhatsApp पर share करें</a>'+
+      '<div style="font-size:9.5px;color:#8a94ab;margin-top:9px;text-align:center;">💡 सिर्फ नए customer जो आपके code से जुड़ें — उनके Completed orders गिने जाते हैं</div>'+
+      '</div></div>';
+    document.body.appendChild(ov); ov.classList.add('open');
+  };
+  window.v60RefX=function(){ var el=document.getElementById('v60RefOv'); if(el) el.remove(); };
+
+  /* ═══ WALLET v41Bal — referral bonus + fields शामिल ═══ */
+  try{
+    var _v41B=v41Bal;
+    v41Bal=function(cb){
+      try{
+        function cashMode(o){ return /cash|cod|नकद/i.test(o.mode||''); }
+        function onlSum(){
+          var m=me();
+          return ALL.filter(function(o){ return o.status==='Completed'&&o.partnerPhone===m&&!cashMode(o); }).reduce(function(s,o){ return s+(Number(o.total)||0); },0);
+        }
+        var ph=me(); if(!ph){ if(cb)cb(); return; }
+        Promise.all([
+          FS.collection('partners').doc(ph).collection('withdrawals').get(),
+          FS.collection('partners').doc(ph).collection('deposits').get()
+        ]).then(function(r){
+          var wd=r[0].docs.map(function(d){return d.data();});
+          var dp=r[1].docs.map(function(d){return d.data();});
+          var wsum=wd.filter(function(w){ return w.status!=='Rejected'; }).reduce(function(x,w){ return x+(Number(w.amt)||0); },0);
+          var vd=dp.filter(function(d){ return d.status==='Approved'; }).reduce(function(x,d){ return x+(Number(d.amt)||0); },0);
+          var pend=dp.filter(function(d){ return d.status==='Pending'; }).reduce(function(x,d){ return x+(Number(d.amt)||0); },0);
+          var onl=onlSum();
+          var ref=Math.max(0,Number(P.refBonus)||0);
+          v41BalAmt=Math.max(0,onl+vd+ref-wsum);
+          var el=$('v41W');
+          if(el) el.innerHTML=
+            '<div style="font-size:11px;font-weight:800;color:#b78cff;margin-bottom:4px;">💳 Withdrawable (Online + Approved deposit + Referral bonus):</div>'+
+            'उपलब्ध: <b style="color:#15a04a;font-size:15px;">₹'+v41BalAmt.toLocaleString('en-IN')+'</b>'+
+            '<div style="font-size:9.5px;color:#998;margin-top:3px;line-height:1.7;">Online (UPI/card) कमाई: ₹'+onl.toLocaleString('en-IN')+'<br>✅ Approved cash deposit: ₹'+vd.toLocaleString('en-IN')+(ref?'<br>🤝 Referral bonus: ₹'+ref.toLocaleString('en-IN')+(P.refPaid?' ('+P.refPaid+'/5)':'') :'')+(pend?'<br>⏳ Pending verify: ₹'+pend.toLocaleString('en-IN')+' — approve होते ही जुड़ेगा':'')+'</div>';
+          var wl=$('v41WL');
+          if(wl) wl.innerHTML=wd.slice(0,8).map(function(w){
+            return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+esc(w.upi||'')+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
+          }).join('');
+          if(cb) cb();
+        }).catch(function(){ if($('v41W')) $('v41W').innerText='balance load नहीं हुआ'; if(cb) cb(); });
+      }catch(e){ try{ _v41B&&_v41B(cb); }catch(e2){} }
+    };
+  }catch(e){}
+
+  /* ═══ Work-Edit button fallback — हर active order card पर (#8) ═══ */
+  function v60Scan(){
+    try{
+      var box=document.getElementById('lsJ'); if(!box) return;
+      var cards=box.children;
+      for(var i=0;i<cards.length;i++){
+        var card=cards[i];
+        if(!card||card.querySelector('.v60eb')||card.querySelector('.v59eb')) continue;
+        if(card.className==='em'||card.querySelector('.sk')) continue;
+        var oid=null;
+        try{ var o=card.querySelector('.oid'); oid=o?o.innerText.trim():null; }catch(e){}
+        if(!oid) continue;
+        /* sirf active partner orders */
+        var has=ALL.some(function(o2){ return o2.id===oid&&o2.partnerPhone===me()&&['Accepted','On the Way','Working'].indexOf(o2.status)>-1; });
+        if(!has) continue;
+        card.insertAdjacentHTML('beforeend','<button class="v60eb bn d" style="width:100%;margin:6px 0 0;padding:11px;font-size:11.5px;background:linear-gradient(90deg,#3a1c0a,#6b3a00);" onclick="v59Edit(\''+esc(oid)+'\')">✏️ Order Update — काम बदलें (नया OTP)</button>');
+      }
+    }catch(e){}
+  }
+  try{
+    var _d60=draw;
+    draw=function(){ _d60(); try{ v60Scan(); }catch(e){} };
+  }catch(e){}
+  setInterval(function(){ try{ v60Scan(); }catch(e){} },3500);
+
+  console.log('%c ⚙️🤝💰 PARTNER v6.0 — REFERRAL ₹ + SETTINGS HUB + WALLET BONUS ✅ ','background:#0d6efd;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3526f160dd0ffa1',t:'MTc4ODQxNDE3NQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
