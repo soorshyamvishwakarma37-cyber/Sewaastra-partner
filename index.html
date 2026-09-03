@@ -834,20 +834,20 @@ function drawProfile(){
   var stC=st==='Approved'?'<span class="kst" style="background:#e6f7ed;color:#0f7a37;">✅ APPROVED</span>':st==='Submitted'?'<span class="kst" style="background:#fff8e6;color:#b07800;">⏳ REVIEW में</span>':'<span class="kst" style="background:#fdecea;color:#e53935;">❗ PENDING</span>';
   var pts=0;
   if(P.name)pts++; if((P.skills||[]).length)pts++;
-  if(P.bank&&P.bank.upi)pts++; if(P.bank&&P.bank.acc)pts++;
+  if(P.bank&&P.bank.acc&&P.bank.ifsc)pts++;
   KDOCS.forEach(function(d){if(kyc[d.k])pts++;});
-  var pc=Math.round(pts/8*100);
+  var pc=Math.round(pts/7*100);
   var b=P.bank||{};
   host.innerHTML=
   '<div class="cd"><div class="rw"><b style="font-size:12.5px;">📋 Profile Completion</b><b style="color:var(--pr);">'+pc+'%</b></div><div class="pcb"><span style="width:'+pc+'%;"></span></div><div style="font-size:10px;color:#998;font-weight:700;margin-top:5px;">'+(pc<100?'100% = ज़्यादा ऑर्डर! KYC + Bank पूरा करें 🚀':'🎉 Profile पूरी — verified partner!')+'</div></div>'+
   (st==='Approved'
     ? '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🪪 KYC Status</b>'+stC+'</div><div style="font-size:10.5px;color:#15a04a;font-weight:800;margin-top:6px;line-height:1.6;">✅ KYC approved है। आपके documents सिर्फ KYC के समय दिखाए गए थे — अब privacy के लिए छिपे हैं। कोई जानकारी बदलनी हो तो admin से कहें।</div></div>'
     : '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🪪 KYC बाकी है</b>'+stC+'</div><button class="bn o" style="width:100%;margin-top:8px;padding:11px;" onclick="v47Kyc()">➡️ KYC पूरा करें — पूरी जानकारी + documents</button></div>')+
-  '<div class="cd"><b style="font-size:12.5px;">🏦 Bank / Payout</b>'+
+  '<div class="cd"><b style="font-size:12.5px;">🏦 Bank / Payout (कमाई इसी account में)</b><div style="font-size:9.5px;color:#15a04a;font-weight:800;margin:1px 0 4px;">✅ Original account — auto-verify (UPI नहीं)</div>'+
   '<input class="pi" id="bH" placeholder="Account Holder नाम" value="'+esc(b.holder||'')+'">'+
-  '<input class="pi" id="bA" placeholder="Account Number" value="'+esc(b.acc||'')+'">'+
-  '<input class="pi" id="bI" placeholder="IFSC" style="text-transform:uppercase;" value="'+esc(b.ifsc||'')+'">'+
-  '<input class="pi" id="bU" placeholder="UPI ID (payout यहीं आएगा)" value="'+esc(b.upi||'')+'">'+
+  '<input class="pi" id="bA" placeholder="Account Number * (9–18 अंक)" inputmode="numeric" maxlength="18" oninput="window.p65BkA(\'bAok\',this.value)" value="'+esc(b.acc||'')+'"><div id="bAok" style="font-size:9px;font-weight:800;min-height:12px;margin:1px 0 3px;"></div>'+
+  '<input class="pi" id="bI" placeholder="IFSC *" style="text-transform:uppercase;" maxlength="11" oninput="this.value=this.value.toUpperCase();window.p65BkI(\'bIok\',this.value)" value="'+esc(b.ifsc||'')+'"><div id="bIok" style="font-size:9px;font-weight:800;min-height:12px;margin:1px 0 3px;"></div>'+
+  '<div style="font-size:9px;color:#8a94ab;font-weight:700;line-height:1.6;margin-bottom:7px;">Payout IMPS/NEFT से इसी account में — UPI नहीं चाहिए.'+(b.name?'<br>✓ '+esc(b.name):'')+'</div>'+
   '<button class="bn o" style="width:100%;margin-top:9px;padding:11px;" onclick="savBk()">💾 Save</button></div>'+
   '<div class="cd"><b style="font-size:12.5px;">🛠️ Skills</b><div style="margin-top:7px;">'+
   SKILLS.map(function(s){var on=(P.skills||[]).indexOf(s)>-1;return '<span class="skc '+(on?'on':'')+'" onclick="togSk(this,\''+s+'\')">'+s+'</span>';}).join('')+'</div>'+
@@ -888,10 +888,19 @@ function subKyc(){
     P.kycStatus='Submitted'; toast('📤 KYC submit — admin approve करेंगे ✅'); vib(); drawProfile();
   });
 }
+
+function ifscOk(v){ return /^[A-Z]{4}0[A-Z0-9]{6}$/.test(String(v||'').trim().toUpperCase()); }
+function ifscBank(v){ var c=String(v||'').toUpperCase().slice(0,4); var M={SBIN:'State Bank of India',HDFC:'HDFC Bank',ICIC:'ICICI Bank',AXIS:'Axis Bank',KKBK:'Kotak Mahindra Bank',PUNB:'Punjab National Bank',BKID:'Bank of India',CBIN:'Central Bank of India',UBIN:'Union Bank of India',UTIB:'Axis Bank',BARB:'Bank of Baroda',CNRB:'Canara Bank',MAHB:'Bank of Maharashtra',IDIB:'Indian Bank',INDB:'IndusInd Bank',YESB:'YES Bank',FDRL:'Federal Bank',UTKS:'Utkarsh Small Finance Bank',AUBL:'AU Small Finance Bank',ESFB:'Equitas Small Finance Bank',PAYTM:'Paytm Payments Bank',IPOS:'India Post Payments Bank'}; return M[c]||''; }
+function accOk(v){ return /^\d{9,18}$/.test(String(v||'').trim()); }
+window.p65BkI=function(id,v){ var el=document.getElementById(id); if(!el) return; var sv=String(v||'').trim().toUpperCase(); if(!sv){ el.innerHTML=''; return; } if(ifscOk(sv)){ el.style.color='#15a04a'; el.innerHTML='✓ IFSC सही'+(ifscBank(sv)?' — '+ifscBank(sv):''); } else { el.style.color='#e53935'; el.innerHTML=(sv.length<11?'… IFSC अधूरा — 11 अक्षर (जैसे HDFC0001234)':'✗ IFSC गलत — 4 letters + 0 + 6 (जैसे HDFC0001234)'); } };
+window.p65BkA=function(id,v){ var el=document.getElementById(id); if(!el) return; var sv=String(v||'').trim(); if(!sv){ el.innerHTML=''; return; } if(accOk(sv)){ el.style.color='#15a04a'; el.innerHTML='✓ Account नंबर सही'; } else { el.style.color='#e53935'; el.innerHTML='✗ सिर्फ 9–18 अंक'+(/\D/.test(sv)?' (सिर्फ numbers ही)':''); } };
 function savBk(){
-  var bank={holder:$('bH').value.trim(),acc:$('bA').value.trim(),ifsc:$('bI').value.trim().toUpperCase(),upi:$('bU').value.trim()};
-  if(!bank.upi&&!bank.acc)return toast('❌ UPI या Account No. डालें');
-  FS.collection('partners').doc(me()).set({bank:bank},{merge:true}).then(function(){P.bank=bank;toast('💾 Bank save 🏦');drawProfile();}).catch(function(e){toast(e.message);});
+  var bh=$('bH').value.trim(), ba=$('bA').value.trim(), bi=$('bI').value.trim().toUpperCase();
+  if(!bh||bh.length<3) return toast('❌ Account Holder नाम लिखें');
+  if(!accOk(ba)) return toast('❌ सही Account Number डालें (9–18 अंक — auto-verify)');
+  if(!ifscOk(bi)) return toast('❌ IFSC सही नहीं — 4 letters + 0 + 6 (जैसे HDFC0001234)');
+  var bank={holder:bh,acc:ba,ifsc:bi,name:ifscBank(bi)};
+  FS.collection('partners').doc(me()).set({bank:bank},{merge:true}).then(function(){P.bank=bank;toast('💾 Bank save — ✓ '+(bank.name||'auto-verified'));drawProfile();}).catch(function(e){toast(e.message);});
 }
 function togSk(el,s){
   el.classList.toggle('on');
@@ -1027,14 +1036,14 @@ function v41Bal(){
     v41BalAmt=Math.max(0,earned-wsum);
     if($('v41W')) $('v41W').innerHTML='उपलब्ध balance: <b style="color:#15a04a;font-size:13px;">₹'+v41BalAmt.toLocaleString('en-IN')+'</b>'+(wsum?' &nbsp;•&nbsp; अब तक निकाले: ₹'+wsum.toLocaleString('en-IN'):'');
     if($('v41WL')) $('v41WL').innerHTML=wd.slice(0,6).map(function(w){
-      return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+esc(w.upi||'')+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
+      return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+(w.acc?('a/c ••••'+String(w.acc).slice(-4)+(w.ifsc?' • '+esc(w.ifsc):'')):esc(w.upi||''))+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
     }).join('');
   }).catch(function(){ if($('v41W')) $('v41W').innerText='balance load नहीं हुआ'; });
 }
 function v41Wd(){
   var ph=me(); if(!ph) return;
-  var upi=(P.bank&&P.bank.upi)||'';
-  if(!upi) return alert('❗ पहले प्रोफ़ाइल में Bank/UPI save करें — payout वहीं भेजा जाएगा।');
+  var bk=P.bank||{},acc=bk.acc||'',ifsc=String(bk.ifsc||'').toUpperCase();
+  if(!acc||!ifsc) return alert('❗ पहले प्रोफ़ाइल → 🏦 Bank में Account Number + IFSC save करें — payout bank transfer से आएगा।');
   var a=prompt('कितने ₹ निकालने हैं?\n(उपलब्ध balance: ₹'+v41BalAmt+')');
   if(!a) return;
   a=parseInt(a,10);
@@ -1042,7 +1051,7 @@ function v41Wd(){
   if(a>v41BalAmt) return toast('❌ balance से ज़्यादा नहीं निकाल सकते');
   ldr('💸 Request भेज रहे हैं...');
   FS.collection('partners').doc(ph).collection('withdrawals').add({
-    amt:a, upi:upi, name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
+    amt:a, acc:acc, ifsc:ifsc, holder:(P.bank&&P.bank.holder)||'', name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
     status:'Requested', ts:Date.now(), at:new Date().toLocaleString('en-IN')
   }).then(function(){
     ldrX(); vib([80,40,80]); toast('✅ Withdraw request भेज दी! Admin जल्द payout करेंगे'); v41Bal();
@@ -1558,7 +1567,7 @@ var _v43Train=v43Train;
 v43Train=function(){ _v43Train(); var x=$('obX'); if(x&&!document.getElementById('v45Stp')) x.insertAdjacentHTML('afterbegin',v45Steps(4)); };
 function v45ChkD(){
   var h=document.getElementById('v45Chk'); if(!h) return;
-  var items=[['🪪 KYC',P.kycStatus==='Approved'],['🎓 Training',!!P.trainingDone],['🏦 Bank/UPI',!!(P.bank&&P.bank.upi)],['🛠️ Skills',!!(P.skills&&P.skills.length)],['📍 Work Area',!!(P.workCenter&&P.workCenter.lat)],['🟢 Online',!!onl]];
+  var items=[['🪪 KYC',P.kycStatus==='Approved'],['🎓 Training',!!P.trainingDone],['🏦 Bank',!!(P.bank&&P.bank.acc&&P.bank.ifsc)],['🛠️ Skills',!!(P.skills&&P.skills.length)],['📍 Work Area',!!(P.workCenter&&P.workCenter.lat)],['🟢 Online',!!onl]];
   var dn=items.filter(function(x){return x[1];}).length;
   if(dn===items.length){ h.innerHTML=''; return; }
   h.innerHTML='<div class="cd" style="padding:12px 13px;"><div class="rw"><b style="font-size:12px;">🚀 Setup — step by step ('+dn+'/6)</b><b style="color:var(--pr);">'+Math.round(dn/6*100)+'%</b></div><div class="pcb"><span style="width:'+(dn/6*100)+'%;"></span></div>'+
@@ -1837,17 +1846,14 @@ function v47Kyc(){
   '<div style="display:flex;gap:8px;align-items:flex-end;"><div style="flex:1;"><span style="font-size:9.5px;color:#998;font-weight:800;">किस शहर में काम करेंगे?</span><select id="p65City" class="pi" style="width:100%;">'+['Bhopal','Indore','Gwalior','Jabalpur','Ujjain','Sagar','Dewas','Ratlam','Rewa','Satna','Guna','Hoshangabad','अन्य'].map(function(c){return '<option'+(c===(''+(ki.workCity||ki.city||'Bhopal'))?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'+
   '<div style="width:138px;"><span style="font-size:9.5px;color:#998;font-weight:800;">दायरा (km)</span><div style="display:flex;align-items:center;gap:5px;"><input type="range" id="p65Rad" min="2" max="30" value="'+(P.radiusKm||ki.radius||8)+'" oninput="document.getElementById(\'p65RadV\').innerText=this.value" style="width:84px;"><b id="p65RadV" style="color:var(--pr);">'+(P.radiusKm||ki.radius||8)+'</b></div></div></div>'+
   '<div style="font-size:9.5px;color:#8a94ab;font-weight:700;margin-top:5px;">इसी दायरे में आपको नए ऑर्डर मिलेंगे — शहर बाद में बदल सकते हैं।</div></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">🏦 Bank / Payout (कमाई इसी पर)</b>'+
-  '<input class="pi" id="p65BH" placeholder="Account Holder नाम *" value="'+esc((P.bank&&P.bank.holder)||'')+'">'+
-  '<input class="pi" id="p65BA" placeholder="Account Number" value="'+esc((P.bank&&P.bank.acc)||'')+'">'+
-  '<input class="pi" id="p65BI" placeholder="IFSC" style="text-transform:uppercase;" value="'+esc((P.bank&&P.bank.ifsc)||'')+'">'+
-  '<input class="pi" id="p65BU" placeholder="UPI ID * (payout यहीं आएगा)" value="'+esc((P.bank&&P.bank.upi)||'')+'"></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">📸 Live Selfie (कैमरा — document नहीं)</b>'+
-  '<div style="display:flex;gap:9px;align-items:center;">'+(kyc.selfie?'<img src="'+esc(kyc.selfie)+'" style="width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid #2bc96e;">':'<span style="font-size:32px;">🤳</span>')+
-  '<div style="flex:1;"><button type="button" class="bn o" style="width:100%;padding:11px;" onclick="window.p65Selfie()">📸 कैमरा — Live Selfie लें</button>'+
-  '<button type="button" class="bn b" style="width:100%;margin-top:6px;padding:9px;" onclick="document.getElementById(\'ofselfie\').click()">🖼️ Gallery से चुनें (auto-compress)</button>'+
-  '<div style="font-size:9px;color:#8a94ab;font-weight:700;margin-top:3px;">कोई भी तरीका चुनें — फोटो अपने आप छोटी (compress) होकर तुरंत upload होगी।</div></div></div></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">📸 Document Photos (Aadhaar Front/Back + PAN — चारों ज़रूरी)</b><div id="kDocs"></div></div>'+
+  '<div class="cd"><b style="font-size:12.5px;">🏦 Bank / Payout (कमाई इसी account में)</b>'+
+'<div style="font-size:9.5px;color:#15a04a;font-weight:800;margin:1px 0 5px;line-height:1.5;">✅ Original account details — भरते ही खुद-ब-खुद verify (UPI नहीं)</div>'+
+'<input class="pi" id="p65BH" placeholder="Account Holder नाम * (bank KYC के ही नाम से)" value="'+esc((P.bank&&P.bank.holder)||'')+'">'+
+'<input class="pi" id="p65BA" placeholder="Account Number * (9–18 अंक)" inputmode="numeric" maxlength="18" oninput="window.p65BkA(\'p65BAok\',this.value)" value="'+esc((P.bank&&P.bank.acc)||'')+'"><div id="p65BAok" style="font-size:9px;font-weight:800;min-height:12px;margin:1px 0 3px;"></div>'+
+'<input class="pi" id="p65BI" placeholder="IFSC * — भरते ही बैंक पहचान आएगी" style="text-transform:uppercase;" maxlength="11" oninput="this.value=this.value.toUpperCase();window.p65BkI(\'p65BIok\',this.value)" value="'+esc((P.bank&&P.bank.ifsc)||'')+'"><div id="p65BIok" style="font-size:9px;font-weight:800;min-height:12px;margin:1px 0 3px;"></div>'+
+'<div style="font-size:9px;color:#8a94ab;font-weight:700;line-height:1.6;">🔒 Payout बैंक transfer (IMPS/NEFT) से इसी account में आएगा। UPI की ज़रूरत नहीं।</div>'+
+'<div style="display:flex;align-items:center;gap:9px;margin-top:8px;border:1px dashed var(--bd);border-radius:12px;padding:9px 11px;">🤳 <div style="flex:1;"><b style="font-size:11.5px;">Selfie Photo</b><div style="font-size:9.5px;color:#8a94ab;font-weight:700;line-height:1.5;">नीचे Photos में "Selfie" tile टैप करें — गैलरी/कैमरा से, अपने आप compress होकर upload होगी।</div></div></div>'+
+'<div class="cd"><b style="font-size:12.5px;">📸 Photos — Aadhaar Front/Back + PAN + Selfie (सभी ज़रूरी)</b><div id="kDocs"></div></div>'+
   '<button class="bn o" id="kSub" style="width:100%;padding:14px;font-size:13.5px;" onclick="v47Sub()"></button>'+
   '<div class="cd" style="font-size:10.5px;color:#988;line-height:1.7;margin-top:10px;">🔒 आपकी जानकारी सुरक्षित Firebase में save होती है — सिर्फ admin verification के लिए।</div>'+
   '<button class="bn d" style="width:100%;padding:11px;" onclick="lgOut()">🚪 Logout</button></div>';
@@ -2811,7 +2817,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         '<div style="font-size:9.5px;color:#998;margin-top:3px;line-height:1.7;">Online (UPI/card) कमाई: ₹'+onl.toLocaleString('en-IN')+'<br>✅ Approved cash deposit: ₹'+vd.toLocaleString('en-IN')+(pend?'<br>⏳ Pending verify: ₹'+pend.toLocaleString('en-IN')+' — approve होते ही जुड़ेगा':'')+'</div>';
       var wl=$('v41WL');
       if(wl) wl.innerHTML=wd.slice(0,8).map(function(w){
-        return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+esc(w.upi||'')+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
+        return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+(w.acc?('a/c ••••'+String(w.acc).slice(-4)+(w.ifsc?' • '+esc(w.ifsc):'')):esc(w.upi||''))+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
       }).join('');
       if(cb) cb();
     }).catch(function(){ if($('v41W')) $('v41W').innerText='balance load नहीं हुआ'; if(cb) cb(); });
@@ -2820,8 +2826,8 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   /* 💸 WITHDRAW — सुंदर amount box */
   _wd2=function(){
     var ph=me(); if(!ph) return;
-    var upi=(P.bank&&P.bank.upi)||'';
-    if(!upi) return window.sAlert('पहले प्रोफ़ाइल → 🏦 Bank / Payout में UPI ID save करें।\nPayout वहीं भेजा जाएगा।','UPI ज़रूरी है','🏦');
+    var bk=P.bank||{},acc=bk.acc||'',ifsc=String(bk.ifsc||'').toUpperCase();
+    if(!acc||!ifsc) return window.sAlert('पहले प्रोफ़ाइल → 🏦 Bank में अपना Account Number + IFSC save करें (auto-verify).\nPayout bank transfer (IMPS/NEFT) से इसी account में आएगा।','Bank Account ज़रूरी','🏦');
     v41Bal(function(){
       var bal=v41BalAmt;
       window.sxInputP({ic:'💸',t:'Withdraw Request',num:true,
@@ -2833,11 +2839,11 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         if(a>v41BalAmt) return window.sAlert('आपका withdrawable balance ₹'+v41BalAmt.toLocaleString('en-IN')+' है।\nउससे ज़्यादा नहीं निकाल सकते।','Balance कम है','⚠️');
         ldr('💸 Request भेज रहे हैं...');
         FS.collection('partners').doc(ph).collection('withdrawals').add({
-          amt:a, upi:upi, name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
+          amt:a, acc:acc, ifsc:ifsc, holder:(P.bank&&P.bank.holder)||'', name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
           status:'Requested', ts:Date.now(), at:new Date().toLocaleString('en-IN')
         }).then(function(){
           ldrX(); vib([80,40,80]);
-          window.sAlert('₹'+a.toLocaleString('en-IN')+' की withdraw request भेज दी गई!\n\nAdmin जल्द UPI payout करेंगे।','Request भेज दी ✅','💸');
+          window.sAlert('₹'+a.toLocaleString('en-IN')+' की withdraw request भेज दी गई!\n\nAdmin जल्द bank transfer (A/C + IFSC) payout करेंगे।','Request भेज दी ✅','💸');
           v41Bal();
         }).catch(function(e){ ldrX(); window.sAlert(e.message,'Error','❌'); });
       });
@@ -3481,7 +3487,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         '<div class="v60sec">🧑‍🔧 प्रोफाइल व KYC</div>'+
         mkRow('👤','नाम / प्रोफाइल','अपना नाम जो customer को दिखे','name')+
         mkRow('🪪','KYC Documents','Aadhaar, PAN, Selfie — Approved = ज़्यादा ऑर्डर','kyc')+
-        mkRow('🏦','Bank / UPI payout','Payout यहीं UPI पर आएगा','bank')+
+        mkRow('🏦','Bank (Account + IFSC)','Payout bank transfer से इसी account पर','bank')+
         '<div class="v60sec">⚙️ काम सेटिंग्स</div>'+
         mkRow('🛠️','Skills','जिन category में order दिखेंगे + work-edit','skills')+
         mkRow('🚗','Work Settings','Vehicle, duty समय, छुट्टी, min job','work')+
@@ -3489,7 +3495,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         '<div class="v60row"><span class="ic">📏</span><div class="tx"><b>Order Radius</b><i>GPS/area center से कितनी दूर तक</i></div><input class="v60rng" type="range" min="2" max="30" value="'+rad+'" oninput="document.getElementById(\'v60RV\').innerText=this.value" onchange="v60Rad(this.value)"><b id="v60RV" style="color:var(--pr);min-width:26px;text-align:center;">'+rad+'</b></div>'+
         togRow('📵','Break / DND','popup, ring, auto-accept बंद',togBtn('v60DND',dnd,'v60Dnd(this)'))+
         '<div class="v60sec">💰 पैसा व Referral</div>'+
-        mkRow('💸','Withdraw','UPI से — Online कमाई + Referral bonus','wd')+
+        mkRow('💸','Withdraw','Bank transfer से — Online कमाई + Referral bonus','wd')+
         mkRow('🤝','Refer & Earn (₹100 तक)','अब तक ₹'+ref+' • '+(rpaid||0)+'/5 orders','ref')+
         '<div class="v60sec">🔔 ऐप</div>'+
         togRow('🔔','नए ऑर्डर की आवाज़','',togBtn('v60Snd',sndOn,'v60Snd(this)'))+
@@ -3596,7 +3602,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
             '<div style="font-size:9.5px;color:#998;margin-top:3px;line-height:1.7;">Online (UPI/card) कमाई: ₹'+onl.toLocaleString('en-IN')+'<br>✅ Approved cash deposit: ₹'+vd.toLocaleString('en-IN')+(ref?'<br>🤝 Referral bonus: ₹'+ref.toLocaleString('en-IN')+(P.refPaid?' ('+P.refPaid+'/5)':'') :'')+(pend?'<br>⏳ Pending verify: ₹'+pend.toLocaleString('en-IN')+' — approve होते ही जुड़ेगा':'')+'</div>';
           var wl=$('v41WL');
           if(wl) wl.innerHTML=wd.slice(0,8).map(function(w){
-            return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+esc(w.upi||'')+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
+            return '<div class="rw" style="margin-top:7px;font-size:11px;font-weight:700;"><span>₹'+(w.amt||0).toLocaleString('en-IN')+' → '+(w.acc?('a/c ••••'+String(w.acc).slice(-4)+(w.ifsc?' • '+esc(w.ifsc):'')):esc(w.upi||''))+'<br><span style="font-size:9px;color:#999;">'+esc(w.at||'')+'</span></span><span style="color:'+(w.status==='Paid'?'#15a04a':'#b07800')+';">'+(w.status==='Paid'?'✅ PAID':'⏳ '+esc(w.status||''))+'</span></div>';
           }).join('');
           if(cb) cb();
         }).catch(function(){ if($('v41W')) $('v41W').innerText='balance load नहीं हुआ'; if(cb) cb(); });
@@ -4318,11 +4324,8 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
           '<input class="pi" id="p65BH" placeholder="Account Holder नाम *" value="'+esc(bk.holder||'')+'">'+
           '<input class="pi" id="p65BA" placeholder="Account Number" value="'+esc(bk.acc||'')+'">'+
           '<input class="pi" id="p65BI" placeholder="IFSC" style="text-transform:uppercase;" value="'+esc(bk.ifsc||'')+'">'+
-          '<input class="pi" id="p65BU" placeholder="UPI ID (payout यहीं आएगा) *" value="'+esc(bk.upi||'')+'"></div>'+
-        '<div class="p65c"><b class="t">📸 Selfie — Live लें (document नहीं)</b>'+
-          '<div style="display:flex;gap:8px;align-items:center;">'+(kyc.selfie?'<img src="'+esc(kyc.selfie)+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #2bc96e;">':'<span style="font-size:30px;">🤳</span>')+
-          '<div style="flex:1;"><button class="bn o" style="width:100%;padding:10px;" onclick="p65Selfie()">📸 Live Selfie लें</button>'+
-          '<div style="font-size:9px;color:#8a94ab;font-weight:700;margin-top:3px;">कैमरा खुलकर अभी-का चेहरा कैद करेगा — काम-शुरू verification भी इसी से होगा।</div></div></div></div>';
+          '<div style="font-size:9px;color:#8a94ab;font-weight:700;line-height:1.6;">Payout bank transfer (IMPS/NEFT) — Account + IFSC से। UPI नहीं।</div></div>'+
+        '<div class="p65c"><b class="t">🤳 Selfie</b><div style="font-size:9.5px;color:#8a94ab;font-weight:700;line-height:1.6;">Photos में "Selfie" tile से upload करें — गैलरी, auto-compress।</div></div>';
       var selG=d.querySelector('#p65Gen'), selC=d.querySelector('#p65City'), rng=d.querySelector('#p65Rad');
       if(P65.gender) selG.value=P65.gender;
       if(CITIES.indexOf(P65.city)>-1) selC.value=P65.city;
@@ -4344,7 +4347,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
     if(st==='Submitted'){
       try{ var x=document.getElementById('obX'); if(x&&!document.getElementById('p65EdK')){
         var b=document.createElement('button'); b.id='p65EdK'; b.className='bn gy'; b.style.cssText='width:100%;margin-top:8px;padding:11px;';
-        b.innerHTML='✏️ Edit KYC — gender / शहर / bank / selfie जोड़ें';
+        b.innerHTML='✏️ Edit KYC — gender / शहर / bank / selfie बदलें';
         b.onclick=function(){ try{ if(window.p65EditKyc) window.p65EditKyc(); }catch(e){} };
         x.appendChild(b);
       } }catch(e){}
@@ -4374,17 +4377,17 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
       var gen=(document.getElementById('p65Gen')||{}).value||''; if(!gen) return toast('❌ लिंग चुनें (Male/Female/Other)');
       var city=(document.getElementById('p65City')||{}).value||''; if(!city) return toast('❌ काम का शहर चुनें');
       var rad=parseInt((document.getElementById('p65Rad')||{}).value||'8',10);
-      var bh=(document.getElementById('p65BH')||{}).value||'', ba=(document.getElementById('p65BA')||{}).value||'', bi=(document.getElementById('p65BI')||{}).value||'', bu=(document.getElementById('p65BU')||{}).value||'';
-      bh=String(bh).trim(); bu=String(bu).trim().toLowerCase();
+      var bh=(document.getElementById('p65BH')||{}).value||'', ba=(document.getElementById('p65BA')||{}).value||'', bi=(document.getElementById('p65BI')||{}).value||'', 
+      bh=String(bh).trim(); ba=String(ba).trim(); bi=String(bi).trim().toUpperCase();
       if(!bh||bh.length<3) return toast('❌ Bank account holder नाम डालें');
-      if(!bu) return toast('❌ UPI ID डालें (payout यहीं आएगा)');
-      if(bu&&!/^[\w.\-]{2,}@[a-zA-Z]{2,}$/.test(bu)) return toast('❌ UPI ID सही नहीं (जैसे name@okhdfcbank)');
+      if(!accOk(ba)) return toast('❌ सही Account Number डालें (9–18 अंक — auto-verify)');
+      if(!ifscOk(bi)) return toast('❌ IFSC सही नहीं — 4 letters + 0 + 6 (जैसे HDFC0001234)');
       var aa=((document.getElementById('kAa')||{}).value||'').trim();
       var pa=((document.getElementById('kPa')||{}).value||'').trim().toUpperCase();
       if(aa&&!p65Vh(aa)) return toast('❌ Aadhaar नंबर सही नहीं — 12 अंक + checksum check करें');
       if(pa&&!p65PanOk(pa)) return toast('❌ PAN format सही नहीं — ABCDE1234F');
-      if(!kyc.selfie) return toast('❌ Selfie live लें — कैमरा से अभी लें');
-      P65.gender=gen; P65.city=city; P65.radius=rad; P65.bank={holder:bh,acc:ba,ifsc:bi,upi:bu};
+      if(!kyc.selfie) return toast('❌ Selfie photo जोड़ें — Photos में Selfie tile टैप करें (gallery)');
+      P65.gender=gen; P65.city=city; P65.radius=rad; P65.bank={holder:bh,acc:ba,ifsc:bi,name:ifscBank(bi)};
       window.__p65ex=1;
       if(_sub47) _sub47();
     }catch(e){ if(_sub47) _sub47(); }
@@ -4468,7 +4471,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   var _advp=adv;
   function p65StartGate(oid){
     if(!v48Kyc()) return _advp(oid,'On the Way');
-    if(!kyc.selfie) return sAlert('पहले KYC में Live Selfie लें — उसी चेहरे से काम-शुरू verify होगा।','Selfie नहीं मिली','🤳');
+    if(!kyc.selfie) return sAlert('पहले KYC में Selfie photo जोड़ें (Photos → Selfie tile)। उसी चेहरे से काम-शुरू verify होगा।','Selfie नहीं मिली','🤳');
     p65Cam(function(live){
       ldr('🔐 काम शुरू — selfie verify...');
       FS.collection('partners').doc(me()).collection('startLog').add({oid:oid,img:live,ts:Date.now()}).catch(function(){});
@@ -4635,7 +4638,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   if(window.__p67) return; window.__p67=1;
   function phKey(){ try{ return me()||'anon'; }catch(e){ return 'anon'; } }
   var DKEY='swp_kyc_draft_'+phKey(), IKEY='swp_kyc_img_'+phKey()+'__';
-  var FIELDS=['kNm','kFa','kDb','kAd','kCt','kPn','kAa','kPa','p65Gen','p65City','p65Rad','p65BH','p65BA','p65BI','p65BU'];
+  var FIELDS=['kNm','kFa','kDb','kAd','kCt','kPn','kAa','kPa','p65Gen','p65City','p65Rad','p65BH','p65BA','p65BI'];
 
   /* ── 1) draft save/restore ── */
   function saveDraft(){
@@ -4740,5 +4743,5 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3579abc591f8730',t:'MTc4ODQ2ODM5Mg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a357bc8a491e3ff5',t:'MTc4ODQ2OTc3Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
