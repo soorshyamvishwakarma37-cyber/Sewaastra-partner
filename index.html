@@ -872,9 +872,16 @@ function upKyc(k,inp){
         q-=.12; w=Math.round(w*.82); h=Math.round(h*.82);
       }
       if(b64.length>400000){ ldrX(); return toast('❌ फिर भी बड़ी — कोई और (छोटी) photo चुनें'); }
-      FS.collection('partners').doc(me()).collection('kyc').doc(k).set({img:b64,ts:Date.now(),at:new Date().toLocaleString('en-IN')})
-        .then(function(){ kyc[k]=b64; ldrX(); if(k==='selfie'){ toast('✅ Selfie upload हो गई (compress ⚡)'); } else { toast('✅ Photo upload हो गई (compress ⚡)'); } vib(); drawProfile(); try{ window.v47Docs&&v47Docs(); }catch(e){} })
-        .catch(function(er){ ldrX(); alert('❌ '+er.message); });
+      /* ⚡ LOCAL-FIRST: photo पहले phone में save → तुरंत tile दिखे, REFRESH के बाद भी वापस मिले (server भी न चले तो) */
+      kyc[k]=b64;
+      try{ localStorage.setItem('swp_kyc_img_'+(me()||'anon')+'__'+k,b64); }catch(e){}
+      try{ drawProfile(); window.v47Docs&&window.v47Docs(); }catch(e){}
+      var _phx=me();
+      if(!_phx){ ldrX(); vib(); toast(k==='selfie'?'✅ Selfie save (local ⚡)':'✅ Photo save (local ⚡)'); return; }
+      ldr(k==='selfie'?'☁️ Selfie sync...':'☁️ Photo sync...');
+      FS.collection('partners').doc(_phx).collection('kyc').doc(k).set({img:b64,ts:Date.now(),at:new Date().toLocaleString('en-IN')})
+        .then(function(){ ldrX(); vib(); if(k==='selfie'){ toast('✅ Selfie upload + sync ☁️'); } else { toast('✅ Photo upload + sync ☁️'); } })
+        .catch(function(){ ldrX(); toast('⚠️ Photo phone में safe — internet आने पर अपने-आप sync होगी'); });
     };
     im.onerror=function(){ ldrX(); toast('❌ Photo नहीं पढ़ी गई — दोबारा चुनें'); };
     im.src=e.target.result;
@@ -4652,9 +4659,18 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   function applyDraft(){
     try{
       var kf=document.getElementById('kForm'); if(!kf) return;
-      var raw=localStorage.getItem(dk()); if(!raw) return;
-      var d=JSON.parse(raw); if(!d||!d.v) return;
-      var sel=d.v;
+      var sel=null;
+      try{ var raw0=localStorage.getItem(dk()); if(raw0){ var _d0=JSON.parse(raw0); if(_d0&&_d0.v) sel=_d0.v; } }catch(e){}
+      if(!sel&&P&&P.kycDraft&&P.kycDraft.kNm){ sel=P.kycDraft; }
+      if(!sel){
+        /* server mirror एक बार fetch (अगर local storage न हो / साफ़ हो गया हो) */
+        if(!window.__p67F&&me()){ window.__p67F=1;
+          FS.collection('partners').doc(me()).get().then(function(dc2){
+            try{ if(!dc2.exists) return; var dv=dc2.data().kycDraft; if(dv&&dv.kNm){ localStorage.setItem(dk(),JSON.stringify({ts:Date.now(),v:dv})); if(document.getElementById('kForm')) applyDraft(); } }catch(e){}
+          }).catch(function(){});
+        }
+        return;
+      }
       FIELDS.forEach(function(id){
         if(sel[id]===undefined||sel[id]===null) return;
         var el=document.getElementById(id);
@@ -4676,7 +4692,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
     document.addEventListener('change',function(ev){ try{ var id=(ev.target&&ev.target.id)||''; if(FIELDS.indexOf(id)>-1) saveDraft(); }catch(e){} });
   }catch(e){}
   var _k67=window.v47Kyc;
-  window.v47Kyc=function(){ if(_k67) _k67.apply(this,arguments); setTimeout(function(){ try{ applyDraft(); }catch(e){} },120); setTimeout(function(){ try{ applyDraft(); }catch(e){} },420); };
+  window.v47Kyc=function(){ window.__p67F=0; if(_k67) _k67.apply(this,arguments); setTimeout(function(){ try{ applyDraft(); }catch(e){} },120); setTimeout(function(){ try{ applyDraft(); }catch(e){} },420); setTimeout(function(){ try{ applyDraft(); }catch(e){} },1000); setTimeout(function(){ try{ applyDraft(); }catch(e){} },2200); };
   /* Submitted (review) screen पर भी draft save चालू रहे? नहीं — सिर्फ form खुला हो */
 
   /* 1b) login होते ही stale 'anon' draft साफ़ + खुले form में periodic auto-save */
@@ -4688,6 +4704,26 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
     }catch(e){}
   })();
   setInterval(function(){ try{ if(document.getElementById('kForm')&&document.getElementById('kSub')) saveDraft(); }catch(e){} },700);
+  /* ☁️ server draft mirror: local storage साफ़/दूसरे device पर भी same user का डेटा वापस */
+  var __pdT=null, __pl=0;
+  function pushDraft(){
+    try{
+      if(!me()) return;
+      if(P&&(P.kycStatus==='Submitted'||P.kycStatus==='Approved')) return;
+      if(!document.getElementById('kForm')) return;
+      var v={};
+      FIELDS.forEach(function(id){ var el=document.getElementById(id); if(el) v[id]=el.value; });
+      FS.collection('partners').doc(me()).set({kycDraft:v},{merge:true}).catch(function(){});
+    }catch(e){}
+  }
+  function schedulePush(){ if(__pdT) clearTimeout(__pdT); __pdT=setTimeout(pushDraft,1400); }
+  try{
+    document.addEventListener('input',function(ev){ try{ var id2=(ev.target&&ev.target.id)||''; if(FIELDS.indexOf(id2)>-1){ saveDraft(); schedulePush(); } }catch(e){} });
+    document.addEventListener('change',function(ev){ try{ var id2=(ev.target&&ev.target.id)||''; if(FIELDS.indexOf(id2)>-1){ saveDraft(); schedulePush(); } }catch(e){} });
+    window.addEventListener('pagehide',function(){ try{ pushDraft(); if(document.getElementById('kForm')) saveDraft(); }catch(e){} });
+  }catch(e){}
+  setInterval(function(){ try{ if(document.getElementById('kForm')&&document.getElementById('kSub')){ saveDraft(); } }catch(e){} },5000);
+  document.addEventListener('visibilitychange',function(){ try{ if(document.visibilityState==='hidden'&&document.getElementById('kForm')) saveDraft(); }catch(e){} });
   /* ── 2) upload watchdog: spinner कभी हमेशा नहीं घूमेगा ── */
   window.__p67Busy=0;
   var _up67=window.upKyc;
@@ -4713,12 +4749,21 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
   /* ── 3) photos भी localStorage draft → refresh के बाद वापस दिखें (server न मिले तो भी) ── */
   function imgKey(k){ return ik(k); }
+  window.__p67S={};
   function persistLoop(){
     try{
       var keys=['selfie','aadhaarF','aadhaarB','pan'];
       keys.forEach(function(k){
         var im=kyc[k];
-        if(im&&im.length>50){ try{ var old=localStorage.getItem(imgKey(k)); if(old!==im) localStorage.setItem(imgKey(k),im); }catch(e){} }
+        if(im&&im.length>50){
+          try{ var old=localStorage.getItem(imgKey(k)); if(old!==im) localStorage.setItem(imgKey(k),im); }catch(e){}
+          /* पहले server sync fail हुआ था तो internet आते ही अपने-आप दोबारा sync */
+          var _ps=me();
+          if(_ps&&!window.__p67S[k]){
+            FS.collection('partners').doc(_ps).collection('kyc').doc(k).set({img:im,ts:Date.now(),at:new Date().toLocaleString('en-IN')})
+              .then(function(){ window.__p67S[k]=1; }).catch(function(){});
+          }
+        }
         else if(!im){ try{ var s=localStorage.getItem(imgKey(k)); if(s){ kyc[k]=s; } }catch(e){} }
       });
     }catch(e){}
@@ -4729,6 +4774,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   window.v47Docs=function(){
     if(_d67) _d67.apply(this,arguments);
     setTimeout(function(){
+      try{ applyDraft(); }catch(e){}
       try{
         var changed=false;
         ['selfie','aadhaarF','aadhaarB','pan'].forEach(function(k){
@@ -4745,7 +4791,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   setTimeout(persistLoop,1500);
   /* submit हो गया → draft साफ़ */
   try{
-    (function(){ var _c=false; setInterval(function(){ try{ if(document.getElementById('kForm')){ _c=false; return; } if(!_c&&P.kycStatus==='Submitted'){ _c=true; localStorage.removeItem(dk()); } }catch(e){} },800); })();
+    (function(){ var _c=false; setInterval(function(){ try{ if(document.getElementById('kForm')){ _c=false; return; } if(!_c&&P.kycStatus==='Submitted'){ _c=true; localStorage.removeItem(dk()); var _ph2=me(); if(_ph2){ try{ FS.collection('partners').doc(_ph2).set({kycDraft:firebase.firestore.FieldValue.delete()},{merge:true}).catch(function(){}); }catch(e){} } } }catch(e){} },800); })();
   }catch(e){}
   setTimeout(function(){ try{ if(document.getElementById('kForm')){ applyDraft(); } }catch(e){} },1200);
   console.log('%c ⚡ PARTNER v6.6 — UPLOAD WATCHDOG + KYC DRAFT ✅ ','background:#b07800;color:#fff;font-weight:bold;padding:3px;');
@@ -4753,5 +4799,5 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a357dd1d9f9847b5',t:'MTc4ODQ3MTExMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a357ff8ec80f3cee',t:'MTc4ODQ3MjUyMg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
