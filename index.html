@@ -2,9 +2,16 @@
 <html lang="hi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SewaAstra Partner – Technician App</title>
 <meta name="theme-color" content="#0b1220">
+<meta name="description" content="SewaAstra Partner – Technician App: ghar-ghar kaam, live orders, navigation, KYC verified earning app.">
+<meta name="application-name" content="SewaAstra Partner">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SewaAstra Partner">
+
 <link rel="manifest" href="partner-manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
@@ -180,6 +187,7 @@ body.dark #chB{background:#0d1320;}
 @keyframes rot{to{transform:rotate(360deg)}}
 </style>
 <script id="swa-agora-sdk" async src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.2.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -187,7 +195,7 @@ body.dark #chB{background:#0d1320;}
 <div id="lgOv">
   <span class="orb o1"></span><span class="orb o2"></span>
   <div class="lgc">
-    <div class="lgl">🧑‍🔧</div>
+    <div class="lglogo"><span class="lglogo-i"><img src="icon-192.png" alt="SewaAstra Logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><b>🧑‍🔧</b></span></div>
     <h2>SewaAstra <span style="color:var(--pr);">Partner</span></h2>
     <div class="tg">Technician App — कमाई शुरू करें 🚀</div>
     <input class="li" type="email" id="lgEm" placeholder="ईमेल पता (Email address)" autocomplete="email">
@@ -199,6 +207,10 @@ body.dark #chB{background:#0d1320;}
       <div onclick="lgEmReset()" style="font-size:10px;opacity:.6;margin-top:4px;cursor:pointer;text-decoration:underline;">🔑 पासवर्ड भूल गए?</div>
       <div onclick="diag()" style="font-size:10px;opacity:.6;margin-top:4px;cursor:pointer;text-decoration:underline;">🔍 Login problem? यहाँ जांचें</div>
       <div id="lgEmMsg" style="display:none;margin-top:8px;font-size:11.5px;font-weight:800;color:#ffb3b3;line-height:1.55;"></div>
+    </div>
+    <div style="display:flex;justify-content:center;gap:16px;margin-top:10px;font-size:10.5px;opacity:.7;font-weight:800;">
+      <span onclick="pAbout()" style="cursor:pointer;text-decoration:underline;">ℹ️ About App</span>
+      <span onclick="lgPolicy()" style="cursor:pointer;text-decoration:underline;">📜 Policy & Terms</span>
     </div>
   </div>
 </div>
@@ -380,7 +392,7 @@ function lgEmReset(){
   ldr('Reset link भेजा जा रहा है...');
   firebase.auth().sendPasswordResetEmail(e).then(function(){
     ldrX();
-    sAlert('रीसेट लिंक <b>'+esc(e)+'</b> पर भेज दिया गया।<br>मेल में दिए link से नया पासवर्ड बनाएं।','पासवर्ड रीसेट ✉️','🔑');
+    sAlert('Agar ye email registered hai to reset link bhej diya gaya hai.\nSpam/Junk folder bhi check karein — mail ke link se naya password banakar login karein.','पासवर्ड रीसेट ✉️','🔑');
   }).catch(function(err){ ldrX(); _lgEmMsg(aerr(err)); });
 }
 function _lgEmFail(err){
@@ -446,7 +458,34 @@ firebase.auth().getRedirectResult().then(function(r){
 function diag(){
   sAlert('🌐 '+location.protocol+'//'+(location.hostname||'(file)')+'<br>📶 Internet: '+(navigator.onLine?'✅':'❌')+'<br>🔥 Firebase: '+(window.firebase&&firebase.apps.length?'✅':'❌')+'<br>✉️ Login: ईमेल+पासवर्ड या Google।'+'<br>'+(location.protocol==='file:'?'❗ file:// से खोला — hosting पर खोलें!':'👉 Authorized domains में add करें: '+location.hostname),'🔍 Login problem?','🧰');
 }
-function lgOut(){ localStorage.removeItem('swp_logged'); localStorage.removeItem('swp_phone'); localStorage.removeItem('swp_name'); localStorage.removeItem('swp_uid'); try{firebase.auth().signOut();}catch(e){} try{if(window.__exitGuard)window.__exitGuard.silent();}catch(_e){}location.reload(); }
+function lgOutReal(){ localStorage.removeItem('swp_logged'); localStorage.removeItem('swp_phone'); localStorage.removeItem('swp_name'); localStorage.removeItem('swp_uid'); try{firebase.auth().signOut();}catch(e){} try{if(window.__exitGuard)window.__exitGuard.silent();}catch(_e){}location.reload(); }
+function pAbout(){
+  try{
+    sAlert('SewaAstra Partner App\n\n🧑‍🔧 Verified Experts ko ghar-ghar kaam\n📍 Bhopal, Madhya Pradesh se shuru\n📱 Phone: +91 78699 69190\n\nPartner banke ghar baithe kamaiye — KYC karke training ke baad orders milte hain.','About SewaAstra','ℹ️');
+  }catch(e){}
+}
+function lgPolicy(){
+  try{ if(window.p63Policy){ window.p63Policy(); return; } }catch(e){}
+  try{
+    sAlert('1) KYC (Aadhaar/PAN/Selfie) ke baad hi orders milte hain.\n2) Har kaam se pehle Live Selfie Verify hota hai.\n3) Commission online-payment orders par; cash me full credit.\n4) KYC photos sirf Admin dekhte hain (privacy).\n5) Customer ka number Masked Call se hi use hota hai.','📜 Policy & Terms','📜');
+  }catch(e){}
+}
+function lgOut(){
+  try{
+    if(window.__exitGuard && window.__exitGuard.confirmExit){
+      window.__exitGuard.confirmExit({
+        icon:'🔓',
+        title:'Logout करें?',
+        sub:'क्या आप <b>Partner App</b> से logout करना चाहते हैं?<br>आपके orders, कमाई व KYC admin के पास सुरक्षित हैं — फिर login करके चालू रखें।',
+        yes:'हाँ, Logout',
+        no:'रुकें',
+        cb:function(){ lgOutReal(); }
+      });
+      return;
+    }
+  }catch(e){}
+  lgOutReal();
+}
 
 /* ═══ ENTER APP ═══ */
 var booted=false;
@@ -555,7 +594,10 @@ function listenPartner(){
   var ph=me(); if(!ph){ PLOAD=1; return; }
   FS.collection('partners').doc(ph).onSnapshot(function(d){
     PLOAD=1;
-    if(d.exists) P=d.data()||{};
+    if(d.exists){ P=d.data()||{};
+      try{ if(P.idPic && !(kyc.selfie)) kyc.selfie=P.idPic; }catch(e){}
+      try{ swSyncIdPic(); }catch(e){}
+    }
     if(P.name){ $('hHi').innerText='नमस्ते, '+P.name+'!'; if(!$('pNm').value)$('pNm').value=P.name; $('pAv').innerText=P.name[0].toUpperCase(); }
     if(P.avgRating) $('s3').innerText=P.avgRating;
     if(P.online && !onl){ onl=true; $('onT').classList.add('on'); $('onX').innerText='ONLINE'; }
@@ -675,6 +717,9 @@ function draw(){
     '<button class="bn sh '+(shr?'on':'')+'" onclick="shr(\''+esc(o.id)+'\')">'+(shr?'📡 LIVE':'📡 Location')+'</button></div>'+
     '<div class="bns"><button class="bn b" onclick="maskCall(\''+esc(o.id)+'\')">📞 Masked Call</button>'+
     '<button class="bn gy" onclick="chOpen(\''+esc(o.id)+'\')">💬 Chat</button></div>'+
+    ((o.status==='Accepted'&&!o.startSelfie)?
+      '<button class="bn v51s" style="width:100%;margin-top:8px;padding:13px;font-size:13px;" onclick="v51SelfieGo(\''+esc(o.id)+'\',\''+o.status+'\')">🤳 Selfie Verify करके काम शुरू करें</button>'
+      : (o.startSelfie?'<div style="display:flex;gap:8px;align-items:stretch;margin-top:8px;"><button class="bn v51r" style="flex:1.1;padding:11px;font-size:11.5px;" onclick="v51SelfieGo(\''+esc(o.id)+'\',\''+o.status+'\')">🤳 Selfie फिर verify</button><span style="flex:1;display:flex;align-items:center;justify-content:center;font-size:10px;color:#15a04a;font-weight:900;">✅ Selfie verified</span></div>':''))+
     (o.payment&&!o.payment.verified&&/verifying/i.test(o.payment.status||'')?'<button class="bn au" style="width:100%;margin-top:7px;" onclick="vPay(\''+esc(o.id)+'\',\''+esc(o.payment.ref||'')+'\')">💜 UTR: '+esc(o.payment.ref||'—')+' — VERIFY करें</button>':'')+
     '<button class="bn r" style="width:100%;margin-top:7px;border:1.5px dashed #f5c6c3;" onclick="cnl(\''+esc(o.id)+'\')">❌ Cancel</button></div>';
   }).join('') : '<div class="em"><span class="ic">🛠️</span><br><b>कोई active काम नहीं</b></div>';
@@ -766,14 +811,17 @@ function adv(oid,cur){
   }).catch(function(e){toast('❌ '+e.message);});
 }
 function cnl(oid){
-  var r=prompt('Cancel का कारण:'); if(r===null)return;
-  FS.collection('orders').doc(oid).update({status:'Cancelled',cancelReason:r||'Partner cancelled',cancelledBy:'partner'})
-    .then(function(){toast('❌ Cancel हो गया');}).catch(function(e){toast(e.message);});
+  swUi.prompt({icon:'❌',title:'Cancel Order',msg:'Cancel का कारण लिखें (customer को दिखेगा):',def:'',ph:'जैसे: सामान नहीं मिला / customer unavailable',ok:'Cancel करें',cancel:'वापस',danger:true,onOk:function(val){
+    var r=(val||'').trim();
+    FS.collection('orders').doc(oid).update({status:'Cancelled',cancelReason:r||'Partner cancelled',cancelledBy:'partner'})
+      .then(function(){toast('❌ Cancel हो गया');}).catch(function(e){toast(e.message);});
+  }});
 }
 function vPay(oid,ref){
-  if(!confirm('PhonePe में UTR check किया?\nUTR: '+ref+'\n\nVERIFY करें?'))return;
-  FS.collection('orders').doc(oid).update({'payment.verified':true,'payment.status':'PAID (Partner Verified)','payment.verifiedAt':Date.now()})
-    .then(function(){toast('✅ Payment Verified!');vib();}).catch(function(e){toast(e.message);});
+  swUi.confirm({icon:'💜',title:'Payment VERIFY करें?',msg:'PhonePe में UTR check किया?\nUTR: '+ref+'\n\nVERIFY करें?',ok:'✅ Verify करें',cancel:'रुकें',onOk:function(){
+    FS.collection('orders').doc(oid).update({'payment.verified':true,'payment.status':'PAID (Partner Verified)','payment.verifiedAt':Date.now()})
+      .then(function(){toast('✅ Payment Verified!');vib();}).catch(function(e){toast(e.message);});
+  }});
 }
 
 /* ═══ LOCATION SHARE ═══ */
@@ -939,7 +987,7 @@ function drawProfile(){
   host.innerHTML=
   '<div class="cd"><div class="rw"><b style="font-size:12.5px;">📋 Profile Completion</b><b style="color:var(--pr);">'+pc+'%</b></div><div class="pcb"><span style="width:'+pc+'%;"></span></div><div style="font-size:10px;color:#998;font-weight:700;margin-top:5px;">'+(pc<100?'100% = ज़्यादा ऑर्डर! KYC + Bank पूरा करें 🚀':'🎉 Profile पूरी — verified partner!')+'</div></div>'+
   (st==='Approved'
-    ? '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🪪 KYC Status</b>'+stC+'</div><div style="font-size:10.5px;color:#15a04a;font-weight:800;margin-top:6px;line-height:1.6;">✅ KYC approved है। आपके documents सिर्फ KYC के समय दिखाए गए थे — अब privacy के लिए छिपे हैं। कोई जानकारी बदलनी हो तो admin से कहें।</div></div>'
+    ? '<div class="cd" style="border:1.5px solid #cdeeda;"><div class="rw"><b style="font-size:12.5px;">🪪 KYC</b><span class="kst" style="background:#e6f7ed;color:#0f7a37;">✅ APPROVED • LOCKED</span></div><div style="font-size:10px;color:#8a94ab;font-weight:800;margin-top:5px;line-height:1.6;">🔒 KYC पूरा — यह section आपके लिए हमेशा के लिए बंद है। Documents admin के पास सुरक्षित (privacy)। कोई बदलाव admin से करवाएँ।</div></div>'
     : '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🪪 KYC बाकी है</b>'+stC+'</div><button class="bn o" style="width:100%;margin-top:8px;padding:11px;" onclick="v47Kyc()">➡️ KYC पूरा करें — पूरी जानकारी + documents</button></div>')+
   '<div class="cd"><b style="font-size:12.5px;">🏦 Bank / Payout (कमाई इसी account में)</b><div style="font-size:9.5px;color:#15a04a;font-weight:800;margin:1px 0 4px;">✅ Original account — auto-verify (UPI नहीं)</div>'+
   '<input class="pi" id="bH" placeholder="Account Holder नाम" value="'+esc(b.holder||'')+'">'+
@@ -978,6 +1026,15 @@ function upKyc(k,inp){
       /* ⚡ LOCAL-FIRST: photo पहले phone में save → तुरंत tile दिखे, REFRESH के बाद भी वापस मिले (server भी न चले तो) */
       kyc[k]=b64;
       try{ localStorage.setItem('swp_kyc_img_'+(me()||'anon')+'__'+k,b64); }catch(e){}
+      /* 🪪 ID Card selfie ke liye chhota portrait copy (doc owner ko dikhe; full KYC photos sirf Admin) */
+      if(k==='selfie'){
+        try{
+          var sw=Math.min(340,im.width), sh=im.height*sw/im.width;
+          var cv2=document.createElement('canvas'); cv2.width=sw; cv2.height=sh;
+          cv2.getContext('2d').drawImage(im,0,0,sw,sh);
+          localStorage.setItem('swp_idpic_'+(me()||'anon'), cv2.toDataURL('image/jpeg',.6));
+        }catch(e){}
+      }
       try{ drawProfile(); window.v47Docs&&window.v47Docs(); }catch(e){}
       var _phx=me();
       if(!_phx){ ldrX(); vib(); toast(k==='selfie'?'✅ Selfie save (local ⚡)':'✅ Photo save (local ⚡)'); return; }
@@ -990,6 +1047,16 @@ function upKyc(k,inp){
     im.src=e.target.result;
   };
   rd.readAsDataURL(f);
+}
+function swGetIdPic(){ try{ return localStorage.getItem('swp_idpic_'+(me()||'anon'))||''; }catch(e){ return ''; } }
+function swSyncIdPic(){
+  var ph=me(), b=swGetIdPic();
+  if(!ph||!b) return;
+  try{
+    FS.collection('partners').doc(ph).set({idPic:b},{merge:true}).then(function(){
+      try{ localStorage.removeItem('swp_idpic_'+ph); }catch(e){}
+    }).catch(function(){});
+  }catch(e){}
 }
 /* 🔒 KYC submit के बाद — device से photos + draft पूरी तरह हटा (server पर Admin के लिए रहती हैं) */
 function clrKyc(){
@@ -1201,22 +1268,24 @@ function v41Wd(){
   var ph=me(); if(!ph) return;
   var bk=P.bank||{},acc=bk.acc||'',ifsc=String(bk.ifsc||'').toUpperCase();
   if(!acc||!ifsc) return alert('❗ पहले प्रोफ़ाइल → 🏦 Bank में Account Number + IFSC save करें — payout bank transfer से आएगा।');
-  var a=prompt('कितने ₹ निकालने हैं?\n(उपलब्ध balance: ₹'+v41BalAmt+')');
-  if(!a) return;
-  a=parseInt(a,10);
-  if(!(a>0)) return toast('❌ सही amount डालें');
-  if(a>v41BalAmt) return toast('❌ balance से ज़्यादा नहीं निकाल सकते');
-  ldr('💸 Request भेज रहे हैं...');
-  FS.collection('partners').doc(ph).collection('withdrawals').add({
-    amt:a, acc:acc, ifsc:ifsc, holder:(P.bank&&P.bank.holder)||'', name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
-    status:'Requested', ts:Date.now(), at:new Date().toLocaleString('en-IN')
-  }).then(function(){
-    ldrX(); vib([80,40,80]); toast('✅ Withdraw request भेज दी! Admin जल्द payout करेंगे'); v41Bal();
-  }).catch(function(e){ ldrX(); alert('❌ '+e.message); });
+  swUi.prompt({icon:'💸',title:'Withdraw (निकासी)',msg:'कितने ₹ निकालने हैं? (उपलब्ध balance: ₹'+v41BalAmt.toLocaleString('en-IN')+')',ph:'राशि (₹)',ok:'💸 Request भेजें',cancel:'रद्द',onOk:function(val){
+    var a=parseInt(String(val==null?'':val).replace(/[^\d]/g,''),10);
+    if(!(a>0)){ toast('❌ सही amount डालें'); return; }
+    if(a>v41BalAmt){ toast('❌ balance से ज़्यादा नहीं निकाल सकते'); return; }
+    ldr('💸 Request भेज रहे हैं...');
+    FS.collection('partners').doc(ph).collection('withdrawals').add({
+      amt:a, acc:acc, ifsc:ifsc, holder:(P.bank&&P.bank.holder)||'', name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
+      status:'Requested', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+    }).then(function(){
+      ldrX(); vib([80,40,80]); toast('✅ Withdraw request भेज दी! Admin जल्द payout करेंगे'); v41Bal();
+    }).catch(function(e){ ldrX(); alert('❌ '+e.message); });
+  }});
 }
 function v41Tgt(){
-  var t=prompt('आज का कमाई target ₹ में:',localStorage.getItem('swp_target')||'1000');
-  if(t&&parseInt(t,10)>0){ localStorage.setItem('swp_target',String(parseInt(t,10))); drawEarn(); toast('🎯 Target set!'); }
+  swUi.prompt({icon:'🎯',title:'कमाई Target',msg:'आज का कमाई target ₹ में:',def:localStorage.getItem('swp_target')||'1000',ph:'₹',ok:'Set करें',cancel:'रद्द',onOk:function(val){
+    var t=parseInt(String(val==null?'':val).replace(/[^\d]/g,''),10);
+    if(t>0){ localStorage.setItem('swp_target',String(t)); drawEarn(); toast('🎯 Target set!'); }
+  }});
 }
 function v41Csv(){
   var done=v41Done();
@@ -1292,7 +1361,7 @@ function v43Show(st){
   if(st==='Submitted'){
     x.innerHTML='<div style="text-align:center;padding:40px 10px;">'+
       '<div style="font-size:64px;">⏳</div>'+
-      '<h2 style="font-size:19px;margin:14px 0 8px;">KYC Review में है</h2>'+
+      '<h2 class="kH" style="font-size:22px;margin:12px 0 6px;">KYC Review में है</h2>'+
       '<div style="font-size:12.5px;color:#988;line-height:1.7;">आपके documents admin के पास पहुँच गए हैं।<br>Approve होते ही app <b>अपने आप खुल जाएगा</b> — यहीं रुकें या बाद में आएँ।</div>'+
       '<div class="cd" style="margin-top:20px;text-align:left;"><b style="font-size:12.5px;">📄 भेजे गए documents</b><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">'+
       KDOCS.map(function(d){return '<span style="font-size:11px;font-weight:800;background:#e6f7ed;color:#0f7a37;border-radius:20px;padding:5px 11px;">'+d.i+' '+d.n+' ✓</span>';}).join('')+'</div></div>'+
@@ -1302,7 +1371,7 @@ function v43Show(st){
   }
   /* Pending — upload screen */
   x.innerHTML='<div style="text-align:center;padding:16px 0 6px;"><div style="font-size:52px;">🪪</div>'+
-    '<h2 style="font-size:18px;margin:10px 0 5px;">पहले KYC पूरा करें</h2>'+
+    '<h2 class="kH" style="font-size:21px;margin:10px 0 5px;">पहले KYC पूरा करें</h2>'+
     '<div style="font-size:12px;color:#988;line-height:1.6;">App में काम शुरू करने के लिए <b>चारों documents</b> upload करके submit करें।<br>Admin approve करेंगे, फिर training video — उसके बाद app खुलेगा। 🚀</div></div>'+
     '<div class="cd"><div class="kyg">'+
     KDOCS.map(function(d){
@@ -1321,7 +1390,7 @@ function v43Train(){
   if(document.getElementById('trFrame')) return;   /* पहले से चल रहा */
   v43Left=30;
   x.innerHTML='<div style="text-align:center;padding:14px 0 6px;"><div style="font-size:48px;">🎓</div>'+
-    '<h2 style="font-size:18px;margin:8px 0 5px;">🎉 KYC APPROVED!</h2>'+
+    '<h2 class="kH" style="font-size:21px;margin:8px 0 5px;">🎉 KYC APPROVED!</h2>'+
     '<div style="font-size:12px;color:#988;line-height:1.6;">अब बस एक कदम — यह <b>training video</b> देखना ज़रूरी है।<br>इसमें काम करने का तरीका, safety और app की जानकारी है।</div></div>'+
     '<div class="cd" style="padding:0;overflow:hidden;"><iframe id="trFrame" width="100%" height="230" src="https://www.youtube.com/embed/'+TRAIN_VID+'?rel=0" title="Training" frameborder="0" allow="accelerometer;autoplay;encrypted-media;gyroscope" allowfullscreen style="display:block;"></iframe></div>'+
     '<button class="bn o" id="trBtn" disabled style="width:100%;padding:14px;font-size:13.5px;opacity:.5;" onclick="v43TrainDone()">⏳ Video देखें... (30s)</button>'+
@@ -1617,7 +1686,9 @@ var v45SelCtx=null, v45SelInp=null;
         var b64=cv.toDataURL('image/jpeg',.5);
         var c=v45SelCtx; v45SelCtx=null;
         FS.collection('orders').doc(c.oid).update({startSelfie:{img:b64,ts:Date.now(),at:new Date().toLocaleString('en-IN'),by:me()}}).then(function(){
-          ldrX(); vib([80,40,80]); toast('✅ Selfie verified — काम शुरू!');
+          ldrX(); vib([80,40,80]);
+          if(c.re){ toast('✅ Selfie दोबारा verify — सुरक्षित!'); return; }
+          toast('✅ Selfie verified — काम शुरू!');
           _adv2(c.oid,c.cur);
         }).catch(function(e2){ ldrX(); sAlert(e2.message,'Error','❌'); });
       };
@@ -1851,8 +1922,8 @@ var camS=null, v46Ctx=null;
     '<button onclick="v46FB()" style="background:none;border:none;color:#fff;font-size:12px;font-weight:800;cursor:pointer;">📁 दूसरा तरीका</button></div>';
   document.body.appendChild(d);
 })();
-function v46Cam(oid,cur){
-  v46Ctx={oid:oid,cur:cur};
+function v46Cam(oid,cur,re){
+  v46Ctx={oid:oid,cur:cur,re:!!re};
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) return v46FB();
   navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:false}).then(function(st){
     camS=st;
@@ -1877,7 +1948,9 @@ function v46Snap(){
   var ctx=v46Ctx; v46Ctx=null; if(!ctx) return;
   ldr('🤳 Selfie verify...');
   FS.collection('orders').doc(ctx.oid).update({startSelfie:{img:b64,ts:Date.now(),at:new Date().toLocaleString('en-IN'),by:me(),live:true}}).then(function(){
-    ldrX(); vib([80,40,80]); toast('✅ Live selfie verified — काम शुरू!');
+    ldrX(); vib([80,40,80]);
+    if(ctx.re){ toast('✅ Selfie दोबारा verify — सुरक्षित!'); return; }
+    toast('✅ Live selfie verified — काम शुरू!');
     _adv2(ctx.oid,ctx.cur);
   }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
 }
@@ -1895,6 +1968,15 @@ adv=function(oid,cur){
   }
   _adv2(oid,cur);
 };
+function v51SelfieGo(oid,cur){
+  if(!window.v48Kyc){ try{ if(!v48Kyc()) return v48Block('Selfie Verify'); }catch(e){} }
+  else { try{ if(!v48Kyc()) return v48Block('Selfie Verify'); }catch(e){} }
+  var o=ALL.filter(function(x){return x.id===oid;})[0];
+  if(!o){ toast('ऑर्डर नहीं मिला'); return; }
+  var need=(cur==='Accepted' && !o.startSelfie);
+  toast(need?'🤳 काम शुरू करने के लिए selfie ज़रूरी — camera खुल रहा है':'🤳 फिर से selfie verify — camera खुल रहा है');
+  v46Cam(oid,cur,!need);
+}
 console.log('%c 🧑‍🔧 SewaAstra Partner v4.6 FINAL — PREMIUM ⭐ ','background:linear-gradient(90deg,#ff6b00,#ffd700);color:#1a1030;font-weight:bold;padding:4px;');
 
 /* ═══════════════ v4.7 — ID STRIP + FULL KYC FORM ═══════════════ */
@@ -1978,47 +2060,49 @@ v43Show=function(st){
   v47Kyc();
 };
 function v47Kyc(){
+  if(P.kycStatus==='Approved'){ try{ sAlert('आपका KYC पूरा हो चुका है — यह section अब आपके लिए हमेशा के लिए बंद है।\n\nDocuments admin के पास सुरक्षित हैं (privacy)। बदलाव के लिए admin से संपर्क करें।','🔒 KYC LOCKED','🪪'); }catch(e){} return; }
   var o=$('obOv'), x=$('obX'); o.style.display='block';
   if(document.getElementById('kForm')) return v47Docs();
   var ki=P.kycInfo||{};
   x.innerHTML=v45Steps(2)+
   '<div id="kForm">'+
   '<div style="text-align:center;padding:4px 0 10px;"><div style="font-size:46px;">📋</div>'+
-  '<h2 style="font-size:18px;margin:8px 0 4px;">Partner Registration — KYC</h2>'+
+  '<h2 class="kH" style="font-size:21px;margin:10px 0 4px;">Partner Registration — KYC</h2>'+
   '<div style="font-size:11.5px;color:#988;line-height:1.6;">काम शुरू करने के लिए <b>पूरी जानकारी + documents</b> भरें।<br>Admin approve करेंगे, फिर training — उसके बाद app। 🚀</div></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">👤 निजी जानकारी</b>'+
+  '<div class="cd kyk"><b style="font-size:12.5px;">👤 निजी जानकारी</b>'+
   '<input class="pi" id="kNm" placeholder="पूरा नाम *" value="'+esc(P.name||localStorage.getItem('swp_name')||'')+'">'+
   (me()?'<input class="pi" value="📱 +91 '+me()+' (login verified ✓)" readonly style="opacity:.65;">'
        :'<input class="pi" id="kPh" type="tel" maxlength="10" inputmode="numeric" placeholder="📱 मोबाइल नंबर (10 अंक) *">')+
   '<input class="pi" id="kFa" placeholder="पिता का नाम *" value="'+esc(ki.father||'')+'">'+
   '<div class="srw" style="margin-top:6px;">🎂 जन्म तिथि <input type="date" id="kDb" class="pi" style="width:150px;margin:0;" value="'+esc(ki.dob||'')+'"></div>'+
   '<div style="margin-top:8px;display:flex;align-items:center;gap:9px;border:1px solid var(--bd);border-radius:12px;padding:8px 10px;">👤 <b style="font-size:12px;">लिंग</b> <select id="p65Gen" style="flex:1;min-width:0;font-weight:800;"><option value="">— चुनें —</option><option value="Male">पुरुष (Male)</option><option value="Female">महिला (Female)</option><option value="Other">अन्य (Other)</option></select></div></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">🏠 पता</b>'+
+  '<div class="cd kyk"><b style="font-size:12.5px;">🏠 पता</b>'+
   '<textarea class="pi" id="kAd" rows="2" placeholder="पूरा पता (मकान नं., गली, मोहल्ला) *" style="resize:none;">'+esc(ki.address||'')+'</textarea>'+
   '<div style="display:flex;gap:8px;"><input class="pi" id="kCt" placeholder="शहर *" style="flex:2;" value="'+esc(ki.city||'')+'"><input class="pi" id="kPn" placeholder="PIN *" maxlength="6" inputmode="numeric" style="flex:1;" value="'+esc(ki.pin||'')+'"></div></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">🪪 Document नंबर</b>'+
+  '<div class="cd kyk"><b style="font-size:12.5px;">🪪 Document नंबर</b>'+
   '<input class="pi" id="kAa" placeholder="आधार नंबर (12 अंक) *" maxlength="12" inputmode="numeric" value="'+esc(ki.aadhaar||'')+'">'+
   '<input class="pi" id="kPa" placeholder="PAN नंबर (optional)" maxlength="10" style="text-transform:uppercase;" value="'+esc(ki.pan||'')+'"></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">🛠️ मुख्य काम</b>'+
+  '<div class="cd kyk"><b style="font-size:12.5px;">🛠️ मुख्य काम</b>'+
   '<select class="pi" id="kSk">'+SKILLS.map(function(s){return '<option '+((ki.mainSkill===s)?'selected':'')+'>'+s+'</option>';}).join('')+'</select></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">🏙️ काम का शहर + Work Range</b>'+
+  '<div class="cd kyk"><b style="font-size:12.5px;">🏙️ काम का शहर + Work Range</b>'+
   '<div style="display:flex;gap:8px;align-items:flex-end;"><div style="flex:1;"><span style="font-size:9.5px;color:#998;font-weight:800;">किस शहर में काम करेंगे?</span><select id="p65City" class="pi" style="width:100%;">'+['Bhopal','Indore','Gwalior','Jabalpur','Ujjain','Sagar','Dewas','Ratlam','Rewa','Satna','Guna','Hoshangabad','अन्य'].map(function(c){return '<option'+(c===(''+(ki.workCity||ki.city||'Bhopal'))?' selected':'')+'>'+c+'</option>';}).join('')+'</select></div>'+
   '<div style="width:138px;"><span style="font-size:9.5px;color:#998;font-weight:800;">दायरा (km)</span><div style="display:flex;align-items:center;gap:5px;"><input type="range" id="p65Rad" min="2" max="30" value="'+(P.radiusKm||ki.radius||8)+'" oninput="document.getElementById(\'p65RadV\').innerText=this.value" style="width:84px;"><b id="p65RadV" style="color:var(--pr);">'+(P.radiusKm||ki.radius||8)+'</b></div></div></div>'+
   '<div style="font-size:9.5px;color:#8a94ab;font-weight:700;margin-top:5px;">इसी दायरे में आपको नए ऑर्डर मिलेंगे — शहर बाद में बदल सकते हैं।</div></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">🏦 Bank / Payout (कमाई इसी account में)</b>'+
+  '<div class="cd kyk"><b style="font-size:12.5px;">🏦 Bank / Payout (कमाई इसी account में)</b>'+
 '<div style="font-size:9.5px;color:#15a04a;font-weight:800;margin:1px 0 5px;line-height:1.5;">✅ Original account details — भरते ही खुद-ब-खुद verify (UPI नहीं)</div>'+
 '<input class="pi" id="p65BH" placeholder="Account Holder नाम * (bank KYC के ही नाम से)" value="'+esc((P.bank&&P.bank.holder)||'')+'">'+
 '<input class="pi" id="p65BA" placeholder="Account Number * (9–18 अंक)" inputmode="numeric" maxlength="18" oninput="window.p65BkA(\'p65BAok\',this.value)" value="'+esc((P.bank&&P.bank.acc)||'')+'"><div id="p65BAok" style="font-size:9px;font-weight:800;min-height:12px;margin:1px 0 3px;"></div>'+
 '<input class="pi" id="p65BI" placeholder="IFSC * — भरते ही बैंक पहचान आएगी" style="text-transform:uppercase;" maxlength="11" oninput="this.value=this.value.toUpperCase();window.p65BkI(\'p65BIok\',this.value)" value="'+esc((P.bank&&P.bank.ifsc)||'')+'"><div id="p65BIok" style="font-size:9px;font-weight:800;min-height:12px;margin:1px 0 3px;"></div>'+
 '<div style="font-size:9px;color:#8a94ab;font-weight:700;line-height:1.6;">🔒 Payout बैंक transfer (IMPS/NEFT) से इसी account में आएगा। UPI की ज़रूरत नहीं।</div>'+
 '<div style="display:flex;align-items:center;gap:9px;margin-top:8px;border:1px dashed var(--bd);border-radius:12px;padding:9px 11px;">🤳 <div style="flex:1;"><b style="font-size:11.5px;">Selfie Photo</b><div style="font-size:9.5px;color:#8a94ab;font-weight:700;line-height:1.5;">नीचे Photos में "Selfie" tile टैप करें — गैलरी/कैमरा से, अपने आप compress होकर upload होगी।</div></div></div>'+
-'<div class="cd"><b style="font-size:12.5px;">📸 Photos — Aadhaar Front/Back + PAN + Selfie (सभी ज़रूरी)</b><div id="kDocs"></div></div>'+
+'<div class="cd kyk"><b style="font-size:12.5px;">📸 Photos — Aadhaar Front/Back + PAN + Selfie (सभी ज़रूरी)</b><div id="kDocs"></div></div>'+
   '<button class="bn o" id="kSub" style="width:100%;padding:14px;font-size:13.5px;" onclick="v47Sub()"></button>'+
   '<div class="cd" style="font-size:10.5px;color:#988;line-height:1.7;margin-top:10px;">🔒 आपकी जानकारी सुरक्षित Firebase में save होती है — सिर्फ admin verification के लिए।</div>'+
   '<button class="bn d" style="width:100%;padding:11px;" onclick="lgOut()">🚪 Logout</button></div>';
   v47Docs();
 }
 function v47Docs(){
+  if(P.kycStatus==='Approved') return;
   var h=document.getElementById('kDocs'); if(!h) return;
   h.innerHTML='<div class="kyg" style="margin-top:8px;">'+KDOCS.map(function(d){
     var im=kyc[d.k];
@@ -2026,7 +2110,7 @@ function v47Docs(){
       (im?'<img src="'+im+'"><span class="ok2"><i class="fa fa-check"></i></span>':'<span class="i2">'+d.i+'</span>')+
       '<span class="n2">'+d.n+(im?' ✓':' — टैप करें')+'</span>'+
       '<input type="file" id="of'+d.k+'" accept="image/*"'+(d.k==='selfie'?' capture="user"':'')+' style="display:none;" onchange="upKyc(\''+d.k+'\',this)"></div>';
-  }).join('')+'<button class="bn o" style="width:100%;margin-top:9px;background:linear-gradient(135deg,#3a1c0a,#7a4a12);border:none;" onclick="v49SelfieGo()">🤳 Selfie लें / अपलोड करें (camera)</button></div>';
+  }).join('')+'<button class="bn o" style="width:100%;margin-top:9px;background:linear-gradient(135deg,#ff2d95,#7a2bff);color:#fff;border:none;box-shadow:0 8px 22px rgba(122,43,255,.35);" onclick="v49SelfieGo()">🤳 Selfie लें / अपलोड करें (camera)</button></div>';
   var b=document.getElementById('kSub');
   var n=KDOCS.filter(function(d){return kyc[d.k];}).length;
   if(b) b.innerHTML='📤 KYC Submit करें ('+n+'/4 photos ready)';
@@ -2036,6 +2120,7 @@ function v47SubReal(){
   var nm=$('kNm').value.trim(), fa=$('kFa').value.trim(), db=$('kDb').value,
       ad=$('kAd').value.trim(), ct=$('kCt').value.trim(), pn=$('kPn').value.trim(),
       aa=$('kAa').value.trim(), pa=$('kPa').value.trim().toUpperCase(), sk=$('kSk').value;
+  var gv=''; try{ gv=(document.getElementById('p65Gen')||{}).value||''; }catch(e){}
   var ph=me();
   if(!ph){
     var pe=document.getElementById('kPh'); ph=pe?pe.value.trim():'';
@@ -2052,8 +2137,8 @@ function v47SubReal(){
   if(miss.length) return toast('❌ Photos बाकी: '+miss.map(function(d){return d.n;}).join(', '));
   ldr('📤 KYC submit...');
   var _em2=curEmail(), _uid2=''; try{ _uid2=((firebase.auth().currentUser||{}).uid)||''; }catch(e){}
-  var _pay={ name:nm, phone:ph, uid:_uid2,
-    kycInfo:{father:fa,dob:db,address:ad,city:ct,pin:pn,aadhaar:aa,pan:pa,mainSkill:sk},
+  var _pay={ name:nm, phone:ph, uid:_uid2, gender:gv,
+    kycInfo:{father:fa,dob:db,address:ad,city:ct,pin:pn,aadhaar:aa,pan:pa,mainSkill:sk,gender:gv},
     skills:firebase.firestore.FieldValue.arrayUnion(sk),
     kycStatus:'Submitted', kycAt:Date.now() };
   if(_em2) _pay.email=_em2;   /* email खाली हो तो doc से पुराना gmail नहीं मिटता */
@@ -2061,7 +2146,8 @@ function v47SubReal(){
     localStorage.setItem('swp_phone',ph);
     localStorage.setItem('swp_name',nm);
     try{ listenPartner(); }catch(e){}
-    P.name=nm; P.kycStatus='Submitted'; P.kycInfo={father:fa,dob:db,address:ad,city:ct,pin:pn,aadhaar:aa,pan:pa,mainSkill:sk};
+    P.name=nm; P.gender=gv; P.kycStatus='Submitted'; P.kycInfo={father:fa,dob:db,address:ad,city:ct,pin:pn,aadhaar:aa,pan:pa,mainSkill:sk,gender:gv};
+    try{ swSyncIdPic(); }catch(e){}
     ldrX(); vib([90,50,90,50,180]);
     sAlert('आपकी पूरी जानकारी + चारों documents admin के पास पहुँच गए!\n\nApprove होते ही app अपने आप खुल जाएगा। ⏳','KYC Submitted! 📤','✅');
     try{ clrKyc(); }catch(e){}
@@ -2125,6 +2211,30 @@ var _dp5=drawProfile;
 drawProfile=function(){ _dp5(); try{ if(v48Kyc()&&$('pNm')){ $('pNm').readOnly=true; $('pNm').style.opacity='.6'; } }catch(e){} };
 
 /* 🪪 4) ID CARD = 100% KYC की जानकारी + Authorized Sign: Shoorshyam */
+/* ═══ ID QR — scan-verify code (qrcode-generator lib; offline fallback) ═══ */
+function swIdQR(c,x,y,size,text){
+  try{
+    var pad=10;
+    c.save();
+    c.fillStyle='#ffffff'; c.beginPath();
+    c.roundRect?c.roundRect(x-pad,y-pad,size+pad*2,size+pad*2,8):c.rect(x-pad,y-pad,size+pad*2,size+pad*2);
+    c.fill();
+    if(window.qrcode){
+      var qq=window.qrcode(0,'M'); qq.addData(String(text||'')); qq.make();
+      var n=qq.getModuleCount(), cell=size/n;
+      c.fillStyle='#150c22';
+      for(var r=0;r<n;r++){ for(var cc=0;cc<n;cc++){ if(qq.isDark(r,cc)) c.fillRect(Math.floor(x+cc*cell),Math.floor(y+r*cell),Math.ceil(cell),Math.ceil(cell)); } }
+    } else {
+      c.strokeStyle='#150c22'; c.lineWidth=4;
+      c.strokeRect(x,y,size,size);
+      c.fillStyle='#150c22'; c.font='800 '+Math.round(size*.22)+'px Arial'; c.textAlign='center'; c.textBaseline='middle';
+      c.fillText(String(text||'').slice(0,10), x+size/2, y+size/2);
+      c.textAlign='left'; c.textBaseline='alphabetic';
+    }
+    c.restore();
+  }catch(e){}
+}
+
 v47IdPng=function(cb){
   var ki=P.kycInfo||{};
   var cv=document.createElement('canvas'); cv.width=800; cv.height=470;
@@ -2134,15 +2244,31 @@ v47IdPng=function(cb){
   c.fillStyle=g; rr(0,0,800,470,28); c.fill();
   var gg=c.createLinearGradient(0,0,800,0); gg.addColorStop(0,'#ffd700'); gg.addColorStop(1,'#ff9a00');
   c.fillStyle=gg; c.fillRect(0,0,800,10);
-  c.fillStyle='#fff'; c.font='900 30px Arial'; c.fillText('🧑‍🔧 SewaAstra Partner', 40, 62);
-  c.fillStyle='#ffd700'; c.font='900 21px Arial'; c.fillText('⭐ PREMIUM ID', 620, 60);
+  /* ⚜️ SewaAstra LOGO emblem — ID card ke upar */
+  (function(x,y,r){ try{
+    var lg=c.createLinearGradient(x-r,y-r,x+r,y+r); lg.addColorStop(0,'#ff6b00'); lg.addColorStop(.55,'#ff2d95'); lg.addColorStop(1,'#7a2bff');
+    c.beginPath(); c.arc(x,y,r+6,0,7); c.fillStyle='rgba(255,215,0,.95)'; c.fill();
+    c.beginPath(); c.arc(x,y,r,0,7); c.fillStyle=lg; c.fill();
+    c.fillStyle='#fff'; c.font='900 '+(r*1.05)+'px Arial'; c.textAlign='center'; c.textBaseline='middle';
+    c.fillText('S',x,y+1);
+    c.textAlign='left'; c.textBaseline='alphabetic';
+    c.fillStyle='#ffd700'; c.font='700 13px Arial'; c.textAlign='center';
+    c.fillText('SEWAASTRA',x,y+r+18);
+    c.textAlign='left';
+  }catch(e){} })(66,50,30);
+  c.fillStyle='#fff'; c.font='900 27px Arial'; c.fillText('SewaAstra', 118, 52);
+  c.fillStyle='#ffd700'; c.font='800 24px Arial'; c.fillText('Partner', 118, 84);
+  c.fillStyle='#ffd700'; c.font='900 19px Arial'; c.fillText('⭐ PREMIUM ID', 596, 52);
   function fin(){
     /* KYC वाला ही नाम + जानकारी */
     var nm=P.name||'Partner';
     c.fillStyle='#fff'; c.font='900 38px Arial'; c.fillText(nm.slice(0,17), 260, 160);
     if(v48Kyc()){ c.fillStyle='#15a04a'; rr(260,176,158,36,18); c.fill(); c.fillStyle='#fff'; c.font='900 19px Arial'; c.fillText('✔ VERIFIED', 280, 201); }
+    var _gn=(P.gender||(P.kycInfo&&P.kycInfo.gender)||ki.gender||''), _gt='';
+    if(_gn==='Male') _gt='👨 पुरुष (Male)'; else if(_gn==='Female') _gt='👩 महिला (Female)'; else if(_gn==='Other') _gt='अन्य (Other)';
     c.fillStyle='#e8d9ff'; c.font='700 22px Arial';
     c.fillText('📱 +91 '+me(), 260, 250);
+    if(_gt){ var _w2=c.measureText('📱 +91 '+me()).width; c.fillStyle='#ffd700'; c.font='800 19px Arial'; c.fillText('    '+_gt, 260+_w2, 250); c.fillStyle='#e8d9ff'; c.font='700 22px Arial'; }
     if(ki.father) c.fillText('👨 पिता: '+ki.father.slice(0,20), 260, 282);
     c.fillText('📍 '+((ki.city||P.wkCity||'India')+(ki.pin?' - '+ki.pin:'')).slice(0,26), 260, 314);
     if(ki.aadhaar) c.fillText('🪪 आधार: XXXX XXXX '+ki.aadhaar.slice(-4), 260, 346);
@@ -2157,6 +2283,10 @@ v47IdPng=function(cb){
     c.fillText('Authorized Signatory', 595, 398);
     c.strokeStyle='rgba(255,215,0,.5)'; c.setLineDash([8,6]); c.beginPath(); c.moveTo(40,412); c.lineTo(760,412); c.stroke(); c.setLineDash([]);
     c.fillStyle='#ffd700'; c.font='800 17px Arial'; c.fillText('SewaAstra  •  Help: +91 78699 69190  •  🔒 100% Verified Partner', 40, 446);
+    /* 📱 QR code — यही partner ID verify */
+    swIdQR(c, 646, 205, 100, 'SWP-'+me());
+    c.fillStyle='#ffd700'; c.font='800 12px Arial';
+    c.fillText('SCAN & VERIFY', 640, 330);
     cb(cv.toDataURL('image/png'));
   }
   if(kyc.selfie){
@@ -2298,23 +2428,26 @@ acc=function(oid){
 function v50Dep(){
   var f=v50Cash();
   if(f<=0) return sAlert('आपके पास कोई floating cash नहीं है — सब जमा है! 👌','सब Clear ✅','💵');
-  var a=prompt('कितने ₹ जमा कर रहे हैं? (floating: ₹'+f+')',f);
-  if(!a) return; a=parseInt(a,10);
-  if(!(a>0)||a>f) return toast('❌ सही amount डालें (max ₹'+f+')');
-  var upi='upi://pay?pa=shoorshyam.vishwakarma@ibl&pn=SewaAstra&am='+a+'&cu=INR&tn=PartnerCashDeposit'+me();
-  try{ window.location.href=upi; }catch(e){}
-  setTimeout(function(){
-    var ref=prompt('UPI से ₹'+a+' भेजने के बाद UTR/Ref नंबर डालें:');
-    if(!ref||ref.trim().length<6) return toast('❌ UTR ज़रूरी — बिना UTR जमा दर्ज नहीं होगा');
-    ldr('💸 दर्ज हो रहा है...');
-    FS.collection('partners').doc(me()).collection('deposits').add({
-      amt:a, ref:ref.trim(), status:'Pending', phone:me(), name:P.name||'', ts:Date.now(), at:new Date().toLocaleString('en-IN')
-    }).then(function(){
-      ldrX(); vib([80,40,80]);
-      sAlert('₹'+a+' का deposit दर्ज हो गया (UTR: '+ref.trim()+')।\n\nAdmin verify करेंगे — verify होते ही floating cash कम हो जाएगा।','Deposit दर्ज! 💸','✅');
-      v50Load(function(){ drawEarn(); });
-    }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
-  },1500);
+  swUi.prompt({icon:'💵',title:'Cash जमा',msg:'कितने ₹ जमा कर रहे हैं? (floating: ₹'+f.toLocaleString('en-IN')+')',def:f,ph:'₹',ok:'आगे →',cancel:'रद्द',onOk:function(val){
+    var a=parseInt(String(val==null?'':val).replace(/[^\d]/g,''),10);
+    if(!(a>0)||a>f) return toast('❌ सही amount डालें (max ₹'+f.toLocaleString('en-IN')+')');
+    var upi='upi://pay?pa=shoorshyam.vishwakarma@ibl&pn=SewaAstra&am='+a+'&cu=INR&tn=PartnerCashDeposit'+me();
+    try{ window.location.href=upi; }catch(e){}
+    setTimeout(function(){
+      swUi.prompt({icon:'🧾',title:'UTR / Ref नंबर',msg:'UPI से ₹'+a+' भेजने के बाद UTR/Ref नंबर डालें:',ph:'UTR / Ref नंबर',ok:'जमा दर्ज करें',cancel:'रद्द',onOk:function(rf){
+        var ref=String(rf==null?'':rf).trim();
+        if(ref.length<6){ toast('❌ UTR ज़रूरी — बिना UTR जमा दर्ज नहीं होगा'); return; }
+        ldr('💸 दर्ज हो रहा है...');
+        FS.collection('partners').doc(me()).collection('deposits').add({
+          amt:a, ref:ref, status:'Pending', phone:me(), name:P.name||'', ts:Date.now(), at:new Date().toLocaleString('en-IN')
+        }).then(function(){
+          ldrX(); vib([80,40,80]);
+          sAlert('₹'+a+' का deposit दर्ज हो गया (UTR: '+ref+')।\n\nAdmin verify करेंगे — verify होते ही floating cash कम हो जाएगा।','Deposit दर्ज! 💸','✅');
+          v50Load(function(){ drawEarn(); });
+        }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+      }});
+    },1500);
+  }});
 }
 
 /* 🏆 3) INCENTIVES */
@@ -2485,11 +2618,12 @@ v50Cash=function(){
 function v54Col(oid,amt){
   var f=v50Cash();
   if(f+amt>FLOAT_LIM) return sAlert('यह ₹'+amt+' लेने पर floating cash ₹'+(f+amt).toLocaleString('en-IN')+' हो जाएगा — limit ₹2,000 पार!\n\nपहले जमा करें (कमाई tab → 💵 Cash जमा करें), फिर collect करें।\nया customer से UPI/online payment लें।','💵 Limit पार हो जाएगी','🔒');
-  if(!confirm('Customer से ₹'+amt+' cash ले लिया? दर्ज करें?')) return;
-  ldr('💵 दर्ज...');
-  FS.collection('orders').doc(oid).update({'payment.cash':true,'payment.verified':true,'payment.status':'Cash ✅ Collected','payment.cashAt':Date.now(),'payment.by':me()})
-    .then(function(){ ldrX(); vib([80,40,80]); toast('💵 ₹'+amt+' cash collect दर्ज!'); })
-    .catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+  swUi.confirm({icon:'💵',title:'Cash Collect',msg:'Customer से ₹'+amt+' cash ले लिया? दर्ज करें?',ok:'✅ हाँ, दर्ज करें',cancel:'रुकें',onOk:function(){
+    ldr('💵 दर्ज...');
+    FS.collection('orders').doc(oid).update({'payment.cash':true,'payment.verified':true,'payment.status':'Cash ✅ Collected','payment.cashAt':Date.now(),'payment.by':me()})
+      .then(function(){ ldrX(); vib([80,40,80]); toast('💵 ₹'+amt+' cash collect दर्ज!'); })
+      .catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
+  }});
 }
 function v54Btns(){
   var m=me(), lj=$('lsJ'); if(!lj) return;
@@ -4992,7 +5126,7 @@ var LGS=[['hi','हिन्दी'],['en','English']];
     x.innerHTML=
       '<div id="v68Ob" style="text-align:center;padding:24px 6px 8px;">'+
         '<div style="font-size:56px;">🧾</div>'+
-        '<h2 style="font-size:19px;margin:12px 0 6px;">KYC APPROVED ✅ — अब Onboarding Fee ज़रूरी</h2>'+
+        '<h2 class="kH" style="font-size:20px;margin:12px 0 6px;">KYC APPROVED ✅ — अब Onboarding Fee ज़रूरी</h2>'+
         '<div style="font-size:12.5px;color:#988;line-height:1.7;">App में काम/ऑर्डर शुरू करने से पहले onboarding fee पूरी करनी होगी।<br>Pay करके UTR डालें — Admin verify करेगा।</div>'+
         '<div class="cd" style="margin-top:16px;border:1.5px solid #7a5a00;">'+
           '<div style="font-size:11px;color:#8a94ab;font-weight:800;">Onboarding Fee'+(d.free?'':' <s style="opacity:.55;">₹'+Number(d.orig||0).toLocaleString('en-IN')+'</s>')+'</div>'+
@@ -5266,112 +5400,304 @@ window.SWAgora=(function(){
 })();
 </script>
 
-<!-- 🚪 EXIT CONFIRMATION GUARD v8.1 -->
+
+<style>
+/* ===== SEWAASTRA KYC FULL-COLOR v8.2 ===== */
+#obX h2.kH{background:linear-gradient(90deg,#ff6b00,#ff2d95 55%,#7a2bff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;font-weight:900;letter-spacing:.3px;}
+#kForm h2.kH{font-size:22px;}
+#kForm .cd.kyk{background:linear-gradient(180deg,var(--card),var(--prl));border:1.5px solid var(--bd);border-radius:16px;box-shadow:0 4px 14px rgba(122,43,255,.08);position:relative;overflow:hidden;padding-left:16px;}
+#kForm .cd.kyk::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:linear-gradient(180deg,#ff6b00,#ff2d95,#7a2bff);}
+#kForm .cd.kyk > b:first-child{color:var(--pr);font-size:13px;}
+#kForm #kSub{background:linear-gradient(135deg,#ff6b00,#ff2d95 55%,#7a2bff)!important;color:#fff;border:none;border-radius:15px;font-size:14.5px;box-shadow:0 10px 26px rgba(255,45,149,.35);}
+#kDocs .kyd,#obX .kyg .kyd{transition:.18s;border-radius:16px;border-width:2px;}
+#kDocs .kyd:nth-child(1),#obX .kyg .kyd:nth-child(1){background:linear-gradient(180deg,#fff6ec,#ffe8d1);border-color:#ff8a3d;}
+#kDocs .kyd:nth-child(2),#obX .kyg .kyd:nth-child(2){background:linear-gradient(180deg,#eef6ff,#d9e9ff);border-color:#2f7cf6;}
+#kDocs .kyd:nth-child(3),#obX .kyg .kyd:nth-child(3){background:linear-gradient(180deg,#f4efff,#e2d7ff);border-color:#8a4dff;}
+#kDocs .kyd:nth-child(4),#obX .kyg .kyd:nth-child(4){background:linear-gradient(180deg,#ffe4ef,#ffd3e6);border-color:#ff2d95;}
+#kDocs .kyd .i2{font-size:32px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.12));}
+#kDocs .kyd .n2{color:#5a4a3a;font-size:10.5px;}
+#kDocs .kyd.dn img,#obX .kyg .kyd.dn img{box-shadow:0 4px 10px rgba(0,0,0,.18);}
+#kDocs .kyd .ok2{border:2px solid #fff;width:21px;height:21px;}
+body.dark #kForm .cd.kyk{background:linear-gradient(180deg,#1c2440,#33203c);}
+body.dark #kForm .cd.kyk::before{width:7px;}
+body.dark #kDocs .kyd:nth-child(1),body.dark #obX .kyg .kyd:nth-child(1){background:linear-gradient(180deg,#3a2410,#55300f);border-color:#ffb25e;}
+body.dark #kDocs .kyd:nth-child(2),body.dark #obX .kyg .kyd:nth-child(2){background:linear-gradient(180deg,#12233f,#1a3160);border-color:#5a9bff;}
+body.dark #kDocs .kyd:nth-child(3),body.dark #obX .kyg .kyd:nth-child(3){background:linear-gradient(180deg,#241539,#3a2263);border-color:#a78bff;}
+body.dark #kDocs .kyd:nth-child(4),body.dark #obX .kyg .kyd:nth-child(4){background:linear-gradient(180deg,#3a1222,#5a1c36);border-color:#ff7ab0;}
+body.dark #kDocs .kyd .n2{color:#f2d9e6;}
+</style>
+<style>
+.bn.v51s{background:linear-gradient(135deg,#ff6b00,#ff2d95 55%,#7a2bff);color:#fff;border:none;border-radius:14px;font-weight:900;font-size:13px;box-shadow:0 8px 20px rgba(255,45,149,.32);}
+.bn.v51r{background:linear-gradient(90deg,#7a2bff,#0d6efd);color:#fff;border:none;border-radius:12px;font-weight:900;box-shadow:0 6px 16px rgba(122,43,255,.28);}
+</style>
+<script>
+(function(){
+  try{
+    if(window.__exitGuard && window.__exitGuard.registerCloser){
+      window.__exitGuard.registerCloser(function(){
+        try{
+          var sx=document.getElementById('sxOv');
+          if(sx && sx.classList && sx.classList.contains('open')){ if(window.v56Close) window.v56Close(); return true; }
+          var cm=document.getElementById('camOv');
+          if(cm && cm.style && cm.style.display==='flex'){ if(window.v46CamX) window.v46CamX(); return true; }
+          var gg=document.getElementById('ggOv');
+          if(gg && gg.style && gg.style.display==='flex'){ gg.style.display='none'; return true; }
+        }catch(e){}
+        return false;
+      });
+    }
+  }catch(e){}
+})();
+</script>
+
+<!-- 💎 SUNDER POPUP SYSTEM v8.3 -->
 <script>
 /* ═══════════════════════════════════════════════════════════════
-   SEWAASTRA — EXIT GUARD v8.1 (teeno apps)
-   • Back button / tab close / refresh par puchhe bina bahar nahi ja sakte
-   • Custom in-app modal (koi native confirm/prompt nahi)
-   • window.__exitGuard.silent() — internal reload/logout ke liye bypass
+   SEWAASTRA — SUNDER POPUP SYSTEM v8.3
+   Har alert/confirm/prompt = beautiful in-app popup (kabhi native
+   browser/GitHub jaisa popup nahi). window.alert/confirm/prompt sab
+   yahin route hote hain.
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  if(window.__sunderUi) return; window.__sunderUi=1;
+  var Z=2147483000, ov=null, box=null, cur=null;
+
+  function el(id){ return document.getElementById(id); }
+  function esc(s){ s=String(s==null?'':s); return s.replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+  function nl(s){ return esc(s).replace(/\\n/g,'<br>'); }
+
+  function cssOnce(){
+    if(document.getElementById('swSunderCss')) return;
+    var st=document.createElement('style'); st.id='swSunderCss';
+    st.textContent=
+      '#swSOv{position:fixed;inset:0;z-index:'+Z+';display:none;align-items:center;justify-content:center;padding:18px;background:rgba(7,10,28,.62);backdrop-filter:blur(6px);}'+
+      '#swSOv.on{display:flex;}'+
+      '#swSBox{width:min(92vw,356px);max-height:86vh;overflow:hidden;border-radius:26px;background:#fff;color:#1b2540;box-shadow:0 30px 90px rgba(2,5,20,.6);display:flex;flex-direction:column;animation:swSIn .28s cubic-bezier(.2,1.15,.4,1);border:1px solid rgba(255,255,255,.18);}'+
+      '@keyframes swSIn{from{transform:translateY(26px) scale(.95);opacity:0}to{transform:none;opacity:1}}'+
+      '#swSH{background:linear-gradient(135deg,#0b1220,#26364f 55%,#ff6b00);color:#fff;padding:20px 18px 26px;text-align:center;position:relative;}'+
+      '#swSH .swI{width:66px;height:66px;border-radius:50%;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:30px;background:linear-gradient(135deg,#ff6b00,#ff2d95 55%,#7a2bff);box-shadow:0 8px 26px rgba(255,45,149,.45);}'+
+      '#swSH .swT{font-size:17px;font-weight:900;}'+
+      '#swSH .swS{font-size:12px;opacity:.85;line-height:1.6;margin-top:6px;word-break:break-word;}'+
+      '#swSB{padding:16px 16px 18px;overflow-y:auto;}'+
+      '#swSB .swRow{display:flex;gap:9px;margin-top:2px;}'+
+      '#swSB .swB{flex:1;border:none;border-radius:14px;padding:13px 8px;font-weight:900;font-size:13px;cursor:pointer;color:#fff;}'+
+      '#swSB .swIn{width:100%;box-sizing:border-box;border:2px solid #e2e8f4;border-radius:13px;padding:12px;font-size:14px;font-weight:800;outline:none;margin-top:8px;background:#f6f9ff;color:#1b2540;}'+
+      '#swSB .swIn:focus{border-color:#ff6b00;background:#fff;}'+
+      'body.dark-mode #swSBox, body.dark #swSBox{background:#131a2e;color:#eef2fb;}'+
+      'body.dark-mode #swSB .swIn, body.dark #swSB .swIn{background:#0e1526;border-color:#2a3857;color:#eef2fb;}';
+    document.head.appendChild(st);
+  }
+  function ensure(){
+    cssOnce();
+    if(ov) return;
+    ov=document.createElement('div'); ov.id='swSOv';
+    ov.innerHTML='<div id="swSBox"><div id="swSH"><div class="swI" id="swSI">💬</div><div class="swT" id="swST"></div><div class="swS" id="swSS"></div></div><div id="swSB"></div></div>';
+    document.body.appendChild(ov);
+    box=el('swSBox');
+    ov.addEventListener('click',function(e){ if(e.target===ov && cur && cur.tap) close(); });
+  }
+  function open(o){
+    ensure();
+    cur=o;
+    ov.classList.add('on');
+    el('swSI').textContent=o.icon||'💬';
+    el('swST').textContent=o.title||'SewaAstra';
+    el('swSS').innerHTML=o.html||nl(o.msg||'');
+    var b=el('swSB');
+    b.innerHTML='';
+    if(o.input){
+      var inp=document.createElement('input');
+      inp.type=(o.inputType)||'text';
+      inp.className='swIn';
+      inp.placeholder=o.ph||'';
+      inp.value=(o.def==null?'':o.def);
+      b.appendChild(inp);
+      setTimeout(function(){ try{ inp.focus(); }catch(e){} },120);
+    }
+    var row=document.createElement('div'); row.className='swRow';
+    function mk(txt,bg,cls,fn){
+      var x=document.createElement('button'); x.className='swB '+cls;
+      x.style.background=bg; x.innerHTML=txt;
+      x.onclick=function(){ close(); if(fn) fn(); };
+      return x;
+    }
+    if(o.input){
+      row.appendChild(mk(o.ok||'✅ ठीक है', o.danger?'linear-gradient(135deg,#e53935,#ff6659)':'linear-gradient(135deg,#15a04a,#1fc25e)','swOk',function(){ var v=inp.value; if(o.onOk) o.onOk(v); }));
+      row.appendChild(mk(o.cancel||'✕ रद्द','linear-gradient(135deg,#6b7686,#546078)','swNo',o.onCancel));
+    } else if(o.buttons==='no'){
+      row.appendChild(mk(o.ok||'✅ ठीक है','linear-gradient(135deg,#0d6efd,#7a5cff)','swOk',o.onOk));
+    } else {
+      row.appendChild(mk(o.cancel||'✕ '+(o.no||'रुकें'),'linear-gradient(135deg,#6b7686,#546078)','swNo',o.onCancel));
+      row.appendChild(mk(o.ok||'✅ '+(o.yes||'हाँ'), o.danger?'linear-gradient(135deg,#e53935,#ff6659)':'linear-gradient(135deg,#0d6efd,#7a5cff)','swOk',o.onOk));
+    }
+    b.appendChild(row);
+    return o;
+  }
+  function close(){ if(ov) ov.classList.remove('on'); }
+  window.swUi={
+    alert:function(o){ open(typeof o==='string'?{msg:o}:o); },
+    confirm:function(o){ o.buttons='yn'; return open(o); },
+    prompt:function(o){ o.input=true; o.tap=false; return open(o); },
+    close:close
+  };
+  console.log('%c 💎 SUNDER POPUPS v8.3 ','background:linear-gradient(90deg,#ff2d95,#7a2bff);color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+<script>
+/* Native overrides — har alert/confirm/prompt ab sunder in-app popup */
+(function(){
+  window.alert=function(m){
+    try{ if(window.sAlert){ sAlert(String(m==null?'':m)); return; } }catch(e){}
+    try{ swUi.alert({msg:m}); }catch(e){}
+  };
+  window.confirm=function(){ return false; };
+  window.prompt=function(){ return null; };
+})();
+</script>
+<style>
+/* SewaAstra Logo ring — Partner login (v8.4) */
+.lglogo{width:92px;height:92px;border-radius:50%;margin:0 auto 13px;padding:4px;background:conic-gradient(from 200deg,#ff6b00,#ff2d95,#7a2bff,#ffd700,#ff6b00);box-shadow:0 14px 36px rgba(255,45,149,.5);animation:bb 2.4s infinite;}
+.lglogo-i{width:100%;height:100%;border-radius:50%;background:#0b1220;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid #0b1220;}
+.lglogo-i img{width:100%;height:100%;object-fit:cover;display:block;}
+.lglogo-i b{display:none;font-size:40px;}
+</style>
+<!-- 🚪 EXIT CONFIRMATION GUARD v8.2 -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SEWAASTRA — EXIT GUARD v8.2 (teeno apps) — सुंदर confirm popup
+   • Back button / tab close / refresh / logout — bina confirm bahar nahi
+   • Custom gradient modal (koi native confirm/prompt nahi)
+   • In-app internal pages (Policy/About/Terms) kholne par confirm NAHI
+   • window.__exitGuard.silent() = internal reload/logout bypass
    ═══════════════════════════════════════════════════════════════ */
 (function(){
   if(window.__exitGuardInstalled) return; window.__exitGuardInstalled=1;
   var armed=true, silentT=0, pendingExit=false, zz=2147483600;
-  var root=null, box=null;
-
+  var root=null, box=null, busy=null;
+  var PAL={
+    bg:'linear-gradient(160deg,#101c3f,#17284f 45%,#0b142e)',
+    card:'linear-gradient(165deg,#ffffff,#f2f5fd)',
+    ring:'linear-gradient(135deg,#ff6b00,#ff2d95,#7a2bff)',
+    good:'linear-gradient(135deg,#15a04a,#1fc25e)',
+    bad:'linear-gradient(135deg,#e53935,#ff6659)',
+    blu:'linear-gradient(135deg,#0d6efd,#7a5cff)'
+  };
   function el(id){ return document.getElementById(id); }
+  function _m(){ return busy||null; }
 
   function ensureUI(){
     if(root) return;
     root=document.createElement('div');
     root.id='swExitRoot';
     root.innerHTML=
-      '<div id="swExitBg" style="position:fixed;inset:0;background:rgba(5,8,20,.7);backdrop-filter:blur(4px);z-index:'+zz+';display:none;align-items:center;justify-content:center;padding:18px;"></div>'+
-      '<div id="swExitBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);z-index:'+(zz+1)+';width:min(90vw,330px);background:linear-gradient(165deg,#ffffff,#f4f6fb);color:#17203a;border-radius:24px;box-shadow:0 24px 80px rgba(0,0,0,.45);padding:24px 20px 18px;text-align:center;display:none;font-family:system-ui,Arial,sans-serif;"></div>';
+      '<div id="swExitBg" style="position:fixed;inset:0;background:rgba(8,10,26,.62);backdrop-filter:blur(6px);z-index:'+zz+';display:none;align-items:center;justify-content:center;padding:18px;"></div>'+
+      '<div id="swExitBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:'+(zz+1)+';width:min(92vw,352px);display:none;text-align:center;font-family:system-ui,Arial,sans-serif;overflow:hidden;border-radius:26px;box-shadow:0 30px 90px rgba(3,6,20,.65);border:1px solid rgba(255,255,255,.25);"></div>';
     document.body.appendChild(root);
-    var bg=el('swExitBg'), bx=el('swExitBox');
-    if(bg) bg.addEventListener('click',function(e){ if(e.target===bg) stay(); });
+    var bg=el('swExitBg');
+    if(bg) bg.addEventListener('click',function(e){ if(e.target===bg){ dismiss(); } });
   }
-  function show(){
+  function render(cfg){
     ensureUI();
-    if(!box){ return; }
-    box.innerHTML=
-      '<div style="font-size:46px;line-height:1;">🚪</div>'+
-      '<div style="font-size:17px;font-weight:900;margin:12px 0 5px;">बाहर जाना है?</div>'+
-      '<div style="font-size:12px;color:#556;line-height:1.7;margin-bottom:16px;">क्या आप सच में SewaAstra से बाहर जाना चाहते हैं?<br><b>रुकें</b> दबाएँ तो आप यहीं बने रहेंगे।</div>'+
-      '<div style="display:flex;gap:8px;">'+
-        '<button id="swExitYes" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;background:#e53935;color:#fff;">हाँ, बाहर जाएँ</button>'+
-        '<button id="swExitNo" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;background:#0d6efd;color:#fff;">रुकें</button>'+
+    var icon=(cfg&&cfg.icon)||'🚪';
+    var title=(cfg&&cfg.title)||'बाहर जाना है?';
+    var sub=(cfg&&cfg.sub)||'क्या आप सच में SewaAstra से बाहर जाना चाहते हैं?<br><b>रुकें</b> दबाएँ तो आप यहीं बने रहेंगे।';
+    var yes=(cfg&&cfg.yes)||'हाँ, बाहर जाएँ';
+    var no=(cfg&&cfg.no)||'रुकें';
+    var yesBg=(cfg&&cfg.yesBg)||PAL.bad;
+    var sub2=(cfg&&cfg.sub2)||'';
+    var html=
+      '<div style="background:'+PAL.bg+';color:#fff;padding:26px 18px 34px;position:relative;">'+
+        '<div style="width:84px;height:84px;border-radius:50%;margin:0 auto 14px;background:'+PAL.ring+';display:flex;align-items:center;justify-content:center;font-size:40px;box-shadow:0 10px 34px rgba(255,45,149,.5);">'+icon+'</div>'+
+        '<div style="font-size:18.5px;font-weight:900;letter-spacing:.2px;">'+title+'</div>'+
+        '<div style="font-size:12px;opacity:.82;line-height:1.65;margin-top:7px;">'+sub+'</div>'+
+      '</div>'+
+      '<div style="background:'+PAL.card+';color:#1c2542;padding:16px 16px 18px;">'+
+        (sub2?'<div style="font-size:10.5px;color:#8a93ad;line-height:1.6;margin-bottom:10px;">'+sub2+'</div>':'')+
+        '<div style="display:flex;gap:9px;">'+
+          '<button id="swExitYes" style="flex:1.15;border:none;border-radius:14px;padding:13px 6px;font-weight:900;font-size:13px;cursor:pointer;color:#fff;background:'+yesBg+';box-shadow:0 8px 22px rgba(0,0,0,.18);">'+yes+'</button>'+
+          '<button id="swExitNo" style="flex:1;border:none;border-radius:14px;padding:13px 6px;font-weight:900;font-size:13px;cursor:pointer;background:'+PAL.blu+';color:#fff;box-shadow:0 8px 22px rgba(13,110,253,.25);">'+no+'</button>'+
+        '</div>'+
       '</div>';
-    var b1=el('swExitYes'), b2=el('swExitNo');
-    if(b1) b1.onclick=function(){ goOut(); };
-    if(b2) b2.onclick=function(){ stay(); };
+    box=el('swExitBox');
+    box.innerHTML=html;
+    box.style.background=PAL.card;
     var bg=el('swExitBg'); if(bg) bg.style.display='flex';
     box.style.display='block';
+    var y=el('swExitYes'), n=el('swExitNo');
+    if(y) y.onclick=function(){ try{ (cfg&&cfg.cb)(); }catch(e){ console.log(e); } hide(); };
+    if(n) n.onclick=function(){ dismiss(); };
+    return cfg;
   }
   function hide(){
     var bg=el('swExitBg'); if(bg) bg.style.display='none';
-    if(box) box.style.display='none';
+    var b=el('swExitBox'); if(b) b.style.display='none';
   }
-  function stay(){ pendingExit=false; hide(); trap(); }
+  function dismiss(){ hide(); pendingExit=false; busy=null; }
   function trap(){
     try{
-      if(history.state && history.state.__swg) return;
-      history.replaceState({__swg:1}, '');
-      history.pushState({__swg:1}, '');
+      if(history.state&&history.state.__swg) return;
+      history.replaceState({__swg:1},'');
+      history.pushState({__swg:1},'');
     }catch(e){}
   }
   function goOut(){
-    pendingExit=true; armed=false;
-    try{ silentT=Date.now(); }catch(e){}
+    pendingExit=true; armed=false; busy=null;
     hide();
-    var done=false;
     setTimeout(function(){
-      try{ if(history.length>1){ history.back(); done=true; } }catch(e){}
+      try{ if(history.length>1) history.back(); }catch(e){}
       setTimeout(function(){
         try{ window.close(); }catch(e){}
         setTimeout(function(){
-          if(!done){
-            // browser ne tab band nahi kiya — ek aakhri naram notice
+          if(!document.hidden){
             ensureUI();
-            if(box) box.innerHTML='<div style="font-size:38px;">👋</div><div style="font-size:14px;font-weight:800;margin-top:10px;">फिर मिलेंगे!</div><div style="font-size:11px;color:#667;margin-top:6px;">इस browser में अब tab बंद कर सकते हैं।</div>';
+            var b=el('swExitBox');
+            if(b) b.innerHTML='<div style="background:'+PAL.bg+';color:#fff;padding:26px 16px;"><div style="font-size:40px;">👋</div><div style="font-size:15px;font-weight:900;margin-top:10px;">फिर मिलेंगे!</div><div style="font-size:11px;opacity:.8;margin-top:6px;">अब आप इस tab को बंद कर सकते हैं।</div></div>';
           }
-        },700);
-      },300);
-    },60);
+        },800);
+      },350);
+    },80);
   }
 
-  /* back button (Android/browser) */
+  /* 🔙 Android/browser back — pehle app ke kholे हुए internal page (Policy/About/Terms/modal) band */
   window.addEventListener('popstate',function(){
-    if(!armed) return;
-    if(pendingExit) return;             // exit already confirmed — allow
-    show();
+    if(!armed||pendingExit) return;
+    try{
+      var cbs=window.__exitGuardCloseables||[];
+      for(var i=0;i<cbs.length;i++){ try{ if(cbs[i]()) return; }catch(e){} }
+    }catch(e){}
+    render({icon:'🚪',title:'बाहर जाना है?',sub:'क्या आप सच में SewaAstra से बाहर जाना चाहते हैं?<br><b>रुकें</b> दबाएँ तो आप यहीं बने रहेंगे।',yes:'हाँ, बाहर जाएँ',no:'रुकें',cb:function(){ goOut(); }});
+    busy='back';
   });
-  /* tab close / refresh / external link — browser native leave prompt */
+  /* 🧾 tab close / refresh / external page */
   window.addEventListener('beforeunload',function(e){
     if(!armed) return;
-    if(Date.now()-silentT<1200) return; // internal silent reload
+    if(Date.now()-silentT<1500) return;
     e.preventDefault();
     e.returnValue='';
   });
 
-  /* keyboard shortcut bhi confirm kar de (alt+left etc.) */
-  window.addEventListener('pagehide',function(){ /* kuch nahi — pagehide flow block nahi hota */ });
-
-  /* API */
   window.__exitGuard={
     armed:function(){ return armed; },
     disarm:function(){ armed=false; },
     rearm:function(){ armed=true; trap(); },
     silent:function(){ silentT=Date.now(); armed=false; },
     trap:trap,
-    askExit:show
+    askExit:function(){ render({cb:function(){ goOut(); }}); busy='back'; },
+    /* ✋ कस्टम सुंदर confirm — cb() चलेगा sirf 'हाँ' par */
+    confirmExit:function(cfg){ busy='custom'; render(cfg); return cfg; },
+    registerCloser:function(fn){ try{ window.__exitGuardCloseables=window.__exitGuardCloseables||[]; window.__exitGuardCloseables.push(fn); }catch(e){} },
+    dismiss:dismiss,
+    _modal:function(){ return _m(); }
   };
-
   try{ trap(); }catch(e){}
-  console.log('%c 🚪 EXIT GUARD v8.1 — bina confirm bahar nahi ja sakte ','background:#e53935;color:#fff;font-weight:bold;padding:3px;');
+  console.log('%c 🚪 EXIT GUARD v8.2 — kahi se bhi exit confirm popup ✅ ','background:linear-gradient(90deg,#e53935,#7a2bff);color:#fff;font-weight:bold;padding:3px;');
 })();
 
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35c1e3c8b240e6e',t:'MTc4ODUxNTcyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* PWA — Partner App installable (Play Store wrap-ready) */
+(function(){ try{ if('serviceWorker' in navigator && (location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){ navigator.serviceWorker.register('sw.js').catch(function(e){ console.log('sw',e); }); } }catch(e){} })();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35c88be9d3db33b',t:'MTc4ODUyMDA4NA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
