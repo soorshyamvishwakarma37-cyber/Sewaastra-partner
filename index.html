@@ -439,7 +439,10 @@ firebase.auth().onAuthStateChanged(function(u){
   enter();
   if(!me()) toast('📱 KYC form में मोबाइल नंबर भरें');
   var ph2=me();
-  if(ph2){ FS.collection('partners').doc(ph2).set({phone:ph2,uid:u.uid,email:u.email||'',lastLogin:Date.now()},{merge:true}).catch(function(){});
+  if(ph2){
+    var po={phone:ph2,uid:u.uid,lastLogin:Date.now()};
+    if(u.email) po.email=String(u.email).trim().toLowerCase();   /* phone login से gmail-email कभी न मिटे */
+    FS.collection('partners').doc(ph2).set(po,{merge:true}).catch(function(){});
     FS.collection('partnerByUid').doc(u.uid).set({uid:u.uid,phone:ph2,ts:Date.now()},{merge:true}).catch(function(){}); }
 });
 /* 💓 LIVE HEARTBEAT — हर 30s Firebase में lastSeen + online + LIVE LOCATION (admin tracking) */
@@ -459,25 +462,52 @@ var PLOAD=0;   /* partner doc load होने तक gate रुके — स
 function curEmail(){ try{ var u=firebase.auth().currentUser; if(!u) return ''; return String((u.email||'')||'').trim().toLowerCase(); }catch(e){ return ''; } }
 /* gmail-login par: अगर इसी email से पहले कोई partner बना है → उसी partner पर auto-route */
 function bindGmailPartner(){
+  function gate(){ PLOAD=1; try{ if(window.v43Gate) v43Gate(); }catch(e){} }
+  function adopt(did,nm){
+    try{ localStorage.setItem('swp_phone',did); if(nm) localStorage.setItem('swp_name',nm); }catch(e){}
+    location.reload();
+  }
+  function linkExisting(docId,uid){
+    /* OTP से बना partner, अब इसी gmail से login — doc को email+uid से जोड़ दो (dobara KYC नहीं) */
+    try{ FS.collection('partners').doc(docId).set({uid:uid,email:curEmail()},{merge:true}).catch(function(){}); }catch(e){}
+    try{ FS.collection('partnerByUid').doc(uid).set({uid:uid,phone:docId,ts:Date.now()},{merge:true}).catch(function(){}); }catch(e){}
+    PLOAD=1; P=P||{}; try{ listenPartner(); }catch(e){} gate();
+  }
   try{
-    var u=firebase.auth().currentUser; if(!u){ PLOAD=1; try{ if(window.v43Gate) v43Gate(); }catch(e){} return; }
+    var u=firebase.auth().currentUser;
+    if(!u){ gate(); return; }
     var em=String((u.email||'')||'').trim().toLowerCase();
     var ph=me();
-    if(em&&!ph){
-      try{ FS.collection('partners').where('email','==',em).get().then(function(sn){
+    var uid=(u.uid)||'';
+    if(!em){ gate(); return; }                     /* phone login — doc phone से ही */
+    try{
+      FS.collection('partners').where('email','==',em).get().then(function(sn){
         try{
           if(sn.docs.length){
-            var d0=sn.docs[0], nm=d0.data().name||'';
-            localStorage.setItem('swp_phone',d0.id);
-            if(nm) localStorage.setItem('swp_name',nm);
-            location.reload();
-          } else { PLOAD=1; P={}; try{ if(window.v43Gate) v43Gate(); }catch(e){} }
-        }catch(e){ PLOAD=1; try{ if(window.v43Gate) v43Gate(); }catch(e){} }
-      }).catch(function(){ PLOAD=1; try{ if(window.v43Gate) v43Gate(); }catch(e){} }); }catch(e){ PLOAD=1; }
-      return;
-    }
-    PLOAD=1;
-    try{ if(window.v43Gate) v43Gate(); }catch(e){}
+            var d0=sn.docs[0], nm0=d0.data().name||'';
+            if(d0.id===ph){ gate(); return; }
+            adopt(d0.id,nm0); return;
+          }
+          /* इस gmail से अभी कोई partner नहीं */
+          if(ph&&uid){
+            FS.collection('partners').doc(ph).get().then(function(dc){
+              try{
+                var x=dc.exists?dc.data():null;
+                var st=x&&x.kycStatus;
+                var xe=String((x&&x.email)||'').trim().toLowerCase();
+                var xu=String((x&&x.uid)||'').trim();
+                var mine=(!xu||xu===uid);              /* doc सिर्फ तभी जोड़ें जब किसी और का न हो */
+                if(dc.exists && st && mine && !xe){ linkExisting(ph,uid); return; }   /* OTP-partner auto-link */
+                if(dc.exists && xe===em){ linkExisting(ph,uid); return; }
+                /* stale/paraya phone → fresh new (gmail) user */
+                try{ localStorage.removeItem('swp_phone'); localStorage.removeItem('swp_name'); }catch(e){}
+                PLOAD=1; P={}; gate();
+              }catch(e){ try{ localStorage.removeItem('swp_phone'); }catch(x){} PLOAD=1; P={}; gate(); }
+            }).catch(function(){ PLOAD=1; P=P||{}; gate(); });
+          } else { PLOAD=1; P={}; gate(); }
+        }catch(e){ PLOAD=1; gate(); }
+      }).catch(function(){ PLOAD=1; gate(); });
+    }catch(e){ PLOAD=1; gate(); }
   }catch(e){ PLOAD=1; try{ if(window.v43Gate) v43Gate(); }catch(e){} }
 }
 function listenPartner(){
@@ -1976,13 +2006,13 @@ function v47SubReal(){
   var miss=KDOCS.filter(function(d){return !kyc[d.k];});
   if(miss.length) return toast('❌ Photos बाकी: '+miss.map(function(d){return d.n;}).join(', '));
   ldr('📤 KYC submit...');
-  FS.collection('partners').doc(ph).set({
-    name:nm, phone:ph,
-    email:curEmail(), uid:((firebase.auth().currentUser||{}).uid)||'',
+  var _em2=curEmail(), _uid2=''; try{ _uid2=((firebase.auth().currentUser||{}).uid)||''; }catch(e){}
+  var _pay={ name:nm, phone:ph, uid:_uid2,
     kycInfo:{father:fa,dob:db,address:ad,city:ct,pin:pn,aadhaar:aa,pan:pa,mainSkill:sk},
     skills:firebase.firestore.FieldValue.arrayUnion(sk),
-    kycStatus:'Submitted', kycAt:Date.now()
-  },{merge:true}).then(function(){
+    kycStatus:'Submitted', kycAt:Date.now() };
+  if(_em2) _pay.email=_em2;   /* email खाली हो तो doc से पुराना gmail नहीं मिटता */
+  FS.collection('partners').doc(ph).set(_pay,{merge:true}).then(function(){
     localStorage.setItem('swp_phone',ph);
     localStorage.setItem('swp_name',nm);
     try{ listenPartner(); }catch(e){}
@@ -4949,5 +4979,5 @@ var LGS=[['hi','हिन्दी'],['en','English']];
 })();
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a358f359ae8d3b61',t:'MTc4ODQ4MjUwNw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3591b2ecf1b6ed4',t:'MTc4ODQ4NDEzOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
