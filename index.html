@@ -195,7 +195,7 @@ body.dark #chB{background:#0d1320;}
 <div id="lgOv">
   <span class="orb o1"></span><span class="orb o2"></span>
   <div class="lgc">
-    <div class="lglogo"><span class="lglogo-i"><img src="sewaastra.png" alt="SewaAstra Logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><b>🛠️</b></span></div>
+    <div class="lglogo"><span class="lglogo-i"><img src="icon-192.png" alt="SewaAstra Logo" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"><b>🧑‍🔧</b></span></div>
     <h2>SewaAstra <span style="color:var(--pr);">Partner</span></h2>
     <div class="tg">Technician App — कमाई शुरू करें 🚀</div>
     <input class="li" type="email" id="lgEm" placeholder="ईमेल पता (Email address)" autocomplete="email">
@@ -253,7 +253,7 @@ body.dark #chB{background:#0d1320;}
       <div class="srw">🔔 ऑर्डर की आवाज़ <input type="checkbox" id="sndC" checked></div>
       <div class="srw">🗣️ नया ऑर्डर बोलकर सुनाएँ <input type="checkbox" id="vceC" checked></div>
       <div class="srw">🌙 Dark Mode <input type="checkbox" id="drkC" onchange="togDark()"></div>
-      <button class="bn o" id="pwaB" style="width:100%;margin-top:8px;padding:11px;" onclick="v41Inst()">📲 Phone में App Install करें</button>
+      <button class="bn o" id="pwaB" style="width:100%;margin-top:8px;padding:11px;" onclick="v41Inst()">⬇️ Download App</button>
       <button class="bn r" style="width:100%;margin-top:9px;padding:12px;border:1.5px solid #f5c6c3;" onclick="lgOut()">🚪 Logout</button>
     </div>
   </div>
@@ -359,7 +359,7 @@ function ago(ts){ var m=Math.floor((Date.now()-ts)/60000); return m<1?'अभी
 function hav(a,b){ if(!a||!b)return null; var R=6371,dA=(b.lat-a.lat)*Math.PI/180,dO=(b.lon-a.lon)*Math.PI/180; var x=Math.sin(dA/2)*Math.sin(dA/2)+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dO/2)*Math.sin(dO/2); return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x)); }
 function me(){ return localStorage.getItem('swp_phone')||''; }
 function pMask(s){ s=String(s==null?'':s); if(/^\d{10}$/.test(s)) return '••••••'+s.slice(-4); if(s.length<=4) return s; return s.slice(0,2)+'••••••'+s.slice(-2); }
-function isCashOrd(o){ return /cash|cod|नकद/i.test(String((o&&o.mode)||'')); }
+function isCashOrd(o){ return false; /* v10: commission CASH + ONLINE dono me lagega */ }
 /* platform commission: SIRF ONLINE-payment orders पर लागू — CASH/COD पर नहीं.
    order पर freeze (commPct) वरना live admin % (__PCOM) */
 function pComOf(o){ if(isCashOrd(o)) return 0; var c=(o&&o.commPct!=null)?Number(o.commPct):Number(window.__PCOM); return (c>0)?c:0; }
@@ -2274,7 +2274,7 @@ v47IdPng=function(cb){
     if(ki.aadhaar) c.fillText('🪪 आधार: XXXX XXXX '+ki.aadhaar.slice(-4), 260, 346);
     c.fillText('🛠️ '+((ki.mainSkill||(P.skills||[])[0]||'Technician')).slice(0,22)+'   •   ⭐ '+(P.avgRating||'—'), 260, 378);
     c.fillStyle='rgba(255,255,255,.5)'; c.font='700 15px Arial';
-    c.fillText('ID: SAP-'+me()+'  •  Issued: '+new Date().toLocaleDateString('en-IN'), 40, 398);
+    c.fillText('ID: SWP-'+me()+'  •  Issued: '+new Date().toLocaleDateString('en-IN'), 40, 398);
     /* ✍️ Authorized Signature */
     c.fillStyle='#ffd700'; c.font='italic 900 34px "Segoe Script","Brush Script MT",cursive';
     c.fillText('Shoorshyam', 565, 368);
@@ -3796,7 +3796,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         togRow('🔔','नए ऑर्डर की आवाज़','',togBtn('v60Snd',sndOn,'v60Snd(this)'))+
         togRow('🗣️','Voice announcement','',togBtn('v60Vce',vceOn,'v60Vce(this)'))+
         togRow('🌙','Dark Mode','',togBtn('v60Drk',drkOn,'v60Drk(this)'))+
-        mkRow('📲','App Install','Phone home-screen पर install करें','inst')+
+        mkRow('⬇️','Download App','APK download karke install करें','inst')+
         mkRow('🆘','Support / Help','Admin call • WhatsApp • Ticket','sup')+
         '<div style="margin-top:14px;"><button class="bn r" style="width:100%;padding:13px;" onclick="lgOut()">🚪 Logout</button></div>'+
       '</div>'+
@@ -5177,7 +5177,7 @@ var AC=null;
 function ac(){ try{ if(!AC){ var C=window.AudioContext||window.webkitAudioContext; if(C) AC=new C(); } if(AC&&AC.state==='suspended'){ AC.resume().catch(function(){}); } return AC; }catch(e){ return null; } }
 function tone(f,dl,dur,vol){ try{ var c=ac(); if(!c) return; var o=c.createOscillator(),g=c.createGain(); o.connect(g); g.connect(c.destination); o.type='sine'; o.frequency.value=f; var t=c.currentTime+dl; g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol||0.25,t+0.04); g.gain.exponentialRampToValueAtTime(0.0001,t+dur); o.start(t); o.stop(t+dur+0.05); }catch(e){} }
 var ringT=null,vibT=null;
-function ringStart(incoming){ ringStop(); ringT=setInterval(function(){ if(incoming){ tone(440,0,0.32,0.28); tone(480,0.38,0.32,0.28); } else { tone(660,0,0.16,0.16); } },incoming?1400:2000); vibT=setInterval(function(){ vib(incoming?[420,150,420,150,420]:[180]); },incoming?1750:2100); if(incoming){ tone(440,0,0.32,0.28); tone(480,0.38,0.32,0.28); } vib(incoming?[420,150,420]:[180]); }
+function ringStart(incoming){ ringStop(); ringT=setInterval(function(){ tone(440,0,0.32,0.3); tone(480,0.38,0.32,0.3); if(!incoming){ tone(660,0.82,0.16,0.2); } },1400); vibT=setInterval(function(){ vib([420,150,420,150,420]); },1750); tone(440,0,0.32,0.3); tone(480,0.38,0.32,0.3); vib([420,150,420]); }
 function ringStop(){ if(ringT){ clearInterval(ringT); ringT=null; } if(vibT){ clearInterval(vibT); vibT=null; } try{ if(navigator.vibrate) navigator.vibrate(0); }catch(e){} }
 /* state */
 var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true;
@@ -5691,6 +5691,7 @@ function advDirect(oid,cur){
 var nx=''; try{ nx=(window.FLOW&&window.FLOW[window.FLOW.indexOf(cur)+1])||''; }catch(e){}
 if(!nx){ if(cur==='Accepted') nx='On the Way'; else if(cur==='On the Way') nx='Working'; else if(cur==='Working') nx='Completed'; }
 if(!nx) return;
+if(nx==='Completed'){ try{ window.adv(oid,cur); }catch(e){} return; /* v10: bina OTP complete NAHI */ }
 var u={status:nx}; try{ u['t_'+nx.replace(/\s/g,'')]=Date.now(); }catch(e){}
 try{
 if(nx==='Completed'){ var o=findO(oid); var c=0,t=0; try{ c=Number((typeof pComOf==='function')?pComOf(o):0)||0; t=Number(o.total)||0; }catch(e){} var cm=Math.round(t*c/100); u.commPct=c; u.commAmt=Math.min(t,Math.max(0,cm)); u.netAmt=Math.max(0,t-cm); u.commCalcAt=Date.now(); }
@@ -5764,5 +5765,352 @@ console.log('%c 🤳 SELFIE INSTANT v9 (turant verify) ','background:#6a1b9a;col
 <script>
 (function(){ try{ console.log('%c 🌈 KYC TERMS COLORFUL v9 ','background:linear-gradient(90deg,#ff6b00,#ff2d95,#7a2bff);color:#fff;font-weight:bold;padding:3px;'); }catch(e){} })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35d7a587cbad896',t:'MTc4ODUyOTk4MA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══ v10 — SUNDER MIC PERMISSION BOX (dono apps) ═══ */
+(function(){
+if(window.__swMic10) return; window.__swMic10=1;
+function granted(){ try{ return localStorage.getItem('sw_mic_ok')==='1'; }catch(e){ return false; } }
+function ensure(){
+if(document.getElementById('swMicOv')) return;
+var s=document.createElement('style');
+s.textContent='#swMicOv{position:fixed;inset:0;z-index:2147483640;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.72);backdrop-filter:blur(4px);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;}#swMicOv.on{display:flex;}.swMicCard{width:100%;max-width:340px;border-radius:26px;overflow:hidden;background:#fff;color:#222;box-shadow:0 30px 80px rgba(0,0,0,.5);animation:swmIn .3s cubic-bezier(.2,1.3,.4,1);text-align:center;}@keyframes swmIn{from{transform:scale(.88) translateY(16px);opacity:0;}to{transform:none;opacity:1;}}.swMicTop{background:linear-gradient(135deg,#7a2bff,#ff2d95 60%,#ff6b00);padding:26px 18px 20px;color:#fff;}.swMicTop .mic{font-size:56px;animation:swmPu 1.6s infinite;}@keyframes swmPu{50%{transform:scale(1.15);}}.swMicB{padding:18px;}';
+document.head.appendChild(s);
+var d=document.createElement('div'); d.id='swMicOv';
+d.innerHTML='<div class="swMicCard"><div class="swMicTop"><div class="mic">🎤</div><div style="font-weight:900;font-size:16px;margin-top:8px;">Mic Permission दें</div><div style="font-size:11.5px;opacity:.92;margin-top:5px;line-height:1.6;">Masked calling (बिना नंबर दिखे बात) के लिए<br>microphone ज़रूरी है</div></div><div class="swMicB"><div style="font-size:12px;font-weight:700;color:#555;line-height:1.9;text-align:left;">✅ आपकी आवाज़ सिर्फ़ कॉल में जाती है<br>✅ नंबर दोनों तरफ़ हमेशा छिपा रहता है<br>✅ बिना बात के Mic कभी ON नहीं होता</div><button id="swMicYes" style="width:100%;margin-top:14px;border:none;border-radius:15px;padding:15px;font-weight:900;font-size:14.5px;color:#fff;background:linear-gradient(135deg,#15a04a,#1fc25e);cursor:pointer;box-shadow:0 8px 22px rgba(21,160,74,.4);">✅ Allow Mic</button><button id="swMicNo" style="width:100%;margin-top:9px;border:none;background:none;color:#888;font-weight:800;font-size:12px;cursor:pointer;padding:8px;">बाद में</button></div></div>';
+document.body.appendChild(d);
+}
+var pending=null;
+function hide(){ var e=document.getElementById('swMicOv'); if(e) e.classList.remove('on'); }
+function goNext(){ hide(); var f=pending; pending=null; if(f){ try{ f(); }catch(e){} } }
+window.swAskMic=function(next){
+ensure();
+if(granted()){ if(next){ try{ next(); }catch(e){} } return; }
+pending=next||null;
+document.getElementById('swMicOv').classList.add('on');
+document.getElementById('swMicYes').onclick=function(){
+try{
+if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ try{ localStorage.setItem('sw_mic_asked','1'); }catch(e){} goNext(); return; }
+navigator.mediaDevices.getUserMedia({audio:true}).then(function(st){
+try{ st.getTracks().forEach(function(t){ t.stop(); }); }catch(e){}
+try{ localStorage.setItem('sw_mic_ok','1'); localStorage.setItem('sw_mic_asked','1'); }catch(e){}
+try{ if(window.showToast) window.showToast('✅ Mic ready — अब clear बात होगी!'); else if(window.toast) window.toast('✅ Mic ready!'); }catch(e){}
+goNext();
+}).catch(function(){
+try{ localStorage.setItem('sw_mic_asked','1'); }catch(e){}
+try{ if(window.showToast) window.showToast('⚠️ Mic allow नहीं हुआ — phone Settings में Mic ON करें'); else if(window.toast) window.toast('⚠️ Mic allow करें'); }catch(e){}
+goNext();
+});
+}catch(e){ goNext(); }
+};
+document.getElementById('swMicNo').onclick=function(){ try{ localStorage.setItem('sw_mic_asked','1'); }catch(e){} goNext(); };
+};
+try{
+var _dial=window.SWAgora&&window.SWAgora.dial;
+if(window.SWAgora&&typeof _dial==='function'){
+window.SWAgora.dial=function(oid){ var a=arguments,self=this;
+if(granted()){ return _dial.apply(self,a); }
+try{ window.swAskMic(function(){ _dial.apply(self,a); }); }catch(e){ return _dial.apply(self,a); }
+};
+}
+}catch(e){}
+setTimeout(function(){ try{ var asked=false; try{ asked=!!localStorage.getItem('sw_mic_asked'); }catch(e){} if(!asked&&!granted()) window.swAskMic(null); }catch(e){} },6000);
+console.log('%c 🎤 MIC PERMISSION BOX v10 ','background:#7a2bff;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<style id="swSys10">
+/* ═══ v10 — SYSTEMATIC UI: koi overlap nahi ═══ */
+html,body{overflow-x:hidden!important;}
+img,video,canvas{max-width:100%;}
+.cd,.card{overflow:hidden;box-sizing:border-box;}
+button,.bn{min-height:40px;box-sizing:border-box;}
+#swCallFS{z-index:2147483645!important;}
+#swMicOv{z-index:2147483640!important;}
+#swOtpBar{z-index:2147483630!important;}
+#sxOv{z-index:900000!important;}
+#op{z-index:99999!important;}
+#camOv{z-index:99998!important;}
+#chO{z-index:95000!important;}
+#v39Pill{z-index:9000!important;}
+.swDot{display:inline-flex;align-items:center;justify-content:center;min-width:19px;height:19px;border-radius:12px;background:#ff1744;color:#fff;font-size:11px;font-weight:900;padding:0 5px;margin-left:6px;box-shadow:0 0 0 3px rgba(255,23,68,.25);animation:swDotPu 1s infinite;vertical-align:middle;}
+@keyframes swDotPu{50%{transform:scale(1.25);}}
+#swLiveB{position:fixed;top:8px;right:10px;z-index:8000;font-size:10px;font-weight:900;color:#fff;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:4px 10px;pointer-events:none;font-family:system-ui,Arial,sans-serif;box-sizing:border-box;}
+</style>
+<script>
+/* ═══ v10 — LIVE sync badge (refresh ki jarurat nahi) ═══ */
+(function(){
+if(window.__swLive10) return; window.__swLive10=1;
+try{
+var b=document.createElement('div'); b.id='swLiveB'; b.innerHTML='⚡ Live';
+document.body.appendChild(b);
+function upd(){ try{ b.innerHTML=navigator.onLine?'⚡ Live':'📴 Offline'; b.style.background=navigator.onLine?'rgba(21,160,74,.75)':'rgba(180,30,30,.8)'; }catch(e){} }
+window.addEventListener('online',upd); window.addEventListener('offline',upd); upd();
+}catch(e){}
+})();
+</script>
+<script>
+/* ═══ v10 — RED DOT on Live Chat (partner) ═══ */
+(function(){
+if(window.__swDotP10) return; window.__swDotP10=1;
+window.swUnread=window.swUnread||{};
+function paintDots(){
+try{
+var h=document.getElementById('chT');
+if(h){ var d=document.getElementById('swDotH'); var ids=Object.keys(window.swUnread).filter(function(k){ return window.swUnread[k]>0; }); var n=0; ids.forEach(function(k){ n+=window.swUnread[k]; });
+if(n>0){ if(!d){ d=document.createElement('span'); d.id='swDotH'; d.className='swDot'; h.appendChild(d); } d.innerText=n>9?'9+':n; d.style.display='inline-flex'; }
+else if(d){ d.style.display='none'; } }
+Object.keys(window.swUnread).forEach(function(oid){
+if(!(window.swUnread[oid]>0)) return;
+try{
+var btns=document.querySelectorAll('button[onclick*="chOpen"]');
+for(var i=0;i<btns.length;i++){ var oc=btns[i].getAttribute('onclick')||''; if(oc.indexOf(oid)>-1&&!btns[i].querySelector('.swDot')){ var s=document.createElement('span'); s.className='swDot'; s.innerText=window.swUnread[oid]>9?'9+':window.swUnread[oid]; s.setAttribute('data-oid',oid); btns[i].appendChild(s); } }
+}catch(e){}
+});
+}catch(e){}
+}
+window.swDotShow=function(oid,n){ try{ window.swUnread[oid]=n||1; paintDots(); }catch(e){} };
+window.swDotClear=function(oid){ try{ delete window.swUnread[oid]; paintDots(); try{ var els=document.querySelectorAll('.swDot[data-oid="'+oid+'"]'); for(var i=0;i<els.length;i++){ els[i].remove(); } }catch(e){} }catch(e){} };
+try{
+if(window.__swPChat9){
+var _oldShow=window.swDotShow;
+}
+}catch(e){}
+try{ if(typeof draw==='function'){ var _dr=draw; draw=function(){ try{ _dr.apply(this,arguments); }catch(e){} try{ paintDots(); }catch(e){} }; } }catch(e){}
+setInterval(paintDots,3000);
+})();
+</script>
+<script>
+/* ═══ v10 — chat khulne par red dot saaf ═══ */
+(function(){
+if(window.__swChOp10) return; window.__swChOp10=1;
+try{
+if(typeof chOpen==='function'){ var _c=chOpen; chOpen=function(oid){ try{ if(window.swDotClear) window.swDotClear(oid); }catch(e){} try{ return _c.apply(this,arguments); }catch(e){} }; try{ window.chOpen=chOpen; }catch(e){} }
+}catch(e){}
+})();
+</script>
+<script>
+/* ═══ v10 — COMMISSION cash+online dono me + ONLINE me kata hua NET dikhe ═══ */
+(function(){
+if(window.__swPay10) return; window.__swPay10=1;
+function nt(m){ try{ if(window.toast){ window.toast(m); return; } }catch(e){} }
+function findO(oid){ try{ var a=window.ALL||[]; for(var i=0;i<a.length;i++){ if(a[i]&&a[i].id===oid) return a[i]; } }catch(e){} return null; }
+function nums(o){ var t=Number((o&&(o.total||o.amount))||0)||0; var c=0; try{ c=Number((typeof pComOf==='function')?pComOf(o):(o.commPct||window.__PCOM||10))||0; }catch(e){ c=Number((o&&o.commPct)||10)||0; } var cm=Math.round(t*c/100); return {t:t,c:c,cm:cm,net:Math.max(0,t-cm)}; }
+window.swPayMode=function(oid,mode){
+try{
+var o=findO(oid); if(!o){ nt('Order नहीं मिला'); return; }
+var n=nums(o);
+FS.collection('orders').doc(oid).update({payMode:mode,commPct:n.c,commAmt:n.cm,netAmt:n.net}).then(function(){
+try{ o.payMode=mode; o.commPct=n.c; o.commAmt=n.cm; o.netAmt=n.net; }catch(e){}
+nt(mode==='Online'?'📲 Online: ₹'+n.cm+' commission कटेगा • आपको ₹'+n.net+' मिलेगा':'💵 Cash: ग्राहक से ₹'+n.t+' लें • ₹'+n.cm+' कंपनी का बनेगा');
+try{ if(typeof draw==='function') draw(); }catch(e){}
+}).catch(function(e){ nt('❌ '+e.message); });
+}catch(e){}
+};
+function strip(oid){
+try{
+var o=findO(oid); if(!o) return '';
+var n=nums(o);
+var mode=o.payMode||(/cash|cod|नकद/i.test(String(o.mode||''))?'Cash':'Online');
+var isOn=(mode==='Online');
+return '<div data-swapy="'+oid+'" style="margin-top:8px;border-radius:14px;padding:10px 11px;background:linear-gradient(120deg,#0f2a1a,#123a5c);border:1.5px solid #2bc96e;color:#fff;font-size:11px;font-weight:800;line-height:1.8;">'+
+'💰 Total: ₹'+n.t+' &nbsp;•&nbsp; ✂️ Commission ('+n.c+'%): ₹'+n.cm+'<br>'+
+(isOn?'📲 <span style="color:#7dffa0;">Online — कटकर आपको: <b style="font-size:13px;">₹'+n.net+'</b></span>':'💵 <span style="color:#ffd60a;">Cash — ग्राहक से ₹'+n.t+' लें, ₹'+n.cm+' कंपनी का</span>')+
+'<div style="display:flex;gap:7px;margin-top:8px;"><button onclick="swPayMode(\''+oid+'\',\'Cash\')" style="flex:1;border:none;border-radius:10px;padding:9px;font-weight:900;font-size:11px;cursor:pointer;background:'+(isOn?'rgba(255,255,255,.15);color:#fff':'linear-gradient(135deg,#ff9a3d,#ff6b00);color:#fff')+';">💵 Cash</button>'+
+'<button onclick="swPayMode(\''+oid+'\',\'Online\')" style="flex:1;border:none;border-radius:10px;padding:9px;font-weight:900;font-size:11px;cursor:pointer;background:'+(isOn?'linear-gradient(135deg,#0d6efd,#00bcd4);color:#fff':'rgba(255,255,255,.15);color:#fff')+';">📲 Online</button></div></div>';
+}catch(e){ return ''; }
+}
+function inject(){
+try{
+(window.ALL||[]).forEach(function(o){
+if(!o) return;
+if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return;
+try{
+var btn=document.querySelector('button[onclick*="maskCall(\''+o.id+'\')"]');
+if(!btn) return;
+var host=btn.parentNode;
+if(!host||host.querySelector('[data-swapy="'+o.id+'"]')) return;
+var dv=document.createElement('div'); dv.innerHTML=strip(o.id);
+while(dv.firstChild) host.appendChild(dv.firstChild);
+}catch(e){}
+});
+}catch(e){}
+}
+try{ if(typeof draw==='function'){ var _dr2=draw; draw=function(){ try{ _dr2.apply(this,arguments); }catch(e){} setTimeout(function(){ try{ inject(); }catch(e){} },60); }; } }catch(e){}
+setInterval(inject,4000);
+setTimeout(inject,2500);
+})();
+</script>
+<script>
+/* ═══ v10 — ORDER AAYA HAI: har 5 second me awaaz + popup khulne par turant ═══ */
+(function(){
+if(window.__swVoice10) return; window.__swVoice10=1;
+function isOpen(){ try{ var el=document.getElementById('op'); return !!(el&&el.classList.contains('open')); }catch(e){ return false; } }
+function speak(){
+try{
+if(!('speechSynthesis' in window)) return;
+try{ speechSynthesis.cancel(); }catch(e){}
+var u=new SpeechSynthesisUtterance('ऑर्डर आया है! कृपया accept करें!');
+u.lang='hi-IN'; u.rate=1; u.pitch=1; u.volume=1;
+try{
+var vs=speechSynthesis.getVoices()||[];
+for(var i=0;i<vs.length;i++){ if((vs[i].lang||'').toLowerCase().indexOf('hi')===0){ u.voice=vs[i]; break; } }
+}catch(e){}
+speechSynthesis.speak(u);
+}catch(e){}
+}
+try{ if('speechSynthesis' in window){ try{ speechSynthesis.getVoices(); }catch(e){} } }catch(e){}
+function vceOn(){ try{ var c=document.getElementById('vceC'); return !c||c.checked; }catch(e){ return true; } }
+setInterval(function(){ if(isOpen()&&vceOn()){ try{ speak(); }catch(e){} } },5000);
+try{
+var _p=window.popup;
+if(typeof _p==='function'){ window.popup=function(o){ var r; try{ r=_p.apply(this,arguments); }catch(e){} try{ if(isOpen()&&vceOn()){ setTimeout(speak,600); } }catch(e){} try{ popup=window.popup; }catch(e){} return r; }; try{ popup=window.popup; }catch(e){} }
+}catch(e){}
+console.log('%c 🔊 ORDER AAYA HAI voice v10 (har 5s) ','background:#6a1b9a;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<script>
+/* ═══ v11 — STRICT CATEGORY LOCK: sirf apni chuni category ke order 🔒🛠️ ═══ */
+(function(){
+if(window.__swCat11) return; window.__swCat11=1;
+function norm(s){ try{ return String(s||'').toLowerCase().replace(/[\s\u00a0]+/g,'').trim(); }catch(e){ return ''; } }
+function mySkills11(){
+var arr=[];
+try{ if(window.P&&P.skills&&P.skills.length) arr=arr.concat(P.skills); }catch(e){}
+try{ if(window.P&&P.mainSkill&&arr.indexOf(P.mainSkill)<0) arr.push(P.mainSkill); }catch(e){}
+try{ var ls=localStorage.getItem('swp_skills'); if(ls){ var a2=JSON.parse(ls); if(a2&&a2.length) a2.forEach(function(x){ if(arr.indexOf(x)<0) arr.push(x); }); } }catch(e){}
+try{ if(window.P&&P.kycInfo&&P.kycInfo.mainSkill&&arr.indexOf(P.kycInfo.mainSkill)<0) arr.push(P.kycInfo.mainSkill); }catch(e){}
+return arr;
+}
+function orderToks(o){
+var toks=[];
+try{
+if(o.cats&&o.cats.length){ o.cats.forEach(function(c){ if(!c) return; if(c.name) toks.push(String(c.name)); if(c.key) toks.push(String(c.key)); }); }
+if(o.items&&o.items.length){ o.items.forEach(function(it){ if(!it) return; if(it.catName) toks.push(String(it.catName)); if(it.cat) toks.push(String(it.cat)); if(it.name) toks.push(String(it.name)); }); }
+if(o.service) toks.push(String(o.service));
+if(o.category) toks.push(String(o.category));
+}catch(e){}
+return toks;
+}
+window.swCatOk=function(o){
+try{
+var sk=mySkills11();
+if(!sk.length) return true;
+var toks=orderToks(o);
+if(!toks.length) return true;
+for(var i=0;i<toks.length;i++){
+var t=toks[i]; if(!t) continue;
+for(var j=0;j<sk.length;j++){
+var s=sk[j]; if(!s) continue;
+if(String(s)===t) return true;
+var sn=norm(s),tn=norm(t);
+if(sn&&tn&&(sn===tn||(sn.length>2&&tn.indexOf(sn)>-1)||(tn.length>2&&sn.indexOf(tn)>-1))) return true;
+}
+}
+return false;
+}catch(e){ return true; }
+};
+window.swMySkills=mySkills11;
+/* ---- 1) list me doosri category ke NEW orders chhupao + note ---- */
+function swCatFilter(){
+try{
+var hidden=0,firstHost=null;
+(window.ALL||[]).forEach(function(o){
+if(!o||o.status!=='Order Placed'||o.partnerPhone) return;
+var ok=true; try{ ok=window.swCatOk(o); }catch(e){}
+if(ok) return;
+try{
+var btn=document.querySelector('button[onclick*="maskCall(\''+o.id+'\')"]');
+if(!btn) return;
+var el=btn,card=null;
+for(var k=0;k<6&&el;k++){ el=el.parentNode; if(!el||el===document.body) break;
+var cn=''; try{ cn=el.className||''; }catch(e){}
+if(/cd|card|ord|job|itm/i.test(String(cn))){ card=el; break; }
+if(!firstHost) firstHost=el;
+}
+if(!card) card=btn.parentNode;
+if(card){ card.style.display='none'; hidden++; if(!firstHost&&card.parentNode) firstHost=card.parentNode; }
+}catch(e){}
+});
+try{
+var old=document.getElementById('swCatNote'); if(old) old.remove();
+if(hidden>0&&firstHost){
+var sk=mySkills11();
+var dv=document.createElement('div'); dv.id='swCatNote';
+dv.style.cssText='margin:8px 0;border-radius:14px;padding:10px 12px;background:linear-gradient(120deg,#2a1503,#4a1545);border:1.5px solid #ff9a3d;color:#fff;font-size:11px;font-weight:800;line-height:1.7;';
+dv.innerHTML='🔒 <b>'+hidden+' order</b> doosri category ke hain — chhupaye gaye<br>🛠️ Aapki category: <b style="color:#ffd60a;">'+sk.slice(0,4).join(', ')+'</b>';
+if(firstHost.insertBefore) firstHost.insertBefore(dv,firstHost.firstChild);
+}
+}catch(e){}
+}catch(e){}
+}
+try{
+if(typeof draw==='function'){ var _dr11=draw; draw=function(){ try{ _dr11.apply(this,arguments); }catch(e){} setTimeout(function(){ try{ swCatFilter(); }catch(e){} },120); }; try{ window.draw=draw; }catch(e){} }
+}catch(e){}
+setInterval(function(){ try{ swCatFilter(); }catch(e){} },5000);
+setTimeout(function(){ try{ swCatFilter(); }catch(e){} },2000);
+/* ---- 2) mere category ka order turant bajao (doosri category best ho tab bhi) ---- */
+function swTickMine(){
+try{
+var pop=document.getElementById('op');
+if(pop&&pop.classList.contains('open')) return;
+var rej={}; try{ rej=JSON.parse(sessionStorage.getItem('swp_rej')||'{}'); }catch(e){}
+var now=Date.now(),best=null;
+(window.ALL||[]).forEach(function(o){
+if(!o||o.status!=='Order Placed'||o.partnerPhone) return;
+if(rej[o.id]) return;
+if(now-(o.createdAt||0)>15*60000) return;
+try{ if(!window.swCatOk(o)) return; }catch(e){}
+try{ if(window.v58Near&&!window.v58Near(o)) return; }catch(e){}
+if(!best||(o.createdAt||0)>(best.createdAt||0)) best=o;
+});
+if(best){ try{ if(window.popup) window.popup(best); else if(typeof popup==='function') popup(best); }catch(e){} }
+}catch(e){}
+}
+setInterval(swTickMine,7000);
+/* ---- 3) category chuni hi nahi to sunder nudge (roz 1 baar) ---- */
+function nudge(){
+try{
+if(mySkills11().length) return;
+var day=new Date().toDateString(),last='';
+try{ last=localStorage.getItem('sw_cat_nudge')||''; }catch(e){}
+if(last===day) return;
+try{ localStorage.setItem('sw_cat_nudge',day); }catch(e){}
+var d=document.createElement('div');
+d.style.cssText='position:fixed;inset:0;z-index:900000;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.7);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;';
+d.innerHTML='<div style="width:100%;max-width:330px;border-radius:24px;overflow:hidden;background:#fff;text-align:center;box-shadow:0 26px 70px rgba(0,0,0,.5);"><div style="background:linear-gradient(135deg,#ff6b00,#ff2d95);padding:24px 16px 18px;color:#fff;"><div style="font-size:52px;">🛠️</div><div style="font-weight:900;font-size:15.5px;margin-top:6px;">Apni Category Chunein</div><div style="font-size:11.5px;opacity:.93;margin-top:5px;line-height:1.6;">Tabhi aapko <b>sirf apne kaam ke order</b> milenge<br>Settings → 🛠️ Skills me jaakar tick karein</div></div><div style="padding:16px;"><button id="swCatOk2" style="width:100%;border:none;border-radius:14px;padding:14px;font-weight:900;font-size:14px;color:#fff;background:linear-gradient(135deg,#15a04a,#1fc25e);cursor:pointer;">✅ समझ गया</button></div></div>';
+document.body.appendChild(d);
+document.getElementById('swCatOk2').onclick=function(){ try{ d.remove(); }catch(e){} try{ if(window.toast) window.toast('⚙️ Settings → 🛠️ Skills me category tick karein'); }catch(e){} };
+}catch(e){}
+}
+setTimeout(nudge,9000);
+console.log('%c 🔒🛠️ CATEGORY LOCK v11 (sirf apni category) ','background:#ff6b00;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<script>
+/* ═══ v12 — ⬇️ DOWNLOAD APP button (APK download karke install) — partner ═══ */
+(function(){
+if(window.__swDlP12) return; window.__swDlP12=1;
+var APK='SewaAstra-Partner.apk';
+function dl(){
+try{
+var a=document.createElement('a'); a.href=APK; a.download=APK;
+document.body.appendChild(a); a.click(); a.remove();
+}catch(e){
+try{ window.open(APK,'_blank'); }catch(e2){}
+}
+}
+window.v41Inst=function(){
+try{ if(window.toast) window.toast('⬇️ App download ho rahi hai...'); }catch(e){}
+dl();
+setTimeout(function(){
+try{
+if(window.sAlert){ window.sAlert('1️⃣ APK download poora hone dein\n2️⃣ Notification / Downloads me APK par tap karein\n3️⃣ "Unknown apps install" maange to ALLOW karein\n4️⃣ Install dabayein — bas! 🎉\n\nSewaAstra Partner icon home-screen par aa jayega ⚡','📲 App Install kaise karein','📲'); }
+else { alert('📲 App Install:\n1) APK download poora hone dein\n2) Downloads me APK par tap karein\n3) Unknown apps ALLOW karein\n4) Install dabayein 🎉'); }
+}catch(e){}
+},900);
+};
+try{ v41Inst=window.v41Inst; }catch(e){}
+console.log('%c ⬇️ DOWNLOAD APP v12 (partner) ','background:#ff6b00;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35e0b0a68b9a6ad',t:'MTc4ODUzNTkwNg=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
