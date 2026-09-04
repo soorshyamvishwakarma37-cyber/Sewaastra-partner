@@ -5183,7 +5183,7 @@ function ringStop(){ if(ringT){ clearInterval(ringT); ringT=null; } if(vibT){ cl
 var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true;
 function callDoc(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live'); }
 function callCands(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live').collection('cands'); }
-function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}]}; }
+function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}], iceCandidatePoolSize:8}; }
 /* ---- FULL SCREEN UI ---- */
 function ensureUI(){
 if(document.getElementById('swCallFS')){ remoteA=document.getElementById('swCallRemote'); return; }
@@ -5247,7 +5247,7 @@ else if(x.state==='declined'&&st.s!=='live'){ endCall('सामने वाल
 else if(x.state==='ended'&&st.s==='live'){ endCall('कॉल समाप्त',''); }
 },function(){}); }catch(e){}
 if(waitT) clearTimeout(waitT);
-waitT=setTimeout(function(){ if(st.s==='dial'&&st.oid===oid) endCall('कोई जवाब नहीं','सामने वाला जुड़ा नहीं — 💬 Chat try करें'); },45000);
+waitT=setTimeout(function(){ if(st.s==='dial'&&st.oid===oid) endCall('कोई जवाब नहीं','सामने वाला जुड़ा नहीं — 💬 Chat try करें'); },60000);
 }).catch(function(){ failCall('कॉल शुरू नहीं हुई — internet check करें'); });
 }
 /* ---- callee ---- */
@@ -5288,7 +5288,7 @@ var q=null; try{ q=myQuery(); }catch(e){}
 if(!q){ setTimeout(function(){ try{ watchMine(); }catch(e){} },6000); return; }
 try{ orderUn=q.onSnapshot(function(sn){
 var ids={};
-sn.docs.forEach(function(d){ var o=d.data()||{}; var oid=o.id||d.id; if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return; ids[oid]=1;
+sn.docs.forEach(function(d){ var o=d.data()||{}; var oid=o.id||d.id; if(o.status!=='Working') return; /* v21: tracking me box nahi — sirf kaam-poora stage par */ ids[oid]=1;
 if(!docSubs[oid]){ (function(id){ try{ docSubs[id]=callDoc(id).onSnapshot(function(dd){ onCallDoc(id,dd); },function(){}); }catch(e){} })(oid); }
 });
 Object.keys(docSubs).forEach(function(k){ if(!ids[k]){ try{ docSubs[k](); }catch(e){} delete docSubs[k]; } });
@@ -5927,9 +5927,19 @@ try{
 var btn=document.querySelector('button[onclick*="maskCall(\''+o.id+'\')"]');
 if(!btn) return;
 var host=btn.parentNode;
+try{ if(sessionStorage.getItem('swpay_hide_'+o.id)==='1') return; }catch(e){}
 if(!host||host.querySelector('[data-swapy="'+o.id+'"]')) return;
 var dv=document.createElement('div'); dv.innerHTML=strip(o.id);
 while(dv.firstChild) host.appendChild(dv.firstChild);
+try{
+var oo=null; try{ var __a=window.ALL||[]; for(var __i=0;__i<__a.length;__i++){ if(__a[__i]&&__a[__i].id===o.id){ oo=__a[__i]; break; } } }catch(e){}
+var __mode=(oo&&(oo.payMode||(/cash|cod|नकद/i.test(String(oo.mode||''))?'Cash':'Online')))||'Online';
+if(__mode==='Online'&&!host.querySelector('[data-swqr="'+o.id+'"]')){
+var q=document.createElement('div'); q.setAttribute('data-swqr',o.id);
+q.innerHTML='<div style="display:flex;gap:7px;margin-top:7px;"><button onclick="swQR(\''+o.id+'\')" style="flex:1;border:none;border-radius:10px;padding:10px;font-weight:900;font-size:11.5px;cursor:pointer;background:linear-gradient(135deg,#7a2bff,#00bcd4);color:#fff;">📷 QR दिखाएँ (customer scan karega)</button><button onclick="swPayHide(\''+o.id+'\')" style="border:none;border-radius:10px;padding:10px 14px;font-weight:900;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">✕</button></div>';
+host.appendChild(q);
+}
+}catch(e){}
 }catch(e){}
 });
 }catch(e){}
@@ -6167,7 +6177,8 @@ console.log('%c 📱 APP-FEEL v17 (browser hi app hai) ','background:#0d6efd;col
 /* ═══ v20 — ONE-FINGER SCROLL GUARANTEE (native + manual backup) ═══ */
 (function(){
 if(window.__swScr20) return; window.__swScr20=1;
-var sx=0, sy=0, on=false, down=false;
+var sx=0, sy=0, on=false, down=false, vy=0, lastY=0, lastT=0, glide=null;
+function stopGlide(){ if(glide){ try{ cancelAnimationFrame(glide); }catch(e){} glide=null; } }
 function innerScroller(el){
 try{
 for(var k=0;k<7&&el&&el!==document.documentElement;k++){
@@ -6188,7 +6199,7 @@ if(!e.touches||e.touches.length!==1) return;
 var t=e.target, tag=(t&&t.tagName)||'';
 if(/INPUT|TEXTAREA|SELECT|VIDEO|AUDIO/.test(tag)) return;
 if(innerScroller(t)) return;
-sx=e.touches[0].clientX; sy=e.touches[0].clientY; down=true;
+sx=e.touches[0].clientX; sy=e.touches[0].clientY; down=true; vy=0; lastY=sy; lastT=Date.now(); stopGlide();
 }catch(x){}
 },{passive:true});
 document.addEventListener('touchmove',function(e){
@@ -6202,14 +6213,111 @@ if(Math.abs(dx)>Math.abs(dy)*1.4){ down=false; return; }
 on=true;
 }
 try{ e.preventDefault(); }catch(x){}
-try{ window.scrollBy(0,-dy); }catch(y){}
+try{ var now=Date.now(), dt=Math.max(8,now-lastT); var step=dy*1.4; window.scrollBy(0,-step); vy=0.75*vy+0.25*(dy/dt*16); lastT=now; }catch(y){}
 sx=nx; sy=ny;
 }catch(x){}
 },{passive:false});
-document.addEventListener('touchend',function(){ down=false; on=false; },{passive:true});
-document.addEventListener('touchcancel',function(){ down=false; on=false; },{passive:true});
-console.log('%c 👆 SCROLL-FIX v20 ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+document.addEventListener('touchend',function(){ down=false; var g=on; on=false; try{ if(g&&Math.abs(vy)>1){ stopGlide(); var f=function(){ vy*=0.94; if(Math.abs(vy)<0.6||down){ glide=null; return; } try{ window.scrollBy(0,-vy); }catch(e){ glide=null; return; } glide=requestAnimationFrame(f); }; glide=requestAnimationFrame(f); } }catch(e){} },{passive:true});
+document.addEventListener('touchcancel',function(){ down=false; on=false; try{ stopGlide(); }catch(e){} },{passive:true});
+console.log('%c 👆 FAST SCROLL v21 ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35f8a86b9a20b19',t:'MTc4ODU1MTYxNA=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>
+/* ═══ v21 — notification sirf apni category + ONE-TAP accept + KYC auto-hide ═══ */
+(function(){
+if(window.__swGrd21) return; window.__swGrd21=1;
+try{
+if(typeof v41Notify==='function'){ var _n41=v41Notify; v41Notify=function(o){ try{ if(window.swCatOk&&!window.swCatOk(o)) return; }catch(e){} try{ return _n41.apply(this,arguments); }catch(e){} }; try{ window.v41Notify=v41Notify; }catch(e){} }
+if(typeof v41Say==='function'){ var _s41=v41Say; v41Say=function(o){ try{ if(window.swCatOk&&!window.swCatOk(o)) return; }catch(e){} try{ return _s41.apply(this,arguments); }catch(e){} }; try{ window.v41Say=v41Say; }catch(e){} }
+}catch(e){}
+var _acc21=null; try{ _acc21=window.acc; }catch(e){}
+var _accLock={};
+window.acc=function(oid){
+try{
+var now=Date.now();
+if(_accLock[oid]&&now-_accLock[oid]<2500) return;
+_accLock[oid]=now;
+try{ var a=window.ALL||[]; for(var i=0;i<a.length;i++){ if(a[i]&&a[i].id===oid){ a[i].status='Accepted'; try{ a[i].partnerPhone=(typeof me==='function')?me():a[i].partnerPhone; }catch(e){} } } }catch(e){}
+try{ if(typeof draw==='function') draw(); }catch(e){}
+try{ if(window.toast) window.toast('✅ Accept ho gaya!'); }catch(e){}
+}catch(e){}
+try{ return _acc21.apply(this,arguments); }catch(e){}
+};
+try{ acc=window.acc; }catch(e){}
+function swKycHide(){
+try{
+var done=false;
+try{ done=(window.P&&P.kycStatus==='Approved'); }catch(e){}
+try{ if(localStorage.getItem('sw_kyc_done')==='1') done=true; }catch(e){}
+if(!done) return;
+try{ localStorage.setItem('sw_kyc_done','1'); }catch(e){}
+var rows=document.querySelectorAll('.v60row[data-act="kyc"]');
+for(var i=0;i<rows.length;i++){
+var r=rows[i]; r.style.display='none';
+if(!document.getElementById('swKycOk')){
+var b=document.createElement('div'); b.id='swKycOk';
+try{ b.className=r.className||'v60row'; }catch(e){}
+b.style.cssText='display:flex;align-items:center;gap:10px;padding:13px 14px;border-radius:14px;margin:8px 0;background:linear-gradient(120deg,#0f2a1a,#123a2a);border:1.5px solid #2bc96e;color:#fff;font-weight:900;font-size:12.5px;';
+b.innerHTML='✅ KYC Verified — hamesha ke liye पूर्ण (form बंद)';
+try{ r.parentNode.insertBefore(b,r.nextSibling); }catch(e){}
+}
+}
+}catch(e){}
+}
+setInterval(swKycHide,3000); setTimeout(swKycHide,1500);
+})();
+</script>
+<script>
+/* ═══ v21 — ONLINE QR: sirf PARTNER screen par popup (customer par kabhi nahi) ═══ */
+(function(){
+if(window.__swQR21) return; window.__swQR21=1;
+window.swPayHide=function(oid){
+try{ sessionStorage.setItem('swpay_hide_'+oid,'1'); }catch(e){}
+try{ var els=document.querySelectorAll('[data-swapy="'+oid+'"],[data-swqr="'+oid+'"]'); for(var i=0;i<els.length;i++){ els[i].style.display='none'; } }catch(e){}
+};
+window.swQR=function(oid){
+try{
+var o=null; try{ var a=window.ALL||[]; for(var i=0;i<a.length;i++){ if(a[i]&&a[i].id===oid){ o=a[i]; break; } } }catch(e){}
+var total=0; try{ total=Number((o&&(o.total||o.amount))||0)||0; }catch(e){}
+function show(upi){
+var str='upi://pay?pa='+upi+'&pn=SewaAstra&am='+total+'&cu=INR&tn=Order'+oid;
+var url='https://api.qrserver.com/v1/create-qr-code/?size=260x260&data='+encodeURIComponent(str);
+var ov=document.getElementById('swQROv');
+if(!ov){ ov=document.createElement('div'); ov.id='swQROv'; document.body.appendChild(ov); }
+ov.style.cssText='position:fixed;inset:0;z-index:2147483635;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.82);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;';
+ov.innerHTML='<div style="background:#fff;border-radius:24px;padding:22px;max-width:320px;width:100%;text-align:center;color:#222;">'
++'<div style="font-weight:900;font-size:15px;">📲 Online Payment — ₹'+total+'</div>'
++'<div style="font-size:11px;color:#666;margin:5px 0 10px;line-height:1.6;">Customer ye QR scan karega<br>UPI: <b>'+upi+'</b></div>'
++'<img src="'+url+'" style="width:240px;height:240px;max-width:100%;border-radius:14px;border:2px solid #eee;">'
++'<button id="swQRX" style="width:100%;margin-top:12px;border:none;border-radius:13px;padding:13px;font-weight:900;background:#111;color:#fff;cursor:pointer;">✕ बंद करें</button></div>';
+ov.style.display='flex';
+document.getElementById('swQRX').onclick=function(){ try{ ov.style.display='none'; }catch(e){} };
+try{ if(navigator.vibrate) navigator.vibrate(40); }catch(e){}
+}
+var upi=''; try{ upi=(window.P&&P.upi)||localStorage.getItem('swp_upi')||''; }catch(e){}
+if(upi){ show(upi); return; }
+var msg='Online payment ke liye apni UPI ID likhein (sirf ek baar):';
+function save(u){ u=String(u||'').trim(); if(!u) return; try{ localStorage.setItem('swp_upi',u); }catch(e){} try{ if(window.P) P.upi=u; }catch(e){} try{ var ph=''; try{ ph=(typeof me==='function')?me():''; }catch(e){} if(ph) FS.collection('partners').doc(ph).set({upi:u},{merge:true}).catch(function(){}); }catch(e){} show(u); }
+try{
+if(window.sxInputP){ window.sxInputP({t:'UPI ID',msg:msg,ph:'naam@upi',ok:'Save'}).then(function(v){ if(v) save(v); }); }
+else { var v2=prompt(msg); if(v2) save(v2); }
+}catch(e){ try{ var v3=prompt(msg); if(v3) save(v3); }catch(e2){} }
+}catch(e){}
+};
+console.log('%c 📷 QR v21 (sirf partner screen) ','background:#7a2bff;color:#fff;font-weight:bold;padding:3px;');
+})();
+</script>
+<script>
+/* ═══ v21 — 3 SECOND AUTO SYNC — partner ═══ */
+(function(){
+if(window.__swTickP21) return; window.__swTickP21=1;
+setInterval(function(){
+try{ if(document.hidden) return; }catch(e){}
+try{ if(typeof swCatFilter==='function') swCatFilter(); }catch(e){}
+try{ if(typeof paintDots==='function') paintDots(); }catch(e){}
+try{ var b=document.getElementById('swLiveB'); if(b){ var on=navigator.onLine; b.innerHTML=on?'⚡ Live':'📴 Offline'; } }catch(e){}
+},3000);
+})();
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a360006ecf7bd8bc',t:'MTc4ODU1NjQ0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
