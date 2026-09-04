@@ -179,6 +179,7 @@ body.dark #chB{background:#0d1320;}
 .spn{width:40px;height:40px;border:4px solid rgba(255,255,255,.2);border-top-color:var(--pr);border-radius:50%;animation:rot .8s linear infinite;}
 @keyframes rot{to{transform:rotate(360deg)}}
 </style>
+<script id="swa-agora-sdk" async src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.2.js"></script>
 </head>
 <body>
 
@@ -189,18 +190,16 @@ body.dark #chB{background:#0d1320;}
     <div class="lgl">🧑‍🔧</div>
     <h2>SewaAstra <span style="color:var(--pr);">Partner</span></h2>
     <div class="tg">Technician App — कमाई शुरू करें 🚀</div>
-    <input class="li" type="tel" id="lgPh" placeholder="मोबाइल नंबर (10 अंक)" maxlength="10" inputmode="numeric">
+    <input class="li" type="email" id="lgEm" placeholder="ईमेल पता (Email address)" autocomplete="email">
+    <input class="li" type="password" id="lgPw" placeholder="पासवर्ड (कम से कम 6 अक्षर)" autocomplete="current-password">
     <div id="lgP1">
-      <button class="lb m" onclick="sOTP()">📲 OTP भेजें — Login करें</button>
+      <button class="lb m" id="lgEmBtn" onclick="lgEmGo()">🔐 Login करें</button>
       <button class="lb gg" onclick="gLogin()"><img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="17" alt="G">Google से Login</button>
+      <div id="lgEmModeTxt" onclick="lgEmMode()" style="font-size:10.5px;color:var(--pr);margin-top:6px;cursor:pointer;text-decoration:underline;">पहली बार? नया अकाउंट बनाएं →</div>
+      <div onclick="lgEmReset()" style="font-size:10px;opacity:.6;margin-top:4px;cursor:pointer;text-decoration:underline;">🔑 पासवर्ड भूल गए?</div>
       <div onclick="diag()" style="font-size:10px;opacity:.6;margin-top:4px;cursor:pointer;text-decoration:underline;">🔍 Login problem? यहाँ जांचें</div>
+      <div id="lgEmMsg" style="display:none;margin-top:8px;font-size:11.5px;font-weight:800;color:#ffb3b3;line-height:1.55;"></div>
     </div>
-    <div id="lgP2" class="hide">
-      <input class="li" type="tel" id="lgOtp" placeholder="6-अंकों का OTP" maxlength="6" style="text-align:center;letter-spacing:7px;">
-      <button class="lb m" onclick="vOTP()">✅ Verify करें</button>
-      <button class="lb s" onclick="document.getElementById('lgP2').classList.add('hide');document.getElementById('lgP1').classList.remove('hide')">← वापस</button>
-    </div>
-    <div id="recaptcha-container"></div>
   </div>
 </div>
 
@@ -360,30 +359,72 @@ var confR = null;
 function aerr(e){
   var c=(e&&e.code)||'', h=location.hostname||'(file)';
   var M={'auth/unauthorized-domain':'🌐 Domain allowed नहीं!\nConsole → Authentication → Settings → Authorized domains में add करें:\n👉 '+h,
-  'auth/billing-not-enabled':'💳 SMS के लिए Blaze plan चाहिए।\n✅ FREE: Console → Auth → Phone → "Phone numbers for testing" में नंबर+OTP डालें।',
+  'auth/billing-not-enabled':'💳 Email/Password login के लिए Blaze ज़रूरी नहीं — Console → Auth → Sign-in method → Email/Password enable करें।',
   'auth/invalid-app-credential':'🤖 reCAPTCHA fail — reload करें, domain check करें।',
   'auth/too-many-requests':'⏳ बहुत कोशिशें — बाद में करें या test number use करें।',
-  'auth/operation-not-allowed':'⚙️ Console में यह provider enable नहीं है।',
+  'auth/operation-not-allowed':'⚙️ Console → Auth → Sign-in method में Email/Password व Google दोनों enable करें।',
   'auth/network-request-failed':'📶 Internet problem।'};
   return (M[c]||('❌ '+(e.message||e)))+'\n\n(code: '+c+')\n\n🔍 नीचे "Login problem?" link से जांच करें।';
 }
-function sOTP(){
-  var ph=$('lgPh').value.trim();
-  if(!/^\d{10}$/.test(ph)) return toast('❌ पहले नंबर डालें');
-  if(!window.rcv){ try{ window.rcv=new firebase.auth.RecaptchaVerifier('recaptcha-container',{size:'invisible'}); }catch(e){ return alert(aerr(e)); } }
-  ldr('OTP भेजा जा रहा है...');
-  firebase.auth().signInWithPhoneNumber('+91'+ph, window.rcv).then(function(c){
-    ldrX(); confR=c; localStorage.setItem('swp_phone',ph);
-    $('lgP1').classList.add('hide'); $('lgP2').classList.remove('hide');
-    toast('📩 OTP भेज दिया!');
-  }).catch(function(e){ ldrX(); try{window.rcv.clear();window.rcv=null;}catch(x){} alert(aerr(e)); });
+var _lgEmMode='in';
+function _lgEmMsg(t){ var m=document.getElementById('lgEmMsg'); if(m){ m.style.display=t?'block':'none'; m.innerHTML=t||''; } }
+function _lgEmLabel(){
+  var b=document.getElementById('lgEmBtn'), l=document.getElementById('lgEmModeTxt');
+  if(b) b.innerHTML=_lgEmMode==='up'?'📝 अकाउंट बनाएं':'🔐 Login करें';
+  if(l) l.innerHTML=_lgEmMode==='up'?'← पहले से account है? Login करें':'पहली बार? नया अकाउंट बनाएं →';
 }
-function vOTP(){
-  var o=$('lgOtp').value.trim();
-  if(o.length!==6) return toast('❌ 6-अंकों का OTP');
-  ldr('Verify...');
-  confR.confirm(o).then(function(){ ldrX(); localStorage.setItem('swp_logged','1'); enter(); })
-    .catch(function(){ ldrX(); toast('❌ गलत OTP'); });
+function lgEmMode(){ _lgEmMode=(_lgEmMode==='in')?'up':'in'; _lgEmLabel(); _lgEmMsg(''); }
+function lgEmReset(){
+  var e=(document.getElementById('lgEm').value||'').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)) return _lgEmMsg('⚠️ पहले अपना सही ईमेल पता लिखें');
+  ldr('Reset link भेजा जा रहा है...');
+  firebase.auth().sendPasswordResetEmail(e).then(function(){
+    ldrX();
+    sAlert('रीसेट लिंक <b>'+esc(e)+'</b> पर भेज दिया गया।<br>मेल में दिए link से नया पासवर्ड बनाएं।','पासवर्ड रीसेट ✉️','🔑');
+  }).catch(function(err){ ldrX(); _lgEmMsg(aerr(err)); });
+}
+function _lgEmFail(err){
+  ldrX(); var c=(err&&err.code)||'';
+  if(c==='auth/email-already-in-use'){ _lgEmMode='in'; _lgEmLabel(); _lgEmMsg('इस ईमेल से account पहले से है — सही पासवर्ड से Login करें या Google से।'); }
+  else if(c==='auth/user-not-found'){ _lgEmMsg('यह ईमेल registered नहीं है — नीचे "नया अकाउंट बनाएं" से signup करें।'); }
+  else if(c==='auth/wrong-password'||c==='auth/invalid-credential'){ _lgEmMsg('❌ पासवर्ड गलत — "पासवर्ड भूल गए?" से reset करें।'); }
+  else if(c==='auth/too-many-requests'){ _lgEmMsg('⏳ बहुत कोशिशें — कुछ देर बाद फिर try करें।'); }
+  else if(c==='auth/invalid-email'){ _lgEmMsg('⚠️ ईमेल पता सही नहीं है।'); }
+  else _lgEmMsg(aerr(err));
+}
+function _lgEmDone(em,isNew){
+  ldrX();
+  localStorage.setItem('swp_logged','1');
+  enter();
+  toast(isNew?'✅ अकाउंट बन गया — आगे KYC पूरी करें!':'✅ Login सफल!');
+  if(!me()) toast('📱 नीचे KYC form में मोबाइल नंबर भरें');
+}
+function lgEmGo(){
+  var e=(document.getElementById('lgEm').value||'').trim();
+  var p=document.getElementById('lgPw').value||'';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)) return _lgEmMsg('⚠️ सही ईमेल पता लिखें (example@mail.com)');
+  if(p.length<6) return _lgEmMsg('⚠️ पासवर्ड कम से कम 6 अक्षर का होना चाहिए');
+  _lgEmMsg('');
+  function ok(){ _lgEmDone(e,_lgEmMode==='up'); }
+  function upFlow(){
+    firebase.auth().createUserWithEmailAndPassword(e,p).then(function(){ ok(); })
+      .catch(function(err){
+        if(err&&err.code==='auth/email-already-in-use'){
+          firebase.auth().signInWithEmailAndPassword(e,p).then(function(){ _lgEmMode='in'; _lgEmLabel(); ok(); }).catch(_lgEmFail);
+        } else _lgEmFail(err);
+      });
+  }
+  if(_lgEmMode==='up'){ ldr('अकाउंट बनाया जा रहा है...'); upFlow(); return; }
+  ldr('Login हो रहा है...');
+  firebase.auth().signInWithEmailAndPassword(e,p).then(function(){ ok(); })
+    .catch(function(err){
+      if(err&&err.code==='auth/user-not-found'){
+        _lgEmMode='up'; _lgEmLabel();
+        _lgEmMsg('नया ईमेल — अभी आपका account बना दिया जाएगा (यही ईमेल+पासवर्ड से आगे login होगा)।');
+        ldr('अकाउंट बनाया जा रहा है...');
+        upFlow();
+      } else _lgEmFail(err);
+    });
 }
 function gLogin(){
   ldr('Google login...');
@@ -403,9 +444,9 @@ firebase.auth().getRedirectResult().then(function(r){
   if(r&&r.user){ localStorage.setItem('swp_logged','1'); enter(); if(!me()) toast('📱 KYC form में मोबाइल नंबर भरें'); }
 }).catch(function(){});
 function diag(){
-  alert('🌐 '+location.protocol+'//'+(location.hostname||'(file)')+'\n📶 Internet: '+(navigator.onLine?'✅':'❌')+'\n🔥 Firebase: '+(window.firebase&&firebase.apps.length?'✅':'❌')+'\n\n'+(location.protocol==='file:'?'❗ file:// से खोला — hosting पर खोलें!':'👉 Authorized domains में add करें: '+location.hostname)+'\n\n✅ बिना SMS: Console → Auth → Phone → test numbers में +91 7869969190 / OTP 123456 डालें');
+  sAlert('🌐 '+location.protocol+'//'+(location.hostname||'(file)')+'<br>📶 Internet: '+(navigator.onLine?'✅':'❌')+'<br>🔥 Firebase: '+(window.firebase&&firebase.apps.length?'✅':'❌')+'<br>✉️ Login: ईमेल+पासवर्ड या Google।'+'<br>'+(location.protocol==='file:'?'❗ file:// से खोला — hosting पर खोलें!':'👉 Authorized domains में add करें: '+location.hostname),'🔍 Login problem?','🧰');
 }
-function lgOut(){ localStorage.removeItem('swp_logged'); localStorage.removeItem('swp_phone'); localStorage.removeItem('swp_name'); localStorage.removeItem('swp_uid'); try{firebase.auth().signOut();}catch(e){} location.reload(); }
+function lgOut(){ localStorage.removeItem('swp_logged'); localStorage.removeItem('swp_phone'); localStorage.removeItem('swp_name'); localStorage.removeItem('swp_uid'); try{firebase.auth().signOut();}catch(e){} try{if(window.__exitGuard)window.__exitGuard.silent();}catch(_e){}location.reload(); }
 
 /* ═══ ENTER APP ═══ */
 var booted=false;
@@ -465,7 +506,7 @@ function bindGmailPartner(){
   function gate(){ PLOAD=1; try{ if(window.v43Gate) v43Gate(); }catch(e){} }
   function adopt(did,nm){
     try{ localStorage.setItem('swp_phone',did); if(nm) localStorage.setItem('swp_name',nm); }catch(e){}
-    location.reload();
+    try{if(window.__exitGuard)window.__exitGuard.silent();}catch(_e){}location.reload();
   }
   function linkExisting(docId,uid){
     /* OTP से बना partner, अब इसी gmail से login — doc को email+uid से जोड़ दो (dobara KYC नहीं) */
@@ -632,8 +673,7 @@ function draw(){
     '<button class="bn d" style="width:100%;margin:3px 0;padding:12px;font-size:12px;background:linear-gradient(90deg,#0b1220,#26364f);" onclick="nvOpen(\''+esc(o.id)+'\')">🧭 LIVE NAVIGATION</button>'+
     '<div class="bns">'+(NXT[o.status]?'<button class="bn o" style="flex:2;font-size:12px;" onclick="adv(\''+esc(o.id)+'\',\''+o.status+'\')">'+NXT[o.status]+'</button>':'')+
     '<button class="bn sh '+(shr?'on':'')+'" onclick="shr(\''+esc(o.id)+'\')">'+(shr?'📡 LIVE':'📡 Location')+'</button></div>'+
-    '<div class="bns"><a class="bn b" href="tel:+91'+esc(o.mobile||'')+'">📞 Call</a>'+
-    '<a class="bn w" href="https://wa.me/91'+esc(o.mobile||'')+'" target="_blank">💬 WA</a>'+
+    '<div class="bns"><button class="bn b" onclick="maskCall(\''+esc(o.id)+'\')">📞 Masked Call</button>'+
     '<button class="bn gy" onclick="chOpen(\''+esc(o.id)+'\')">💬 Chat</button></div>'+
     (o.payment&&!o.payment.verified&&/verifying/i.test(o.payment.status||'')?'<button class="bn au" style="width:100%;margin-top:7px;" onclick="vPay(\''+esc(o.id)+'\',\''+esc(o.payment.ref||'')+'\')">💜 UTR: '+esc(o.payment.ref||'—')+' — VERIFY करें</button>':'')+
     '<button class="bn r" style="width:100%;margin-top:7px;border:1.5px dashed #f5c6c3;" onclick="cnl(\''+esc(o.id)+'\')">❌ Cancel</button></div>';
@@ -911,6 +951,11 @@ function drawProfile(){
   SKILLS.map(function(s){var on=(P.skills||[]).indexOf(s)>-1;return '<span class="skc '+(on?'on':'')+'" onclick="togSk(this,\''+s+'\')">'+s+'</span>';}).join('')+'</div>'+
   '<div class="srw" style="margin-top:7px;"><span>📍 Radius</span><span><input type="range" min="2" max="25" value="'+(P.radiusKm||8)+'" style="width:120px;accent-color:var(--pr);" oninput="document.getElementById(\'rV\').innerText=this.value" onchange="savRad(this.value)"> <b id="rV" style="color:var(--pr);">'+(P.radiusKm||8)+'</b> km</span></div></div>'+
   '<div class="cd"><b style="font-size:12.5px;">🆘 Help</b><div class="bns" style="margin-top:8px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190" target="_blank">💬 WhatsApp</a></div></div>';
+}
+function v49SelfieGo(){
+  var f=document.getElementById('ofselfie');
+  if(f){ try{ f.click(); }catch(e){} return; }
+  toast('🤳 KYC screen खुलने पर Selfie tile टैप करें — camera/gallery खुलेगा');
 }
 function upKyc(k,inp){
   var f=inp.files&&inp.files[0]; if(!f)return;
@@ -1265,7 +1310,7 @@ function v43Show(st){
       return '<div class="kyd '+(im?'dn':'')+'" onclick="document.getElementById(\'of'+d.k+'\').click()">'+
         (im?'<img src="'+im+'"><span class="ok2"><i class="fa fa-check"></i></span>':'<span class="i2">'+d.i+'</span>')+
         '<span class="n2">'+d.n+(im?' ✓':' — टैप करें')+'</span>'+
-        '<input type="file" id="of'+d.k+'" accept="image/*" style="display:none;" onchange="upKyc(\''+d.k+'\',this)"></div>';
+        '<input type="file" id="of'+d.k+'" accept="image/*"'+(d.k==='selfie'?' capture="user"':'')+' style="display:none;" onchange="upKyc(\''+d.k+'\',this)"></div>';
     }).join('')+'</div>'+
     '<button class="bn o" style="width:100%;margin-top:12px;padding:13px;font-size:13.5px;" onclick="subKyc()">📤 KYC Submit करें ('+KDOCS.filter(function(d){return kyc[d.k];}).length+'/4 ready)</button></div>'+
     '<div class="cd" style="font-size:11px;color:#988;line-height:1.7;">💡 <b>Tips:</b> साफ रोशनी में photo लें • पूरा document frame में हो • Selfie में चेहरा साफ दिखे</div>'+
@@ -1980,8 +2025,8 @@ function v47Docs(){
     return '<div class="kyd '+(im?'dn':'')+'" onclick="document.getElementById(\'of'+d.k+'\').click()">'+
       (im?'<img src="'+im+'"><span class="ok2"><i class="fa fa-check"></i></span>':'<span class="i2">'+d.i+'</span>')+
       '<span class="n2">'+d.n+(im?' ✓':' — टैप करें')+'</span>'+
-      '<input type="file" id="of'+d.k+'" accept="image/*" style="display:none;" onchange="upKyc(\''+d.k+'\',this)"></div>';
-  }).join('')+'</div>';
+      '<input type="file" id="of'+d.k+'" accept="image/*"'+(d.k==='selfie'?' capture="user"':'')+' style="display:none;" onchange="upKyc(\''+d.k+'\',this)"></div>';
+  }).join('')+'<button class="bn o" style="width:100%;margin-top:9px;background:linear-gradient(135deg,#3a1c0a,#7a4a12);border:none;" onclick="v49SelfieGo()">🤳 Selfie लें / अपलोड करें (camera)</button></div>';
   var b=document.getElementById('kSub');
   var n=KDOCS.filter(function(d){return kyc[d.k];}).length;
   if(b) b.innerHTML='📤 KYC Submit करें ('+n+'/4 photos ready)';
@@ -2065,7 +2110,7 @@ setInterval(function(){
     var u=firebase.auth().currentUser;
     if(u&&u.phoneNumber&&/^\+91\d{10}$/.test(u.phoneNumber)&&u.phoneNumber.slice(3)!==me()){
       localStorage.setItem('swp_phone',u.phoneNumber.slice(3));
-      location.reload();
+      try{if(window.__exitGuard)window.__exitGuard.silent();}catch(_e){}location.reload();
     }
   }catch(e){}
 },15000);
@@ -4979,5 +5024,354 @@ var LGS=[['hi','हिन्दी'],['en','English']];
 })();
 </script>
 
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a3591b2ecf1b6ed4',t:'MTc4ODQ4NDEzOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+
+<!-- 🔒 AGORA MASKED CALLING — app id is-ee515c7f4c5e4194895390710fe474d1 -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SEWAASTRA — AGORA MASKED CALLING (v8.0)
+   App ID (verbatim): is-ee515c7f4c5e4194895390710fe474d1
+   • Asli numbers kabhi expose nahi hote — har call random masked UID pe
+   • Call signal Firestore ke order.callReq se (ring/answer/decline)
+   • Token: prod me Cloud Function se temporary token. Certificate OFF
+     project me token khali chhod sakte hain (dev).
+   ═══════════════════════════════════════════════════════════════ */
+window.SWAgora=(function(){
+  var APP='is-ee515c7f4c5e4194895390710fe474d1';
+  var TOKEN='';           // prod: server-minted temp token; dev: '' (certificate OFF)
+  var SDK='https://download.agora.io/sdk/release/AgoraRTC_N-4.24.2.js';
+  var role='cust';        // 'cust' | 'partner'
+  var client=null, localT=null, subs={}, st={s:'idle',oid:'',dir:''};
+  var unsub=null, ringT=null, loaderT=null;
+  var ui={};
+
+  function esc(s){ s=String(s==null?'':s); return s.replace(/[&<>"']/g,function(m){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];}); }
+  function myUid(){ try{ var u=firebase.auth().currentUser; return u?(u.uid||''):''; }catch(e){ return ''; } }
+  function myPhone(){ try{ return (''+((localStorage.getItem('swp_phone'))||'')).trim(); }catch(e){ return ''; } }
+  function chFor(oid){ return 'swa_'+String(oid||'').replace(/[^A-Za-z0-9]/g,''); }
+  function note(t){ try{ if(window.toast){ toast(t); return; } }catch(e){} try{ if(window.showToast){ showToast(t); } }catch(e){} }
+
+  /* ---------- SDK ---------- */
+  function loadSDK(cb){
+    if(window.AgoraRTC){ return cb(null); }
+    if(document.getElementById('swa-agora-sdk')){
+      if(loaderT) clearInterval(loaderT);
+      var t0=Date.now();
+      loaderT=setInterval(function(){
+        if(window.AgoraRTC){ clearInterval(loaderT); loaderT=null; cb(null); }
+        else if(Date.now()-t0>15000){ clearInterval(loaderT); loaderT=null; cb('timeout'); }
+      },250);
+      return;
+    }
+    var s=document.createElement('script');
+    s.id='swa-agora-sdk'; s.async=true; s.src=SDK;
+    s.onload=function(){ cb(null); };
+    s.onerror=function(){ cb('load'); };
+    document.head.appendChild(s);
+  }
+  function ok(){ return !!(window.AgoraRTC&&window.AgoraRTC.checkSystemRequirements&&window.AgoraRTC.checkSystemRequirements()); }
+
+  /* ---------- overlay ---------- */
+  function ensureUI(){
+    if(ui.root) return;
+    ui.root=document.createElement('div');
+    ui.root.innerHTML=
+      '<div id="swaBg" style="position:fixed;inset:0;background:rgba(6,10,22,.78);backdrop-filter:blur(5px);z-index:2147483646;display:none;align-items:center;justify-content:center;padding:16px;"></div>'+
+      '<div id="swaBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:2147483647;width:min(92vw,342px);background:linear-gradient(160deg,#0b1220,#1e2c47);color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:26px;box-shadow:0 26px 90px rgba(0,0,0,.6);padding:24px 18px 18px;text-align:center;font-family:system-ui,Arial,sans-serif;"></div>';
+    document.body.appendChild(ui.root);
+    ui.bg=document.getElementById('swaBg');
+    ui.box=document.getElementById('swaBox');
+    if(ui.bg) ui.bg.addEventListener('click',function(e){ if(e.target===ui.bg&&st.s!=='idle'&&st.s!=='live'){ hang(); } });
+  }
+  function paint(h){
+    ensureUI();
+    if(ui.box) ui.box.innerHTML=h;
+    if(ui.bg) ui.bg.style.display='flex';
+  }
+  function hideUI(){ if(ui.box) ui.box.innerHTML=''; if(ui.bg) ui.bg.style.display='none'; }
+  function card(head,body,actions){
+    var h='<div style="font-size:40px;line-height:1;">'+head+'</div>';
+    h+='<div style="font-size:15px;font-weight:900;margin:12px 0 4px;">'+body.title+'</div>';
+    h+='<div style="font-size:11.5px;opacity:.8;line-height:1.7;margin-bottom:12px;">'+body.sub+'</div>';
+    h+='<div style="display:flex;gap:8px;">'+actions.map(function(a){
+      return '<button id="'+a.id+'" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:12.5px;cursor:pointer;background:'+(a.bg||'#26364f')+';color:'+(a.fg||'#fff')+';">'+a.label+'</button>';
+    }).join('')+'</div>';
+    h+='<div style="font-size:9.5px;opacity:.55;margin-top:13px;">🔒 Agora secure channel • masked UID • '+esc(APP)+'</div>';
+    paint(h);
+  }
+  function bind(id,fn){ var el=document.getElementById(id); if(el) el.onclick=function(){ try{ fn(); }catch(e){ console.log(e); } }; }
+
+  /* ---------- live ---------- */
+  function liveCard(oid){
+    var muted=false;
+    card('🎧',{title:'🔒 Masked Call • LIVE',sub:'📦 '+esc(oid||'')+'<br>आपका असली नंबर दूसरे पक्ष को नहीं दिखेगा।'},
+      [{id:'swaM',label:'🔇 Mute',bg:'#374151'},{id:'swaE',label:'📵 End',bg:'#e53935'}]);
+    bind('swaE',function(){ end('कॉल समाप्त','Call ended'); });
+    bind('swaM',function(){
+      muted=!muted;
+      try{ if(localT) localT.setEnabled(!muted); }catch(e){}
+      var b=document.getElementById('swaM'); if(b) b.innerHTML=muted?'🔇 Muted':'🔇 Mute';
+    });
+  }
+  function waitingCard(oid){
+    card('📞',{title:'🔒 Masked Call',sub:'📦 '+esc(oid||'')+'<br>कॉलिंग… दूसरा पक्ष जुड़ रहा है।<br>वह Tracking / Masked Call खोलकर Answer करे।'},
+      [{id:'swaE',label:'📵 Cancel',bg:'#e53935'}]);
+    bind('swaE',function(){ end('Call रद्द','Cancelled'); });
+  }
+  function incomingCard(oid){
+    card('📞',{title:'Incoming Masked Call',sub:'📦 '+esc(oid||'')+'<br>कॉलर का असली नंबर छिपा है (Agora secure)।'},
+      [{id:'swaD',label:'✖ Decline',bg:'#374151'},{id:'swaA',label:'✅ Answer',bg:'#15a04a'}]);
+    bind('swaA',function(){ try{ navigator.vibrate&&navigator.vibrate(30); }catch(e){} doJoin(oid,false); });
+    bind('swaD',function(){ clearReq(oid); reset(); hideUI(); });
+  }
+
+  /* ---------- state mgmt ---------- */
+  function status(s){ st.s=s; }
+  function reset(){ st={s:'idle',oid:'',dir:''}; }
+  function clearReq(oid){
+    if(!oid) return;
+    try{ FS.collection('orders').doc(oid).update({'callReq':firebase.firestore.FieldValue.delete()}).catch(function(){}); }catch(e){}
+  }
+  function cleanup(){
+    if(ringT){ clearTimeout(ringT); ringT=null; }
+    try{ if(localT){ localT.close(); } }catch(e){}
+    try{ Object.keys(subs).forEach(function(k){ try{ subs[k].close(); }catch(e){} }); }catch(e){}
+    subs={}; localT=null;
+    if(client){ try{ client.leave().catch(function(){}); }catch(e){} client=null; }
+  }
+  function end(title,sub){
+    var oid=st.oid;
+    cleanup();
+    clearReq(oid);
+    reset();
+    hideUI();
+    if(title){ paint('<div style="font-size:34px;">📵</div><div style="font-size:14px;font-weight:900;margin-top:10px;">'+esc(title)+'</div>'+(sub?'<div style="font-size:10.5px;opacity:.7;margin-top:4px;">'+esc(sub)+'</div>':''));
+      setTimeout(hideUI,2000); }
+  }
+  function fail(msg){
+    cleanup();
+    var oid=st.oid; clearReq(oid);
+    reset();
+    card('⚠️',{title:'Masked Call उपलब्ध नहीं',sub:esc(msg)+'<br>💡 दोनों पक्ष को Tracking में Call दबाना होगा। फिर भी न जुड़े तो in-app 💬 Chat use करें।'},
+      [{id:'swaOk',label:'ठीक है',bg:'#0d6efd'}]);
+    bind('swaOk',function(){ hideUI(); });
+  }
+
+  /* ---------- join ---------- */
+  function doJoin(oid,isCaller){
+    loadSDK(function(err){
+      if(err){ fail('Agora SDK load नहीं हुआ — internet check करें और page refresh करें।'); return; }
+      if(!ok()){ fail('इस device/browser पर masked call support नहीं (https + mic ज़रूरी)।'); return; }
+      var R=window.AgoraRTC;
+      var c=R.createClient({mode:'rtc',codec:'vp8'});
+      client=c;
+      c.on('user-published',function(user,mt){
+        try{ if(subs[user.uid]) return; subs[user.uid]=user; c.subscribe(user,'audio').then(function(){
+          try{ user.audioTrack&&user.audioTrack.play(); }catch(e){}
+          if(st.s!=='live'){ status('live'); liveCard(oid); }
+        }).catch(function(){}); }catch(e){}
+      });
+      c.on('user-left',function(user){
+        try{ if(subs[user.uid]){ subs[user.uid].close(); delete subs[user.uid]; } }catch(e){}
+        if(st.s==='live') end('कॉल समाप्त','दूसरा पक्ष कॉल से हट गया');
+      });
+      status('connect');
+      paint('<div style="font-size:40px;">🔒</div><div style="font-size:14px;font-weight:900;margin-top:12px;">Secure channel बन रहा है…</div>');
+      c.join(APP,chFor(oid),TOKEN||null,Math.floor(100000+Math.random()*2147000000)).then(function(){
+        return R.createMicrophoneAudioTrack();
+      }).then(function(t){
+        localT=t;
+        return c.publish(t);
+      }).then(function(){
+        try{ navigator.vibrate&&navigator.vibrate([60,40,60]); }catch(e){}
+        if(!isCaller){ status('live'); try{ FS.collection('orders').doc(oid).update({'callReq.ans':{by:myUid(),role:role,t:Date.now()}}).catch(function(){}); }catch(e){} liveCard(oid); return; }
+        status('wait');
+        waitingCard(oid);
+        (c.remoteUsers||[]).forEach(function(u){ if(subs[u.uid]) return; try{ subs[u.uid]=u; c.subscribe(u,'audio').then(function(){ try{ u.audioTrack&&u.audioTrack.play(); }catch(e){} if(st.s!=='live'){ status('live'); if(ringT){clearTimeout(ringT);ringT=null;} liveCard(oid); } }).catch(function(){}); }catch(e){} });
+        ringT=setTimeout(function(){ ringT=null; if(st.s==='wait') end('कोई जवाब नहीं','दूसरा पक्ष Tracking/Call से जुड़ा नहीं'); },30000);
+      }).catch(function(e){
+        if(client){ try{ client.leave().catch(function(){}); }catch(x){} client=null; }
+        try{ if(localT){ localT.close(); localT=null; } }catch(x){}
+        var msg=(e&&e.message)||'';
+        var code=(e&&e.code)||'';
+        if(code===8||/token|certificate|DYNAMIC_KEY|APP_CERT/i.test(msg)) fail('Agora project पर App Certificate ON है — server (Cloud Function) से temporary token जोड़ें, या Console में certificate OFF करें (अभी app-id mode)।');
+        else if(/NotAllowedError|Permission|microphone|device/i.test(msg)) fail('🎤 Microphone permission नहीं मिली — browser allow करके फिर try करें।');
+        else if(/network|timeout|ECONN/i.test(msg)) fail('📶 Agora से connect नहीं हुआ — internet check करके फिर try करें।');
+        else fail('Connect error'+(code?(' ('+code+')'):'')+' — कुछ देर बाद फिर try करें।');
+      });
+    });
+  }
+
+  /* ---------- dial (outgoing) ---------- */
+  function dial(oid){
+    if(!oid){ note('पहले कोई active ऑर्डर की Tracking/Call screen खोलें'); return; }
+    if(st.s==='live'||st.s==='connect'||st.s==='wait'||st.s==='ring'){ note('एक call पहले से जारी है — End करें'); return; }
+    st.oid=oid; st.dir='out';
+    try{ FS.collection('orders').doc(oid).set({'callReq':{by:myUid(),role:role,t:Date.now()}},{merge:true}).catch(function(){}); }catch(e){}
+    doJoin(oid,true);
+  }
+  function hang(){ if(st.s==='live'||st.s==='connect'||st.s==='wait') end('कॉल समाप्त',''); }
+
+  /* ---------- incoming watcher ---------- */
+  function checkOrder(oid,d){
+    if(!d) return;
+    var req=d.callReq; if(!req){ if(st.s==='ring'&&st.oid===oid){ clearReq(oid); reset(); hideUI(); } return; }
+    if(!((req.t||0)&&(Date.now()-req.t)<45000)) return;
+    if(req.by===myUid()) return;
+    if(req.role===role) return;
+    if(st.s!=='idle') return;
+    if(req.ans&&req.ans.by) return;
+    incomingCard(oid);
+    if(ringT) clearTimeout(ringT);
+    ringT=setTimeout(function(){ ringT=null; if(st.s==='ring'){ clearReq(oid); reset(); hideUI(); } },35000);
+  }
+  function watch(){
+    if(unsub){ try{ unsub(); }catch(e){} unsub=null; }
+    var u=null; try{ u=firebase.auth().currentUser; }catch(e){}
+    if(!u) return;
+    var q=null;
+    try{
+      if(role==='partner'){ var ph=myPhone(); if(!ph) return; q=FS.collection('orders').where('partnerPhone','==',ph); }
+      else q=FS.collection('orders').where('uid','==',u.uid);
+      if(!q) return;
+    }catch(e){ return; }
+    try{
+      unsub=q.onSnapshot(function(sn){
+        try{ sn.docChanges().forEach(function(c){ if(c.type!=='removed'){ try{ checkOrder(c.doc.id,c.doc.data()); }catch(e){} } }); }catch(e){}
+      },function(){});
+    }catch(e){}
+  }
+
+  return {
+    APP:APP,
+    init:function(r){
+      role=(r==='partner')?'partner':'cust';
+      watch();
+      try{ firebase.auth().onAuthStateChanged(function(){ setTimeout(watch,900); }); }catch(e){}
+    },
+    dial:dial,
+    hangup:hang,
+    state:function(){ return st.s; },
+    why:function(){ return { app:APP, tokenSet:!!TOKEN, sdkLoaded:!!window.AgoraRTC, supported:ok(), state:st }; }
+  };
+})();
+
+</script>
+<script>
+(function(){
+  try{
+    window.maskCall=function(oid){ SWAgora.dial(oid); };
+    SWAgora.init('partner');
+    console.log('%c 🔒 AGORA MASKED CALL v8.0 (partner) ','background:#15a04a;color:#fff;font-weight:bold;padding:3px;');
+  }catch(e){ console.log('agora',e); }
+})();
+</script>
+
+<!-- 🚪 EXIT CONFIRMATION GUARD v8.1 -->
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SEWAASTRA — EXIT GUARD v8.1 (teeno apps)
+   • Back button / tab close / refresh par puchhe bina bahar nahi ja sakte
+   • Custom in-app modal (koi native confirm/prompt nahi)
+   • window.__exitGuard.silent() — internal reload/logout ke liye bypass
+   ═══════════════════════════════════════════════════════════════ */
+(function(){
+  if(window.__exitGuardInstalled) return; window.__exitGuardInstalled=1;
+  var armed=true, silentT=0, pendingExit=false, zz=2147483600;
+  var root=null, box=null;
+
+  function el(id){ return document.getElementById(id); }
+
+  function ensureUI(){
+    if(root) return;
+    root=document.createElement('div');
+    root.id='swExitRoot';
+    root.innerHTML=
+      '<div id="swExitBg" style="position:fixed;inset:0;background:rgba(5,8,20,.7);backdrop-filter:blur(4px);z-index:'+zz+';display:none;align-items:center;justify-content:center;padding:18px;"></div>'+
+      '<div id="swExitBox" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.94);z-index:'+(zz+1)+';width:min(90vw,330px);background:linear-gradient(165deg,#ffffff,#f4f6fb);color:#17203a;border-radius:24px;box-shadow:0 24px 80px rgba(0,0,0,.45);padding:24px 20px 18px;text-align:center;display:none;font-family:system-ui,Arial,sans-serif;"></div>';
+    document.body.appendChild(root);
+    var bg=el('swExitBg'), bx=el('swExitBox');
+    if(bg) bg.addEventListener('click',function(e){ if(e.target===bg) stay(); });
+  }
+  function show(){
+    ensureUI();
+    if(!box){ return; }
+    box.innerHTML=
+      '<div style="font-size:46px;line-height:1;">🚪</div>'+
+      '<div style="font-size:17px;font-weight:900;margin:12px 0 5px;">बाहर जाना है?</div>'+
+      '<div style="font-size:12px;color:#556;line-height:1.7;margin-bottom:16px;">क्या आप सच में SewaAstra से बाहर जाना चाहते हैं?<br><b>रुकें</b> दबाएँ तो आप यहीं बने रहेंगे।</div>'+
+      '<div style="display:flex;gap:8px;">'+
+        '<button id="swExitYes" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;background:#e53935;color:#fff;">हाँ, बाहर जाएँ</button>'+
+        '<button id="swExitNo" style="flex:1;border:none;border-radius:13px;padding:13px;font-weight:800;font-size:13px;cursor:pointer;background:#0d6efd;color:#fff;">रुकें</button>'+
+      '</div>';
+    var b1=el('swExitYes'), b2=el('swExitNo');
+    if(b1) b1.onclick=function(){ goOut(); };
+    if(b2) b2.onclick=function(){ stay(); };
+    var bg=el('swExitBg'); if(bg) bg.style.display='flex';
+    box.style.display='block';
+  }
+  function hide(){
+    var bg=el('swExitBg'); if(bg) bg.style.display='none';
+    if(box) box.style.display='none';
+  }
+  function stay(){ pendingExit=false; hide(); trap(); }
+  function trap(){
+    try{
+      if(history.state && history.state.__swg) return;
+      history.replaceState({__swg:1}, '');
+      history.pushState({__swg:1}, '');
+    }catch(e){}
+  }
+  function goOut(){
+    pendingExit=true; armed=false;
+    try{ silentT=Date.now(); }catch(e){}
+    hide();
+    var done=false;
+    setTimeout(function(){
+      try{ if(history.length>1){ history.back(); done=true; } }catch(e){}
+      setTimeout(function(){
+        try{ window.close(); }catch(e){}
+        setTimeout(function(){
+          if(!done){
+            // browser ne tab band nahi kiya — ek aakhri naram notice
+            ensureUI();
+            if(box) box.innerHTML='<div style="font-size:38px;">👋</div><div style="font-size:14px;font-weight:800;margin-top:10px;">फिर मिलेंगे!</div><div style="font-size:11px;color:#667;margin-top:6px;">इस browser में अब tab बंद कर सकते हैं।</div>';
+          }
+        },700);
+      },300);
+    },60);
+  }
+
+  /* back button (Android/browser) */
+  window.addEventListener('popstate',function(){
+    if(!armed) return;
+    if(pendingExit) return;             // exit already confirmed — allow
+    show();
+  });
+  /* tab close / refresh / external link — browser native leave prompt */
+  window.addEventListener('beforeunload',function(e){
+    if(!armed) return;
+    if(Date.now()-silentT<1200) return; // internal silent reload
+    e.preventDefault();
+    e.returnValue='';
+  });
+
+  /* keyboard shortcut bhi confirm kar de (alt+left etc.) */
+  window.addEventListener('pagehide',function(){ /* kuch nahi — pagehide flow block nahi hota */ });
+
+  /* API */
+  window.__exitGuard={
+    armed:function(){ return armed; },
+    disarm:function(){ armed=false; },
+    rearm:function(){ armed=true; trap(); },
+    silent:function(){ silentT=Date.now(); armed=false; },
+    trap:trap,
+    askExit:show
+  };
+
+  try{ trap(); }catch(e){}
+  console.log('%c 🚪 EXIT GUARD v8.1 — bina confirm bahar nahi ja sakte ','background:#e53935;color:#fff;font-weight:bold;padding:3px;');
+})();
+
+</script>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a35c1e3c8b240e6e',t:'MTc4ODUxNTcyMQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
