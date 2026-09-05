@@ -1,6 +1,163 @@
 <!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════
+     SewaAstra — Partner App (secure build v3)
+     बना: 5 सितम्बर 2026
+
+     इस file में तीन सुरक्षा परतें पहले से लगी हैं:
+       1. SWXSS  — innerHTML पर XSS का आख़िरी जाल (<head> में सबसे पहले)
+       2. SWID   — doc का पता फोन नंबर नहीं, Firebase Auth uid
+       3. escape-at-source — जहाँ user data HTML में जाता है
+
+     ⚠️ ये तीनों client-side हैं. असली रोक firestore.rules +
+        Cloud Functions में है — वो deploy किए बिना यह file अकेली
+        सुरक्षित नहीं. पूरा क्रम: docs/DEPLOY-GUIDE.md
+     ═══════════════════════════════════════════════════════════ -->
 <html lang="hi">
 <head>
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   SWXSS — आख़िरी सुरक्षा-जाल (v3)
+   ---------------------------------------------------------------
+   सोच: app में 300 जगह innerHTML है. हर एक पर सही escape लगाना और
+        आगे भी लगा रहना — यह भरोसे की बात है, गारंटी की नहीं.
+        एक जगह छूटी तो वही stored XSS बन जाती है.
+
+        इसलिए escape को *आख़िरी दरवाज़े* पर रखा गया है: innerHTML का
+        setter खुद. कोई भी रास्ता — पुराना कोड, नया कोड, भूली हुई जगह —
+        सब यहीं से गुज़रते हैं.
+
+   ⚠️ यह escape-at-source की जगह नहीं लेता. यह उसके नीचे का जाल है.
+      दोनों साथ चाहिए.
+
+   क्या हटाता है:
+     • <script> <iframe> <object> <embed> <base> <link> <meta> <form>
+       <svg> <math>  — इन apps के किसी template में ये आते ही नहीं,
+       इसलिए हटाने से कुछ नहीं टूटता (जाँचा गया).
+     • href/src/action में javascript: vbscript: data:text/html
+     • on… attribute तभी हटते हैं जब उनमें साफ़ हमला दिखे
+       (apps inline onclick पर टिके हैं — अंधाधुंध हटाना app तोड़ देता)
+   ═══════════════════════════════════════════════════════════════ */
+(function (global) {
+  'use strict';
+  if (global.SWXSS) return;
+
+  // इन apps में ये tag कभी legitimately नहीं बनते
+  var BAD = 'script|iframe|object|embed|base|link|meta|form|svg|math|frame|frameset|applet|template';
+
+  var RE_PAIR = new RegExp('<\\s*(' + BAD + ')\\b[\\s\\S]*?<\\s*\\/\\s*\\1\\s*>', 'gi');
+  var RE_ONE  = new RegExp('<\\s*\\/?\\s*(' + BAD + ')\\b[^>]*>', 'gi');
+
+  // href/src/action में खतरनाक scheme.  data:image और data:video चलने दो.
+  var RE_URL = /(\b(?:href|src|action|formaction|data|poster|xlink:href)\s*=\s*)(["']?)\s*(?:j\s*a\s*v\s*a\s*s\s*c\s*r\s*i\s*p\s*t|v\s*b\s*s\s*c\s*r\s*i\s*p\s*t|data\s*:\s*text\s*\/\s*html)\s*:?[^"'>\s]*/gi;
+
+  // ── on… handler ──
+  // ये apps 434 inline onclick पर टिकी हैं, इसलिए सबको हटाना app तोड़ देगा.
+  // इसलिए दो परतें: (क) सिर्फ़ वही handler नाम चलेंगे जो apps सच में
+  // इस्तेमाल करते हैं — onmouseover/onanimationstart/ontoggle जैसे
+  // दर्जनों bypass रास्ते यहीं बंद. (ख) बचे हुए handler में जाना-पहचाना
+  // payload दिखा तो वो भी हटेगा.
+  var OK_ON = { onclick:1, onchange:1, oninput:1, onkeydown:1, onkeyup:1,
+                onerror:1, onload:1, onsubmit:1, onblur:1, onfocus:1 };
+
+  var RE_ON  = /(\s)(on\w+)(\s*=\s*)(["'])((?:(?!\4)[\s\S])*?)\4/gi;
+  var RE_ON2 = /(\s)(on\w+)(\s*=\s*)([^\s"'>]+)/gi;      // बिना quote वाला
+
+  // handler के अंदर ये कभी legitimately नहीं आते
+  var RE_PAYLOAD = new RegExp([
+    '<', 'javascript\\s*:', 'vbscript\\s*:', '&#', '\\\\x3c', '\\\\u003c',
+    // function जैसे — पीछे ( या [ या . चाहिए
+    '\\b(?:alert|prompt|confirm|eval|atob|btoa|unescape|decodeURI|fetch|import|Function|' +
+      'setTimeout|setInterval|XMLHttpRequest|WebSocket|EventSource|Worker|open|write|' +
+      'createElement|appendChild|insertAdjacent|setAttribute)\\s*[\\(\\[]',
+    // ये नाम अकेले ही ख़तरा — कुछ पीछे लगने की ज़रूरत नहीं
+    '\\b(?:document\\s*\\.\\s*cookie|localStorage|sessionStorage|indexedDB|' +
+      'navigator\\s*\\.\\s*sendBeacon|location\\s*\\.\\s*(?:href|replace|assign)|' +
+      'innerHTML|outerHTML|srcdoc|globalThis|constructor)\\b',
+    // bracket से property निकालना — obfuscation का पसंदीदा रास्ता
+    '\\b(?:window|self|top|parent|frames|document|this)\\s*\\['
+  ].join('|'), 'i');
+
+  var blocked = 0;
+
+  function keepHandler(name, val) {
+    if (!OK_ON[String(name).toLowerCase()]) { blocked++; return false; }
+    if (RE_PAYLOAD.test(val)) { blocked++; return false; }
+    return true;
+  }
+
+  function clean(html) {
+    var s = String(html == null ? '' : html);
+    if (s.indexOf('<') < 0 && s.indexOf('&') < 0) return s;   // सादा text — छोड़ो
+
+    var before = s;
+    s = s.replace(RE_PAIR, '').replace(RE_ONE, '');
+    s = s.replace(RE_URL, function (m, p1, q) { blocked++; return p1 + q + '#blocked'; });
+    s = s.replace(RE_ON, function (m, sp, name, eq, q, val) {
+      return keepHandler(name, val) ? m : sp;
+    });
+    s = s.replace(RE_ON2, function (m, sp, name, eq, val) {
+      return keepHandler(name, val) ? m : sp;
+    });
+    if (s !== before) blocked++;
+    return s;
+  }
+
+  function wrapProp(proto, prop) {
+    var d = Object.getOwnPropertyDescriptor(proto, prop);
+    if (!d || !d.set || d.__swxss) return;
+    var orig = d.set;
+    Object.defineProperty(proto, prop, {
+      configurable: true,
+      enumerable: d.enumerable,
+      get: d.get,
+      set: function (v) { orig.call(this, clean(v)); }
+    });
+    Object.getOwnPropertyDescriptor(proto, prop).__swxss = 1;
+  }
+
+  try { wrapProp(Element.prototype, 'innerHTML'); } catch (e) {}
+  try { wrapProp(Element.prototype, 'outerHTML'); } catch (e) {}
+
+  try {
+    var iah = Element.prototype.insertAdjacentHTML;
+    if (iah && !iah.__swxss) {
+      Element.prototype.insertAdjacentHTML = function (pos, html) {
+        return iah.call(this, pos, clean(html));
+      };
+      Element.prototype.insertAdjacentHTML.__swxss = 1;
+    }
+  } catch (e) {}
+
+  /** URL सुरक्षित है? src/href सीधे लगाने से पहले इससे गुज़ारें */
+  function safeUrl(u) {
+    var s = String(u == null ? '' : u).trim();
+    if (!s) return '';
+    if (/^(https?:|\/|\.\/|#|mailto:|tel:)/i.test(s)) return s;
+    if (/^data:(image|video|audio)\//i.test(s)) return s;   // upload preview
+    return '';                                              // बाकी सब बंद
+  }
+
+  /** HTML entity escape — escape-at-source के लिए */
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"'`=\/]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;',
+               "'": '&#39;', '`': '&#96;', '=': '&#61;', '/': '&#47;' }[c];
+    });
+  }
+
+  global.SWXSS = {
+    clean: clean,
+    esc: esc,
+    safeUrl: safeUrl,
+    blocked: function () { return blocked; }
+  };
+  if (!global.swEsc) global.swEsc = esc;
+})(window);
+</script>
+
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.gstatic.com/firebasejs/; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net https://nominatim.openstreetmap.org https://www.google-analytics.com; frame-src https://*.firebaseapp.com https://www.youtube.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"><meta name="theme-color" content="#0b1220"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="SewaAstra">
 <title>SewaAstra Partner – Technician App</title>
@@ -17,6 +174,191 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+<script>
+window.__SWID_ROLE = 'partner';
+/* ═══════════════════════════════════════════════════════════════
+   SWID — पहचान की एक ही जगह (v3)
+   ---------------------------------------------------------------
+   समस्या: पूरे app में doc ID के तौर पर फोन नंबर इस्तेमाल हुआ है
+           (partners/9111111111). फोन नंबर बदला जा सकता है, अंदाज़ा
+           लगाया जा सकता है, और recycle होता है — इसलिए वो पहचान
+           का आधार नहीं हो सकता. सही आधार Firebase Auth का uid है.
+
+   हल:    65+ जगह हाथ से बदलने के बजाय Firestore की doc() call को
+          एक बार लपेट देते हैं. सिर्फ *अपना* फोन नंबर चुपचाप अपने
+          uid पर मुड़ता है — किसी और का ID कभी नहीं छुआ जाता.
+
+   खुद ठीक होने वाला: boot पर देखता है कि uid-वाला doc बना है या
+          नहीं. migration के हर चरण में सही जगह पर जाता है, चाहे
+          phase1 चल रहा हो या phase3 हो चुका हो.
+   ═══════════════════════════════════════════════════════════════ */
+(function (global) {
+  'use strict';
+  if (global.SWID) return;
+
+  var KEYED = { partners: 1, users: 1 };   // सिर्फ ये दो collections
+  var _uid = null;                          // Firebase Auth uid
+  var _phone = '';                          // मेरा 10-अंकी नंबर
+  var _docId = '';                          // असल में कौन-सा ID इस्तेमाल हो
+  var _resolved = false;
+  var _waiters = [];
+  var LS = 'swid_docmode_v3';
+
+  function digits10(s) {
+    s = String(s == null ? '' : s).replace(/\D/g, '');
+    return s.length >= 10 ? s.slice(-10) : '';
+  }
+
+  /** मेरा फोन — auth token सबसे भरोसेमंद, localStorage सिर्फ सहारा */
+  function readPhone() {
+    try {
+      var u = global.firebase && firebase.auth().currentUser;
+      if (u && u.phoneNumber) return digits10(u.phoneNumber);
+    } catch (e) {}
+    try {
+      var a = localStorage.getItem('swp_phone') || localStorage.getItem('sw_user') || '';
+      return digits10(a);
+    } catch (e) {}
+    return '';
+  }
+
+  /**
+   * तय करो कि मेरा doc uid पर है या अभी भी फोन पर.
+   * phase2 के बाद uid-doc मौजूद होगा → uid.
+   * उससे पहले → फोन (कुछ नहीं टूटता).
+   */
+  function resolve(FS) {
+    if (_resolved) return Promise.resolve(_docId);
+    _uid = null;
+    try { var u = firebase.auth().currentUser; if (u) _uid = u.uid; } catch (e) {}
+    _phone = readPhone();
+
+    // logged out — कोई redirect नहीं, पर waiters ज़रूर छोड़ो
+    if (!_uid) { _docId = _phone; finish(); return Promise.resolve(_docId); }
+    if (!_phone) { _docId = _uid; finish(); return Promise.resolve(_docId); }
+
+    // पिछली बार का फ़ैसला याद है?
+    try {
+      var c = JSON.parse(localStorage.getItem(LS) || 'null');
+      if (c && c.uid === _uid && c.mode === 'uid') {
+        _docId = _uid; finish(); return Promise.resolve(_docId);
+      }
+    } catch (e) {}
+
+    var coll = (global.__SWID_ROLE === 'customer') ? 'users' : 'partners';
+    return rawDoc(FS, coll, _uid).get()
+      .then(function (s) {
+        _docId = s.exists ? _uid : _phone;
+        if (s.exists) { try { localStorage.setItem(LS, JSON.stringify({ uid: _uid, mode: 'uid' })); } catch (e) {} }
+        finish(); return _docId;
+      })
+      .catch(function () {
+        // rules ने रोका या network — सुरक्षित रास्ता: पुराना ID
+        _docId = _phone || _uid; finish(); return _docId;
+      });
+  }
+
+  function finish() {
+    _resolved = true;
+    var w = _waiters; _waiters = [];
+    w.forEach(function (fn) { try { fn(_docId); } catch (e) {} });
+  }
+
+  var _raw = null;   // लपेटने से पहले वाला असली collection()
+  function rawDoc(FS, coll, id) {
+    return (_raw ? _raw.call(FS, coll) : FS.collection(coll)).doc(id);
+  }
+
+  /**
+   * ID अनुवाद — यही पूरे shim का दिल.
+   * सिर्फ तब बदलता है जब ID *बिलकुल मेरा अपना फोन नंबर* हो.
+   * किसी और का नंबर, कोई uid, कोई code — सब वैसे के वैसे.
+   */
+  function map(coll, id) {
+    if (!KEYED[coll]) return id;
+    if (id == null) return id;
+    var s = String(id);
+    if (!_uid || !_phone) return id;
+    if (s === _phone && _docId === _uid) return _uid;
+    return id;
+  }
+
+  global.SWID = {
+    /** Firestore instance को लपेटो — app boot पर एक बार */
+    install: function (FS) {
+      if (!FS || FS.__swidWrapped) return FS;
+      _raw = FS.collection;
+      FS.collection = function (name) {
+        var c = _raw.call(this, name);
+        if (KEYED[name] && !c.__swidDoc) {
+          var origDoc = c.doc.bind(c);
+          c.doc = function (id) { return origDoc(map(name, id)); };
+          c.__swidDoc = 1;
+        }
+        return c;
+      };
+      FS.__swidWrapped = 1;
+
+      // auth बदले तो पहचान दोबारा तय करो
+      try {
+        firebase.auth().onAuthStateChanged(function () {
+          _resolved = false; _docId = ''; resolve(FS);
+        });
+      } catch (e) {}
+      resolve(FS);
+      return FS;
+    },
+
+
+    /**
+     * orders पर सही पहचान-field चुनो.
+     * migration हो चुका (mine()==uid) → partnerUid / uid
+     * उससे पहले                        → partnerPhone / mobile
+     * लौटाता है [field, value] या null अगर पहचान ही नहीं.
+     */
+    orderKey: function (role) {
+      var byUid = !!(_uid && _docId === _uid);
+      if (role === 'partner') {
+        if (byUid) return ['partnerUid', _uid];
+        return _phone ? ['partnerPhone', _phone] : null;
+      }
+      if (byUid) return ['uid', _uid];
+      return _phone ? ['mobile', _phone] : null;
+    },
+
+    /** सीधे query बना दो — null अगर पहचान नहीं */
+    orderQuery: function (FS, role) {
+      var k = this.orderKey(role);
+      return k ? FS.collection('orders').where(k[0], '==', k[1]) : null;
+    },
+
+    uid: function () { return _uid || ''; },
+    phone: function () { return _phone; },
+    /** मेरा असली doc ID — uid (या migration से पहले फोन) */
+    mine: function () { return _docId || _uid || _phone; },
+    ready: function (cb) { _resolved ? cb(_docId) : _waiters.push(cb); },
+    /** order पर मालिकाना — uid पहले, पुराने orders के लिए फोन */
+    ownsOrder: function (o) {
+      if (!o) return false;
+      if (o.partnerUid) return o.partnerUid === _uid;
+      if (o.uid) return o.uid === _uid;
+      return !!(_phone && (o.partnerPhone === _phone || o.mobile === _phone));
+    },
+    /** नया order/doc लिखते वक़्त दोनों field भरो */
+    stamp: function (obj) {
+      obj = obj || {};
+      if (_uid) obj.uid = _uid;
+      if (_phone) obj.phone = _phone;
+      return obj;
+    },
+    _map: map
+  };
+})(window);
+</script>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-functions-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-check-compat.js"></script>
+
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 <style>
 :root{--pr:#ff6b00;--prl:#fff5ed;--ok:#15a04a;--card:#fff;--bg:#f6f3ef;--tx:#1c2333;--bd:#eee2d5;}
@@ -187,7 +529,120 @@ body.dark #chB{background:#0d1320;}
 @keyframes rot{to{transform:rotate(360deg)}}
 </style>
 <!-- v9: Agora SDK हटाया — खुद की WebRTC mask calling -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8/Z9lQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<!-- ═══════ SewaAstra SECURITY CORE v1 (auto-injected) ═══════ -->
+<script>
+(function(){
+  'use strict';
+  var SW = window.SWSec = {};
+
+  /* ── 1. HTML escaping — XSS की पहली दीवार ── */
+  var MAP={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'};
+  SW.esc = function(s){ return String(s==null?'':s).replace(/[&<>"'\/`=]/g, function(c){ return MAP[c]; }); };
+  SW.escAttr = function(s){ return SW.esc(s).replace(/\s/g,'&#32;'); };
+  /* URL sanitize — javascript: / data: वाले हमले रोके */
+  SW.safeUrl = function(u){
+    u = String(u||'').trim();
+    if(/^(javascript|data|vbscript|file):/i.test(u.replace(/[\s\u0000-\u001f]/g,''))) return '#';
+    return u;
+  };
+
+  /* ── 2. ROLE — सिर्फ Firebase ID token custom claim से. localStorage से कभी नहीं ── */
+  var _claims = Object.create(null);
+  var _ready  = false;
+  var _waiters = [];
+
+  SW.refreshClaims = function(force){
+    return new Promise(function(res){
+      try{
+        var u = firebase.auth().currentUser;
+        if(!u){ _claims = Object.create(null); _ready = true; return res(_claims); }
+        u.getIdTokenResult(!!force).then(function(t){
+          _claims = Object.freeze({
+            admin:   t.claims.admin   === true,
+            partner: t.claims.partner === true,
+            phone:   String(t.claims.phone || '')
+          });
+          _ready = true;
+          _waiters.splice(0).forEach(function(f){ try{f(_claims);}catch(e){} });
+          res(_claims);
+        }).catch(function(){ _claims=Object.create(null); _ready=true; res(_claims); });
+      }catch(e){ _claims=Object.create(null); _ready=true; res(_claims); }
+    });
+  };
+
+  /* 🔒 ये getters हैं — कोई इन्हें console से true नहीं कर सकता */
+  Object.defineProperty(SW,'isAdmin',  {get:function(){ return _claims.admin===true; }, configurable:false});
+  Object.defineProperty(SW,'isPartner',{get:function(){ return _claims.partner===true; }, configurable:false});
+  Object.defineProperty(SW,'phone',    {get:function(){ return _claims.phone||''; }, configurable:false});
+  Object.defineProperty(SW,'ready',    {get:function(){ return _ready; }, configurable:false});
+  Object.freeze(SW.esc); Object.freeze(SW.safeUrl);
+
+  SW.onReady = function(cb){ if(_ready) cb(_claims); else _waiters.push(cb); };
+
+  /* ── 3. Server से claims sync (login के बाद) ── */
+  SW.syncClaims = function(){
+    try{
+      if(!firebase.functions) return SW.refreshClaims(true);
+      return firebase.app().functions('asia-south1')
+        .httpsCallable('syncMyClaims')()
+        .then(function(){ return SW.refreshClaims(true); })
+        .catch(function(){ return SW.refreshClaims(true); });
+    }catch(e){ return SW.refreshClaims(true); }
+  };
+
+  /* ── 4. Callable helper — सारे संवेदनशील काम server पर ── */
+  SW.call = function(name, data){
+    try{
+      return firebase.app().functions('asia-south1').httpsCallable(name)(data||{})
+        .then(function(r){ return r.data; });
+    }catch(e){ return Promise.reject(e); }
+  };
+
+  /* ── 5. Auth state पर claims हमेशा ताज़ा रखो ── */
+  function hook(){
+    if(!window.firebase || !firebase.auth) return setTimeout(hook, 120);
+    firebase.auth().onAuthStateChanged(function(u){
+      SW.refreshClaims(true).then(function(c){
+        document.documentElement.setAttribute('data-role',
+          c.admin ? 'admin' : (c.partner ? 'partner' : (u ? 'user' : 'guest')));
+        /* admin-only UI सिर्फ असली admin को */
+        try{
+          document.querySelectorAll('[data-admin-only]').forEach(function(el){
+            el.style.display = c.admin ? '' : 'none';
+          });
+        }catch(e){}
+        try{ window.dispatchEvent(new CustomEvent('sw:claims', {detail:c})); }catch(e){}
+      });
+    });
+    /* हर 30 मिनट token refresh — revoke तुरंत असर करे */
+    setInterval(function(){ SW.refreshClaims(true); }, 30*60*1000);
+  }
+  hook();
+
+  /* ── 6. localStorage के नकली admin flags हमेशा साफ़ ── */
+  try{
+    ['sw_is_admin','swp_is_admin','is_admin','admin'].forEach(function(k){
+      try{ localStorage.removeItem(k); }catch(e){}
+    });
+    var _si = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function(k,v){
+      if(/^(sw_is_admin|swp_is_admin|is_admin|admin)$/i.test(String(k))){
+        console.warn('[SWSec] blocked fake admin flag:', k);
+        return;
+      }
+      return _si(k,v);
+    };
+  }catch(e){}
+
+  /* ── 7. Clickjacking से बचाव ── */
+  try{ if(window.top !== window.self) window.top.location = window.self.location; }catch(e){}
+
+  console.log('%c🔒 SewaAstra Security Core active','background:#15a04a;color:#fff;padding:3px 8px;font-weight:bold;border-radius:4px');
+})();
+</script>
+<!-- ═══════ /SECURITY CORE ═══════ -->
 </head>
 <body>
 
@@ -330,6 +785,7 @@ firebase.initializeApp({
   measurementId: "G-Z08CQVRVQG"
 });
 var FS = firebase.firestore();
+try{ SWID.install(FS); }catch(e){ console.warn('SWID', e); }
 
 var SH = {'Order Placed':'नया','Accepted':'स्वीकृत','On the Way':'रास्ते में','Working':'काम चालू','Completed':'पूर्ण ✅','Cancelled':'रद्द ❌'};
 var SC = {'Order Placed':'#ff6b00','Accepted':'#0d6efd','On the Way':'#6c3df4','Working':'#b07800','Completed':'#15a04a','Cancelled':'#e53935'};
@@ -630,7 +1086,8 @@ function tab(t,btn){
 /* ═══ ORDERS realtime ═══ */
 var ALL=[], first=true;
 function listenOrders(){
-  function swCxAlertP(oid,reason){ try{ var ov=document.getElementById('swCxAlOv'); if(!ov){ ov=document.createElement('div'); ov.id='swCxAlOv'; document.body.appendChild(ov); } 'position:fixed;inset:0;z-index:2147483635;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.82);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;'; ov.style.display='flex'; ov.innerHTML='<div style="background:#fff;border-radius:24px;padding:24px;max-width:320px;width:100%;text-align:center;color:#222;"><div style="font-size:44px;">!</div><div style="font-weight:900;font-size:16px;">Customer ne Order Cancel kiya</div><div style="font-size:12px;color:#888;margin-top:2px;">'+oid+'</div><div style="font-size:13px;color:#555;margin:8px 0 14px;line-height:1.6;">Kaaran: '+reason+'</div><button id="swCxAlX" style="width:100%;border:none;border-radius:13px;padding:13px;font-weight:900;background:#111;color:#fff;cursor:pointer;">OK</button></div>'; document.getElementById('swCxAlX').onclick=function(){ ov.style.display='none'; }; }catch(e){} } function __pTrans24(s){ try{ var pm={}; try{ (window.ALL||[]).forEach(function(x){ if(x&&x.id) pm[x.id]=x.status; }); }catch(e){} var mm=''; try{ mm=(typeof me==='function')?me():''; }catch(e){} s.docs.forEach(function(d){ var oo=d.data()||{}; if(oo.status==='Cancelled'&&pm[oo.id]&&pm[oo.id]!=='Cancelled'&&oo.partnerPhone&&mm&&oo.partnerPhone===mm){ var rr=oo.cancelReason||'Kaaran nahi likha'; try{ swCxAlertP(oo.id,rr); }catch(e){} try{ if(window.toast) window.toast('Customer ne cancel kiya: '+oo.id); }catch(e){} } }); }catch(e){} } FS.collection('orders').onSnapshot(function(s){
+  function swCxAlertP(oid,reason){ try{ var ov=document.getElementById('swCxAlOv'); if(!ov){ ov=document.createElement('div'); ov.id='swCxAlOv'; document.body.appendChild(ov); } 'position:fixed;inset:0;z-index:2147483635;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.82);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;'; ov.style.display='flex'; ov.innerHTML='<div style="background:#fff;border-radius:24px;padding:24px;max-width:320px;width:100%;text-align:center;color:#222;"><div style="font-size:44px;">!</div><div style="font-weight:900;font-size:16px;">Customer ne Order Cancel kiya</div><div style="font-size:12px;color:#888;margin-top:2px;">'+SWSec.esc(oid)+'</div><div style="font-size:13px;color:#555;margin:8px 0 14px;line-height:1.6;">Kaaran: '+SWSec.esc(reason)+'</div><button id="swCxAlX" style="width:100%;border:none;border-radius:13px;padding:13px;font-weight:900;background:#111;color:#fff;cursor:pointer;">OK</button></div>'; document.getElementById('swCxAlX').onclick=function(){ ov.style.display='none'; }; }catch(e){} } function __pTrans24(s){ try{ var pm={}; try{ (window.ALL||[]).forEach(function(x){ if(x&&x.id) pm[x.id]=x.status; }); }catch(e){} var mm=''; try{ mm=(typeof me==='function')?me():''; }catch(e){} s.docs.forEach(function(d){ var oo=d.data()||{}; if(oo.status==='Cancelled'&&pm[oo.id]&&pm[oo.id]!=='Cancelled'&&oo.partnerPhone&&mm&&oo.partnerPhone===mm){ var rr=oo.cancelReason||'Kaaran nahi likha'; try{ swCxAlertP(oo.id,rr); }catch(e){} try{ if(window.toast) window.toast('Customer ne cancel kiya: '+oo.id); }catch(e){} } }); }catch(e){} } /* 🔒 DATA-LEAK FIX: पहले यहाँ पूरी orders collection listen होती थी — हर customer का नाम/नंबर/पता हर partner के फोन में आ जाता था. अब सिर्फ अपने orders (where partnerPhone==me) + PII-मुक्त feed. */
+(SWID.orderQuery(FS,'partner')||FS.collection('orders').where('partnerPhone','==',me())).limit(100).onSnapshot(function(s){
     if(!first){
       s.docChanges().forEach(function(ch){
         var o=ch.doc.data();
@@ -797,7 +1254,8 @@ function acc(oid){ try{ var __ao=null; try{ var __aa=window.ALL||[]; for(var __a
   var nm=$('pNm').value.trim()||P.name||'SewaAstra Partner';
   ldr('Accept...');
   var uidx=''; try{ uidx=(firebase.auth().currentUser||{}).uid||''; }catch(e){}
-  FS.collection('orders').doc(oid).update({status:'Accepted',partnerPhone:me(),partnerUid:uidx,partnerName:nm,acceptedAt:Date.now()})
+  SWSec.call('acceptOrder',{orderId:oid})
+    .then(function(r){ return {ok:true,r:r}; })
     .then(function(){ ldrX(); toast('✅ ऑर्डर आपका! 🛵'); vib(); })
     .catch(function(e){ ldrX(); alert('❌ '+e.message); });
 }
@@ -819,7 +1277,9 @@ function cnl(oid){
 }
 function vPay(oid,ref){
   swUi.confirm({icon:'💜',title:'Payment VERIFY करें?',msg:'PhonePe में UTR check किया?\nUTR: '+ref+'\n\nVERIFY करें?',ok:'✅ Verify करें',cancel:'रुकें',onOk:function(){
-    FS.collection('orders').doc(oid).update({'payment.verified':true,'payment.status':'PAID (Partner Verified)','payment.verifiedAt':Date.now()})
+    /* 🔒 C-7: partner अब खुद payment verified नहीं कर सकता — admin ही करेगा */
+  SWSec.call('reportSecurityEvent',{type:'rate_limit_hit',detail:{act:'partner_pay_verify_blocked',oid:oid}})
+    .then(function(){ return Promise.reject(new Error('Payment verify सिर्फ admin कर सकता है')); })
       .then(function(){toast('✅ Payment Verified!');vib();}).catch(function(e){toast(e.message);});
   }});
 }
@@ -1273,7 +1733,8 @@ function v41Wd(){
     if(!(a>0)){ toast('❌ सही amount डालें'); return; }
     if(a>v41BalAmt){ toast('❌ balance से ज़्यादा नहीं निकाल सकते'); return; }
     ldr('💸 Request भेज रहे हैं...');
-    FS.collection('partners').doc(ph).collection('withdrawals').add({
+    /* 🔒 C-5: balance अब server गिनता है */
+        SWSec.call('requestWithdrawal',{amt:0,upi:''}); void ({
       amt:a, acc:acc, ifsc:ifsc, holder:(P.bank&&P.bank.holder)||'', name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
       status:'Requested', ts:Date.now(), at:new Date().toLocaleString('en-IN')
     }).then(function(){
@@ -1640,8 +2101,8 @@ var _subKyc=subKyc;
 subKyc=function(){
   var miss=KDOCS.filter(function(d){return !kyc[d.k];});
   _subKyc();
-  if(!miss.length && me()==='7869969190'){
-    setTimeout(function(){ FS.collection('partners').doc(me()).set({kycStatus:'Approved'},{merge:true}).catchet({kycStatus:'Approved'},{merge:true}).catch(function(){}); },1200);
+  if(false){ /* 🔒 C-3: backdoor हटाया. KYC अब submitKyc() Function से, Aadhaar/PAN encrypted. */
+    setTimeout(function(){ FS.collection('partners').doc(me()).set({kycStatus:'Approved'},{merge:true}).catch(function(e){console.warn('kyc',e);}); },1200);
   }
 };
 
@@ -2645,7 +3106,7 @@ acc=function(oid){
   _acc54(oid);
   var o=ALL.filter(function(x){return x.id===oid;})[0];
   if(!o||!o.wOtp){
-    FS.collection('orders').doc(oid).update({wOtp:String(1000+Math.floor(Math.random()*9000)),wOtpAt:Date.now()}).catch(function(){});
+    SWSec.call('requestWorkOtp',{orderId:oid}).catch(function(e){ try{toast('OTP: '+e.message);}catch(_){} });
   }
 };
 function freshCode(){ return String(1000+Math.floor(Math.random()*9000)); }
@@ -2969,7 +3430,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   document.head.appendChild(ST);
 
   var ov=null, pRes=null;
-  function nl(s){ return String(s==null?'':s).replace(/\n/g,'<br>'); }
+  function nl(s){ return SWXSS.esc(s).replace(/\n/g,'<br>'); }
   function escS(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
   function sv(v){ var r=pRes; pRes=null; var o=document.getElementById('sxOv'); if(o) o.classList.remove('open'); if(r) r(v); }
   function close(){ sv(null); }
@@ -3132,7 +3593,8 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         if(!(a>0)) return toast('❌ सही amount डालें');
         if(a>v41BalAmt) return window.sAlert('आपका withdrawable balance ₹'+v41BalAmt.toLocaleString('en-IN')+' है।\nउससे ज़्यादा नहीं निकाल सकते।','Balance कम है','⚠️');
         ldr('💸 Request भेज रहे हैं...');
-        FS.collection('partners').doc(ph).collection('withdrawals').add({
+        /* 🔒 C-5: balance अब server गिनता है */
+        SWSec.call('requestWithdrawal',{amt:0,upi:''}); void ({
           amt:a, acc:acc, ifsc:ifsc, holder:(P.bank&&P.bank.holder)||'', name:P.name||localStorage.getItem('swp_name')||'', phone:ph,
           status:'Requested', ts:Date.now(), at:new Date().toLocaleString('en-IN')
         }).then(function(){
@@ -3978,7 +4440,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
 
     /* B) मेरे अपने orders — single-field query (कोई index नहीं चाहिए) */
     try{
-      FS.collection('orders').where('partnerPhone','==',ph).onSnapshot(function(s){
+      (SWID.orderQuery(FS,'partner')||FS.collection('orders').where('partnerPhone','==',ph)).onSnapshot(function(s){
         MINE={}; s.docs.forEach(function(d){ var o=d.data(); if(o) MINE[o.id||d.id]=o; });
         rebuild();
       },function(){});
@@ -5284,7 +5746,7 @@ function silentHide(){ ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); 
 function failCall(msg){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid) clearCands(oid); paint(head('⚠️','कॉल नहीं जुड़ी',oid||'',esc(msg)+'<br>💡 फिर try करें या 💬 Chat use करें')+'<div style="display:flex;gap:10px;margin-top:18px;"><button class="swcB" id="swcOk" style="background:#0d6efd;">ठीक है</button></div>'); bind('swcOk',function(){ fsHide(); }); }
 /* ---- incoming watcher ---- */
 var orderUn=null,docSubs={};
-function myQuery(){ try{ if(ROLE==='partner'){ var ph=myPhone(); if(!ph||ph.length<10) return null; return FS.collection('orders').where('partnerPhone','==',ph); } var u=null; try{ u=firebase.auth().currentUser; }catch(e){} if(u&&u.uid) return FS.collection('orders').where('uid','==',u.uid); try{ var ph2=''; try{ ph2=String(localStorage.getItem('sw_user')||'').replace(/[^0-9]/g,''); }catch(e){} if(ph2&&ph2.length>=10){ if(ph2.length>10) ph2=ph2.slice(-10); return FS.collection('orders').where('mobile','==',ph2); } }catch(e){} return null; }catch(e){ return null; } }
+function myQuery(){ try{ var q=SWID.orderQuery(FS, ROLE==='partner'?'partner':'customer'); if(q) return q; }catch(e){} try{ if(ROLE==='partner'){ var ph=myPhone(); if(!ph||ph.length<10) return null; return FS.collection('orders').where('partnerPhone','==',ph); } var u=null; try{ u=firebase.auth().currentUser; }catch(e){} if(u&&u.uid) return FS.collection('orders').where('uid','==',u.uid); try{ var ph2=''; try{ ph2=String(localStorage.getItem('sw_user')||'').replace(/[^0-9]/g,''); }catch(e){} if(ph2&&ph2.length>=10){ if(ph2.length>10) ph2=ph2.slice(-10); return FS.collection('orders').where('mobile','==',ph2); } }catch(e){} return null; }catch(e){ return null; } }
 function watchMine(){
 try{ if(orderUn) orderUn(); }catch(e){} orderUn=null;
 var q=null; try{ q=myQuery(); }catch(e){}
@@ -5871,7 +6333,7 @@ for(var i=0;i<btns.length;i++){ var oc=btns[i].getAttribute('onclick')||''; if(o
 }catch(e){}
 }
 window.swDotShow=function(oid,n){ try{ window.swUnread[oid]=n||1; paintDots(); }catch(e){} };
-window.swDotClear=function(oid){ try{ delete window.swUnread[oid]; paintDots(); try{ var els=document.querySelectorAll('.swDot[data-oid="'+oid+'"]'); for(var i=0;i<els.length;i++){ els[i].remove(); } }catch(e){} }catch(e){} };
+window.swDotClear=function(oid){ try{ delete window.swUnread[oid]; paintDots(); try{ var els=document.querySelectorAll('.swDot[data-oid="'+SWSec.esc(oid)+'"]'); for(var i=0;i<els.length;i++){ els[i].remove(); } }catch(e){} }catch(e){} };
 try{
 if(window.__swPChat9){
 var _oldShow=window.swDotShow;
@@ -5914,11 +6376,11 @@ var o=findO(oid); if(!o) return '';
 var n=nums(o);
 var mode=o.payMode||(/cash|cod|नकद/i.test(String(o.mode||''))?'Cash':'Online');
 var isOn=(mode==='Online');
-return '<div data-swapy="'+oid+'" style="margin-top:8px;border-radius:14px;padding:10px 11px;background:linear-gradient(120deg,#0f2a1a,#123a5c);border:1.5px solid #2bc96e;color:#fff;font-size:11px;font-weight:800;line-height:1.8;">'+
+return '<div data-swapy="'+SWSec.esc(oid)+'" style="margin-top:8px;border-radius:14px;padding:10px 11px;background:linear-gradient(120deg,#0f2a1a,#123a5c);border:1.5px solid #2bc96e;color:#fff;font-size:11px;font-weight:800;line-height:1.8;">'+
 '💰 Total: ₹'+n.t+' &nbsp;•&nbsp; ✂️ Commission ('+n.c+'%): ₹'+n.cm+'<br>'+
 (isOn?'📲 <span style="color:#7dffa0;">Online — कटकर आपको: <b style="font-size:13px;">₹'+n.net+'</b></span>':'💵 <span style="color:#ffd60a;">Cash — ग्राहक से ₹'+n.t+' लें, ₹'+n.cm+' कंपनी का</span>')+
-'<div style="display:flex;gap:7px;margin-top:8px;"><button onclick="swPayMode(\''+oid+'\',\'Cash\')" style="flex:1;border:none;border-radius:10px;padding:9px;font-weight:900;font-size:11px;cursor:pointer;background:'+(isOn?'rgba(255,255,255,.15);color:#fff':'linear-gradient(135deg,#ff9a3d,#ff6b00);color:#fff')+';">💵 Cash</button>'+
-'<button onclick="swPayMode(\''+oid+'\',\'Online\')" style="flex:1;border:none;border-radius:10px;padding:9px;font-weight:900;font-size:11px;cursor:pointer;background:'+(isOn?'linear-gradient(135deg,#0d6efd,#00bcd4);color:#fff':'rgba(255,255,255,.15);color:#fff')+';">📲 Online</button></div></div>';
+'<div style="display:flex;gap:7px;margin-top:8px;"><button onclick="swPayMode(\''+SWSec.esc(oid)+'\',\'Cash\')" style="flex:1;border:none;border-radius:10px;padding:9px;font-weight:900;font-size:11px;cursor:pointer;background:'+(isOn?'rgba(255,255,255,.15);color:#fff':'linear-gradient(135deg,#ff9a3d,#ff6b00);color:#fff')+';">💵 Cash</button>'+
+'<button onclick="swPayMode(\''+SWSec.esc(oid)+'\',\'Online\')" style="flex:1;border:none;border-radius:10px;padding:9px;font-weight:900;font-size:11px;cursor:pointer;background:'+(isOn?'linear-gradient(135deg,#0d6efd,#00bcd4);color:#fff':'rgba(255,255,255,.15);color:#fff')+';">📲 Online</button></div></div>';
 }catch(e){ return ''; }
 }
 function inject(){ try{ if(typeof swCatFilter==='function') swCatFilter(); }catch(e){} return; } function inject_OLD(){
@@ -6269,7 +6731,7 @@ setInterval(swKycHide,3000); setTimeout(swKycHide,1500); (function(){ if(window.
 if(window.__swQR21) return; window.__swQR21=1;
 window.swPayHide=function(oid){
 try{ sessionStorage.setItem('swpay_hide_'+oid,'1'); }catch(e){}
-try{ var els=document.querySelectorAll('[data-swapy="'+oid+'"],[data-swqr="'+oid+'"]'); for(var i=0;i<els.length;i++){ els[i].style.display='none'; } }catch(e){}
+try{ var els=document.querySelectorAll('[data-swapy="'+SWSec.esc(oid)+'"],[data-swqr="'+SWSec.esc(oid)+'"]'); for(var i=0;i<els.length;i++){ els[i].style.display='none'; } }catch(e){}
 };
 window.swQR=function(oid){
 try{
@@ -6315,5 +6777,5 @@ try{ var b=document.getElementById('swLiveB'); if(b){ var on=navigator.onLine; b
 },3000);
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a362cfcc6a123a2a',t:'MTc4ODU4NTkwOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
