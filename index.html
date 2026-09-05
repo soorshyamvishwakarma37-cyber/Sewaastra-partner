@@ -793,7 +793,7 @@ function opGo(){ if(opOid)acc(opOid); opClose(); }
 function opNo(){ if(opOid){rej[opOid]=1;sessionStorage.setItem('swp_rej',JSON.stringify(rej));} opClose(); toast('Tab में फिर भी मिलेगा'); }
 
 /* ═══ ACTIONS ═══ */
-function acc(oid){
+function acc(oid){ try{ var __ao=null; try{ var __aa=window.ALL||[]; for(var __ai=0;__ai<__aa.length;__ai++){ if(__aa[__ai]&&__aa[__ai].id===oid){ __ao=__aa[__ai]; break; } } }catch(e){} if(__ao&&__ao.status==='Order Placed'&&window.swCatOk&&!window.swCatOk(__ao)){ toast('Ye order aapki category ka nahi hai'); return; } }catch(e){}
   var nm=$('pNm').value.trim()||P.name||'SewaAstra Partner';
   ldr('Accept...');
   var uidx=''; try{ uidx=(firebase.auth().currentUser||{}).uid||''; }catch(e){}
@@ -801,13 +801,13 @@ function acc(oid){
     .then(function(){ ldrX(); toast('✅ ऑर्डर आपका! 🛵'); vib(); })
     .catch(function(e){ ldrX(); alert('❌ '+e.message); });
 }
-function adv(oid,cur){
+function swPayDone(oid){ try{ var key='swpay_done_'+oid; try{ if(sessionStorage.getItem(key)==='1') return; sessionStorage.setItem(key,'1'); }catch(e){} var o=null; try{ o=findO(oid); }catch(e){} var total=0; try{ total=Number((o&&(o.total||o.amount))||0)||0; }catch(e){} var ov=document.getElementById('swPayDoneOv'); if(!ov){ ov=document.createElement('div'); ov.id='swPayDoneOv'; document.body.appendChild(ov); } ov.style.cssText='position:fixed;inset:0;z-index:2147483635;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.82);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;'; ov.style.display='flex'; ov.innerHTML='<div style="background:#fff;border-radius:24px;padding:22px;max-width:320px;width:100%;text-align:center;color:#222;"><div style="font-weight:900;font-size:16px;">Kaam Complete! Total: Rs.'+total+'</div><div style="font-size:12px;color:#666;margin:6px 0 12px;">Payment kaise mila?</div><button id="swPdCash" style="width:100%;border:none;border-radius:13px;padding:14px;font-weight:900;font-size:14px;background:linear-gradient(135deg,#ff9a3d,#ff6b00);color:#fff;cursor:pointer;">CASH mil gaya</button><button id="swPdQR" style="width:100%;margin-top:9px;border:none;border-radius:13px;padding:14px;font-weight:900;font-size:14px;background:linear-gradient(135deg,#0d6efd,#00bcd4);color:#fff;cursor:pointer;">QR dikhao (Online)</button><button id="swPdX" style="width:100%;margin-top:9px;border:none;border-radius:13px;padding:11px;font-weight:900;background:#eee;color:#444;cursor:pointer;">Baad me</button></div>'; document.getElementById('swPdX').onclick=function(){ ov.style.display='none'; }; document.getElementById('swPdQR').onclick=function(){ ov.style.display='none'; try{ window.swQR(oid); }catch(e){} }; document.getElementById('swPdCash').onclick=function(){ try{ FS.collection('orders').doc(oid).update({payCollected:'Cash',paidAt:Date.now()}); }catch(e){} ov.style.display='none'; try{ toast('Cash payment note ho gaya'); }catch(e){} }; }catch(e){} } function adv(oid,cur){
   var nx=FLOW[FLOW.indexOf(cur)+1]; if(!nx)return;
   if(nx==='Completed'){ /* OTP verification — sunder box se (v5.6) */ }
   var u={status:nx}; u['t_'+nx.replace(/\s/g,'')]=Date.now();
   FS.collection('orders').doc(oid).update(u).then(function(){
     toast('📌 '+SH[nx]);
-    if(nx==='Completed'){ shrStop(oid); vib([80,50,80,50,160]); }
+    if(nx==='Completed'){ shrStop(oid); vib([80,50,80,50,160]); try{ setTimeout(function(){ swPayDone(oid); },800); }catch(e){} }
   }).catch(function(e){toast('❌ '+e.message);});
 }
 function cnl(oid){
@@ -5180,10 +5180,10 @@ var ringT=null,vibT=null;
 function ringStart(incoming){ ringStop(); ringT=setInterval(function(){ tone(440,0,0.32,0.3); tone(480,0.38,0.32,0.3); if(!incoming){ tone(660,0.82,0.16,0.2); } },1400); vibT=setInterval(function(){ vib([420,150,420,150,420]); },1750); tone(440,0,0.32,0.3); tone(480,0.38,0.32,0.3); vib([420,150,420]); }
 function ringStop(){ if(ringT){ clearInterval(ringT); ringT=null; } if(vibT){ clearInterval(vibT); vibT=null; } try{ if(navigator.vibrate) navigator.vibrate(0); }catch(e){} }
 /* state */
-var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true;
+var pc=null,localS=null,remoteA=null,st={s:'idle',oid:''},docUn=null,candUn=null,seenC={},waitT=null,secT=null,secs=0,muted=false,bigSpk=true,remReady=false,pendC=[];
 function callDoc(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live'); }
 function callCands(oid){ return FS.collection('orders').doc(oid).collection('swcall').doc('live').collection('cands'); }
-function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']}], iceCandidatePoolSize:8}; }
+function rtcConf(){ return {iceServers:[{urls:['stun:stun.l.google.com:19302','stun:stun1.l.google.com:19302']},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},{urls:'turns:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}], iceCandidatePoolSize:8}; }
 /* ---- FULL SCREEN UI ---- */
 function ensureUI(){
 if(document.getElementById('swCallFS')){ remoteA=document.getElementById('swCallRemote'); return; }
@@ -5215,11 +5215,12 @@ function mkPc(oid){
 closePc(); var P=null;
 try{ P=new RTCPeerConnection(rtcConf()); }catch(e){ return null; }
 pc=P;
-P.ontrack=function(ev){ try{ remoteA.srcObject=ev.streams[0]; var pr=remoteA.play(); if(pr&&pr.catch) pr.catch(function(){}); }catch(e){} };
+P.ontrack=function(ev){ try{ remoteA.srcObject=ev.streams[0]; try{ remoteA.muted=false; remoteA.volume=1; }catch(e){} var pr=remoteA.play(); if(pr&&pr.catch) pr.catch(function(){}); }catch(e){} };
 P.onicecandidate=function(ev){ if(ev.candidate){ try{ callCands(oid).add({from:myKey(),role:ROLE,cand:JSON.stringify(ev.candidate),ts:Date.now()}).catch(function(){}); }catch(e){} } };
 return P;
 }
-function listenCands(oid){ try{ if(candUn) candUn(); }catch(e){} try{ candUn=callCands(oid).onSnapshot(function(sn){ sn.docChanges().forEach(function(ch){ if(ch.type!=='added') return; if(seenC[ch.doc.id]) return; var m=ch.doc.data()||{}; if(m.from===myKey()) return; seenC[ch.doc.id]=1; if(!pc) return; try{ var c=new RTCIceCandidate(JSON.parse(m.cand)); pc.addIceCandidate(c).catch(function(){}); }catch(e){} }); },function(){}); }catch(e){} }
+function flushC(){ try{ if(!pc||!pc.remoteDescription) return; var q=pendC; pendC=[]; q.forEach(function(c){ try{ pc.addIceCandidate(c).catch(function(){}); }catch(e){} }); }catch(e){} }
+function listenCands(oid){ try{ if(candUn) candUn(); }catch(e){} try{ candUn=callCands(oid).onSnapshot(function(sn){ sn.docChanges().forEach(function(ch){ if(ch.type!=='added') return; if(seenC[ch.doc.id]) return; var m=ch.doc.data()||{}; if(m.from===myKey()) return; seenC[ch.doc.id]=1; if(!pc) return; try{ var c=new RTCIceCandidate(JSON.parse(m.cand)); if(pc.remoteDescription){ pc.addIceCandidate(c).catch(function(){}); } else { pendC.push(c); } }catch(e){} }); },function(){}); }catch(e){} }
 function clearCands(oid){ try{ callCands(oid).get().then(function(sn){ sn.docs.forEach(function(d){ d.ref.delete().catch(function(){}); }); }).catch(function(){}); }catch(e){} }
 /* ---- caller ---- */
 function dial(oid){
@@ -5227,7 +5228,7 @@ oid=String(oid||'').trim();
 if(!oid){ nt('पहले कोई active ऑर्डर खोलें, फिर Call दबाएँ'); return; }
 if(st.s!=='idle'){ nt('एक कॉल पहले से चल रही है — पहले उसे End करें'); return; }
 if(!window.RTCPeerConnection){ failCall('इस browser में voice-call support नहीं (Chrome use करें)'); return; }
-st={s:'dial',oid:oid}; seenC={}; muted=false; bigSpk=true;
+st={s:'dial',oid:oid}; seenC={}; pendC=[]; remReady=false; muted=false; bigSpk=true;
 paintOut(oid); ringStart(false);
 function go(stream){ localS=stream; startCaller(oid); }
 try{
@@ -5242,7 +5243,7 @@ listenCands(oid);
 P.createOffer({offerToReceiveAudio:true}).then(function(off){ return P.setLocalDescription(off).then(function(){ return callDoc(oid).set({type:'offer',sdp:off.sdp,from:myKey(),role:ROLE,state:'ringing',ts:Date.now()}); }); }).then(function(){
 try{ if(docUn) docUn(); }catch(e){}
 try{ docUn=callDoc(oid).onSnapshot(function(d){ if(!d.exists||st.oid!==oid) return; var x=d.data()||{};
-if(x.state==='answered'&&x.sdp&&x.role!==ROLE&&st.s==='dial'){ try{ pc.setRemoteDescription({type:'answer',sdp:x.sdp}).then(function(){ goLive(oid); }).catch(function(){}); }catch(e){} }
+if(x.state==='answered'&&x.sdp&&x.role!==ROLE&&st.s==='dial'){ try{ pc.setRemoteDescription({type:'answer',sdp:x.sdp}).then(function(){ remReady=true; try{ flushC(); }catch(e){} goLive(oid); }).catch(function(){}); }catch(e){} }
 else if(x.state==='declined'&&st.s!=='live'){ endCall('सामने वाले ने काट दिया',''); }
 else if(x.state==='ended'&&st.s==='live'){ endCall('कॉल समाप्त',''); }
 },function(){}); }catch(e){}
@@ -5253,7 +5254,7 @@ waitT=setTimeout(function(){ if(st.s==='dial'&&st.oid===oid) endCall('कोई 
 /* ---- callee ---- */
 function answerCall(oid){
 if(st.s!=='ringin'||st.oid!==oid) return;
-st={s:'ans',oid:oid}; seenC={}; muted=false; bigSpk=true;
+st={s:'ans',oid:oid}; seenC={}; pendC=[]; remReady=false; muted=false; bigSpk=true;
 paint(head('🔒','जुड़ रहे हैं…',oid,'Secure voice बन रहा है'));
 try{
 if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia)){ failCall('Mic support नहीं'); return; }
@@ -5266,7 +5267,7 @@ if(x.state!=='ringing'||!x.sdp){ failCall('कॉल पहले ही कट 
 var P=mkPc(oid); if(!P){ failCall('Voice engine नहीं चला'); return; }
 try{ localS.getTracks().forEach(function(t){ P.addTrack(t,localS); }); }catch(e){}
 listenCands(oid);
-P.setRemoteDescription({type:'offer',sdp:x.sdp}).then(function(){ return P.createAnswer(); }).then(function(ans){ return P.setLocalDescription(ans).then(function(){
+P.setRemoteDescription({type:'offer',sdp:x.sdp}).then(function(){ remReady=true; try{ flushC(); }catch(e){} return P.createAnswer(); }).then(function(ans){ return P.setLocalDescription(ans).then(function(){
 return callDoc(oid).update({type:'answer',sdp:ans.sdp,state:'answered',from:myKey(),role:ROLE,ansAt:Date.now()});
 }); }).then(function(){ goLive(oid); liveWatch(oid); }).catch(function(){ failCall('जुड़ नहीं पाए — फिर try करें'); });
 }).catch(function(){ failCall('जुड़ नहीं पाए'); });
@@ -5275,7 +5276,10 @@ return callDoc(oid).update({type:'answer',sdp:ans.sdp,state:'answered',from:myKe
 }
 function liveWatch(oid){ try{ if(docUn) docUn(); }catch(e){} try{ docUn=callDoc(oid).onSnapshot(function(d){ if(st.oid!==oid) return; if(!d.exists) return; var x=d.data()||{}; if(x.state==='ended'&&st.s==='live'){ endCall('कॉल समाप्त',''); } },function(){}); }catch(e){} }
 function declineCall(oid){ try{ callDoc(oid).update({state:'declined'}).catch(function(){}); }catch(e){} ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; fsHide(); }
-function goLive(oid){ st={s:'live',oid:oid}; ringStop(); stopTimer(); if(waitT){ clearTimeout(waitT); waitT=null; } vib([80,60,80]); tone(880,0,0.15,0.2); paintLive(oid); startTimer(); }
+function goLive(oid){ st={s:'live',oid:oid}; ringStop(); stopTimer(); if(waitT){ clearTimeout(waitT); waitT=null; } vib([80,60,80]); tone(880,0,0.15,0.2); paintLive(oid); startTimer();
+try{ if(remoteA){ remoteA.muted=false; remoteA.volume=1; var pr=remoteA.play(); if(pr&&pr.catch) pr.catch(function(){}); } }catch(e){}
+try{ var un=function(){ try{ if(remoteA&&(remoteA.paused||remoteA.muted)){ remoteA.muted=false; remoteA.volume=1; var q=remoteA.play(); if(q&&q.catch) q.catch(function(){}); } }catch(e){} }; document.addEventListener('touchstart',un,{once:true,passive:true}); document.addEventListener('click',un,{once:true}); }catch(e){}
+setTimeout(function(){ try{ if(remoteA&&remoteA.paused){ var el=document.getElementById('swCallInner'); if(el&&!document.getElementById('swcTap')){ var b=document.createElement('button'); b.id='swcTap'; b.className='swcB'; b.style.cssText='width:100%;margin-top:14px;background:linear-gradient(135deg,#ff9a3d,#ff6b00);animation:swcPulse 1.2s infinite;'; b.innerHTML='🔊 सुनने के लिए TAP करें'; b.onclick=function(){ try{ remoteA.muted=false; remoteA.volume=1; var r=remoteA.play(); if(r&&r.catch) r.catch(function(){}); }catch(e){} try{ b.remove(); }catch(x){} }; el.appendChild(b); } } }catch(e){} },2500); }
 function endCall(t,s){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid){ try{ callDoc(oid).update({state:'ended',ts:Date.now()}).catch(function(){}); }catch(e){} clearCands(oid); } if(t){ paintEnd(t,s); setTimeout(function(){ fsHide(); },1600); } else { fsHide(); } }
 function silentHide(){ ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; fsHide(); }
 function failCall(msg){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid) clearCands(oid); paint(head('⚠️','कॉल नहीं जुड़ी',oid||'',esc(msg)+'<br>💡 फिर try करें या 💬 Chat use करें')+'<div style="display:flex;gap:10px;margin-top:18px;"><button class="swcB" id="swcOk" style="background:#0d6efd;">ठीक है</button></div>'); bind('swcOk',function(){ fsHide(); }); }
@@ -5288,7 +5292,7 @@ var q=null; try{ q=myQuery(); }catch(e){}
 if(!q){ setTimeout(function(){ try{ watchMine(); }catch(e){} },6000); return; }
 try{ orderUn=q.onSnapshot(function(sn){
 var ids={};
-sn.docs.forEach(function(d){ var o=d.data()||{}; var oid=o.id||d.id; if(o.status!=='Working') return; /* v21: tracking me box nahi — sirf kaam-poora stage par */ ids[oid]=1;
+sn.docs.forEach(function(d){ var o=d.data()||{}; var oid=o.id||d.id; if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return; /* v21: tracking me box nahi — sirf kaam-poora stage par */ ids[oid]=1;
 if(!docSubs[oid]){ (function(id){ try{ docSubs[id]=callDoc(id).onSnapshot(function(dd){ onCallDoc(id,dd); },function(){}); }catch(e){} })(oid); }
 });
 Object.keys(docSubs).forEach(function(k){ if(!ids[k]){ try{ docSubs[k](); }catch(e){} delete docSubs[k]; } });
@@ -5905,7 +5909,7 @@ try{ if(typeof draw==='function') draw(); }catch(e){}
 }).catch(function(e){ nt('❌ '+e.message); });
 }catch(e){}
 };
-function strip(oid){
+function strip(oid){ try{ return ''; }catch(e){ return ''; } } function strip_OLD(oid){
 try{
 var o=findO(oid); if(!o) return '';
 var n=nums(o);
@@ -5918,7 +5922,7 @@ return '<div data-swapy="'+oid+'" style="margin-top:8px;border-radius:14px;paddi
 '<button onclick="swPayMode(\''+oid+'\',\'Online\')" style="flex:1;border:none;border-radius:10px;padding:9px;font-weight:900;font-size:11px;cursor:pointer;background:'+(isOn?'linear-gradient(135deg,#0d6efd,#00bcd4);color:#fff':'rgba(255,255,255,.15);color:#fff')+';">📲 Online</button></div></div>';
 }catch(e){ return ''; }
 }
-function inject(){
+function inject(){ try{ if(typeof swCatFilter==='function') swCatFilter(); }catch(e){} return; } function inject_OLD(){
 try{
 (window.ALL||[]).forEach(function(o){
 if(!o) return;
@@ -5931,14 +5935,7 @@ try{ if(sessionStorage.getItem('swpay_hide_'+o.id)==='1') return; }catch(e){}
 if(!host||host.querySelector('[data-swapy="'+o.id+'"]')) return;
 var dv=document.createElement('div'); dv.innerHTML=strip(o.id);
 while(dv.firstChild) host.appendChild(dv.firstChild);
-try{
-var oo=null; try{ var __a=window.ALL||[]; for(var __i=0;__i<__a.length;__i++){ if(__a[__i]&&__a[__i].id===o.id){ oo=__a[__i]; break; } } }catch(e){}
-var __mode=(oo&&(oo.payMode||(/cash|cod|नकद/i.test(String(oo.mode||''))?'Cash':'Online')))||'Online';
-if(__mode==='Online'&&!host.querySelector('[data-swqr="'+o.id+'"]')){
-var q=document.createElement('div'); q.setAttribute('data-swqr',o.id);
-q.innerHTML='<div style="display:flex;gap:7px;margin-top:7px;"><button onclick="swQR(\''+o.id+'\')" style="flex:1;border:none;border-radius:10px;padding:10px;font-weight:900;font-size:11.5px;cursor:pointer;background:linear-gradient(135deg,#7a2bff,#00bcd4);color:#fff;">📷 QR दिखाएँ (customer scan karega)</button><button onclick="swPayHide(\''+o.id+'\')" style="border:none;border-radius:10px;padding:10px 14px;font-weight:900;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">✕</button></div>';
-host.appendChild(q);
-}
+try{/* v23: QR/payment sirf kaam-poora popup me */
 }catch(e){}
 }catch(e){}
 });
@@ -6000,7 +5997,7 @@ if(o.category) toks.push(String(o.category));
 }catch(e){}
 return toks;
 }
-window.swCatOk=function(o){
+function stem23(w){ try{ w=String(w||''); var o=w; var sufs=['ing','ers','er','or','ist','ian','ion','ary','al','ee']; for(var k=0;k<sufs.length;k++){ var s=sufs[k]; if(o.length>4&&o.slice(-s.length)===s){ o=o.slice(0,-s.length); break; } } return o; }catch(e){ return String(w||''); } } window.swCatOk=function(o){
 try{
 var sk=mySkills11();
 if(!sk.length) return true;
@@ -6012,7 +6009,7 @@ for(var j=0;j<sk.length;j++){
 var s=sk[j]; if(!s) continue;
 if(String(s)===t) return true;
 var sn=norm(s),tn=norm(t);
-if(sn&&tn&&(sn===tn||(sn.length>2&&tn.indexOf(sn)>-1)||(tn.length>2&&sn.indexOf(tn)>-1))) return true;
+var st1=stem23(sn),st2=stem23(tn); if(sn&&tn&&(sn===tn||(sn.length>2&&tn.indexOf(sn)>-1)||(tn.length>2&&sn.indexOf(tn)>-1)||(st1.length>3&&st1===st2))) return true;
 }
 }
 return false;
@@ -6319,5 +6316,5 @@ try{ var b=document.getElementById('swLiveB'); if(b){ var on=navigator.onLine; b
 },3000);
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a360006ecf7bd8bc',t:'MTc4ODU1NjQ0Mw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a36193588c2a85dc',t:'MTc4ODU3Mjk0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
