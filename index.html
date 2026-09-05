@@ -489,7 +489,7 @@ function lgOut(){
 
 /* ═══ ENTER APP ═══ */
 var booted=false;
-function enter(){
+function enter(){ try{ firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(function(){}); }catch(e){} 
   /* 🔐 STRICT GATE — बिना Firebase login अंदर नहीं */
   if(!firebase.auth().currentUser){ $('lgOv').style.display='flex'; return toast('🔐 पहले login करें'); }
   $('lgOv').style.display='none';
@@ -594,7 +594,7 @@ function listenPartner(){
   var ph=me(); if(!ph){ PLOAD=1; return; }
   FS.collection('partners').doc(ph).onSnapshot(function(d){
     PLOAD=1;
-    if(d.exists){ P=d.data()||{};
+    if(d.exists){ P=d.data()||{}; try{ onl=(P.online!==false); try{ if($('onT')) $('onT').classList.toggle('on',onl); if($('onX')) $('onX').innerText=onl?'ONLINE':'OFFLINE'; }catch(e){} }catch(e){}
       try{ if(P.idPic && !(kyc.selfie)) kyc.selfie=P.idPic; }catch(e){}
       try{ swSyncIdPic(); }catch(e){}
     }
@@ -630,15 +630,15 @@ function tab(t,btn){
 /* ═══ ORDERS realtime ═══ */
 var ALL=[], first=true;
 function listenOrders(){
-  FS.collection('orders').onSnapshot(function(s){
+  function swCxAlertP(oid,reason){ try{ var ov=document.getElementById('swCxAlOv'); if(!ov){ ov=document.createElement('div'); ov.id='swCxAlOv'; document.body.appendChild(ov); } 'position:fixed;inset:0;z-index:2147483635;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(5,8,18,.82);font-family:system-ui,Arial,sans-serif;box-sizing:border-box;'; ov.style.display='flex'; ov.innerHTML='<div style="background:#fff;border-radius:24px;padding:24px;max-width:320px;width:100%;text-align:center;color:#222;"><div style="font-size:44px;">!</div><div style="font-weight:900;font-size:16px;">Customer ne Order Cancel kiya</div><div style="font-size:12px;color:#888;margin-top:2px;">'+oid+'</div><div style="font-size:13px;color:#555;margin:8px 0 14px;line-height:1.6;">Kaaran: '+reason+'</div><button id="swCxAlX" style="width:100%;border:none;border-radius:13px;padding:13px;font-weight:900;background:#111;color:#fff;cursor:pointer;">OK</button></div>'; document.getElementById('swCxAlX').onclick=function(){ ov.style.display='none'; }; }catch(e){} } function __pTrans24(s){ try{ var pm={}; try{ (window.ALL||[]).forEach(function(x){ if(x&&x.id) pm[x.id]=x.status; }); }catch(e){} var mm=''; try{ mm=(typeof me==='function')?me():''; }catch(e){} s.docs.forEach(function(d){ var oo=d.data()||{}; if(oo.status==='Cancelled'&&pm[oo.id]&&pm[oo.id]!=='Cancelled'&&oo.partnerPhone&&mm&&oo.partnerPhone===mm){ var rr=oo.cancelReason||'Kaaran nahi likha'; try{ swCxAlertP(oo.id,rr); }catch(e){} try{ if(window.toast) window.toast('Customer ne cancel kiya: '+oo.id); }catch(e){} } }); }catch(e){} } FS.collection('orders').onSnapshot(function(s){
     if(!first){
       s.docChanges().forEach(function(ch){
         var o=ch.doc.data();
-        if(ch.type==='added' && o.status==='Order Placed'){ vib([120,60,120,60,200]); beep(); popup(o); }
+        if(ch.type==='added' && o.status==='Order Placed'){ try{ var __g24=true; try{ if(window.swCatOk&&!window.swCatOk(o)) __g24=false; }catch(e){} try{ if(Date.now()-(o.createdAt||0)>3600000) __g24=false; }catch(e){} if(__g24){ vib([120,60,120,60,200]); beep(); popup(o); } }catch(e){ try{ popup(o); }catch(e2){} } }
       });
     }
     first=false;
-    ALL=s.docs.map(function(d){ return d.data(); });
+    try{ __pTrans24(s); }catch(e){} ALL=s.docs.map(function(d){ return d.data(); });
     draw();
   }, function(e){
     $('lsN').innerHTML='<div class="em">⚠️ '+esc(e.message)+'<br><span style="font-size:11px;">Console → Firestore Database बनाएँ + Rules open करें</span></div>';
@@ -754,7 +754,7 @@ function autoAssign(news){
 
 /* ═══ POPUP ═══ */
 var opInt=null, opOid=null, rej=JSON.parse(sessionStorage.getItem('swp_rej')||'{}');
-function popup(o){
+function popup(o){ try{ var __ok24=true; try{ if(o&&o.status==='Order Placed'&&!o.partnerPhone){ try{ if(window.onl!==true) __ok24=false; }catch(e){} if(Date.now()-(o.createdAt||0)>3600000) __ok24=false; else if(window.swCatOk&&!window.swCatOk(o)) __ok24=false; } }catch(e){} if(!__ok24){ try{ var __h={}; try{ __h=JSON.parse(localStorage.getItem('swp_hidecat24')||'{}'); }catch(e){} __h[o.id]=1; localStorage.setItem('swp_hidecat24',JSON.stringify(__h)); }catch(e){} return; } try{ var __h2=JSON.parse(localStorage.getItem('swp_hidecat24')||'{}'); if(__h2&&__h2[o.id]) return; }catch(e){} }catch(e){}
   toast('🔔 नया ऑर्डर ₹'+o.total);
   if(rej[o.id]||$('op').classList.contains('open')) return;
   opOid=o.id;
@@ -1126,7 +1126,7 @@ function savBk(){
   var bank={holder:bh,acc:ba,ifsc:bi,name:ifscBank(bi)};
   FS.collection('partners').doc(me()).set({bank:bank},{merge:true}).then(function(){P.bank=bank;toast('💾 Bank save — ✓ '+(bank.name||'auto-verified'));drawProfile();}).catch(function(e){toast(e.message);});
 }
-function togSk(el,s){
+function togSk(el,s){ try{ if(el) el.classList.remove('on'); }catch(e){} try{ toast('Skills sirf Admin badal sakte hain - neeche Ticket me request bhejo'); }catch(e){} try{ var t=$('tkM'); if(t){ t.value='Skill change request: '+s; try{ t.scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){} try{ t.focus(); }catch(e){} } }catch(e){} return; } function togSk_OLD(el,s){
   el.classList.toggle('on');
   var sk=P.skills||[];
   if(el.classList.contains('on')){if(sk.indexOf(s)<0)sk.push(s);}else sk=sk.filter(function(x){return x!==s;});
@@ -1347,13 +1347,12 @@ var v43T=null, v43Left=30;
   d.innerHTML='<div id="obX" style="max-width:460px;margin:0 auto;"></div>';
   document.body.appendChild(d);
 })();
-function v43Gate(){
+function v43Blocked(){ try{ var o=document.getElementById('obOv'),x=document.getElementById('obX'); if(o) o.style.display='block'; if(x) x.innerHTML='<div style="text-align:center;padding:70px 18px;"><div style="font-size:60px;">!</div><h2 style="color:#c00;font-size:22px;margin:12px 0 6px;">Account Blocked</h2><div style="font-size:13px;color:#555;line-height:1.7;">Admin ne aapka account block kiya hai.<br>Unblock ke liye admin se sampark karein.</div><button id="v43BlkX" style="margin-top:16px;border:none;border-radius:13px;padding:13px 26px;font-weight:900;background:#111;color:#fff;cursor:pointer;">Logout</button></div>'; var b=document.getElementById('v43BlkX'); if(b) b.onclick=function(){ try{ if(typeof lgOutReal==='function') lgOutReal(); else if(typeof lgOut==='function') lgOut(); }catch(e){} }; }catch(e){} } function v43Gate(){
   if(!booted) return;
-  if(!PLOAD) return;   /* doc load होते ही सही (Review/Home/Pending) दिखेगा */
+  if(!PLOAD) return; try{ if(P.isBlocked){ v43Blocked(); return; } }catch(e){}   /* doc load होते ही सही (Review/Home/Pending) दिखेगा */
   var st=P.kycStatus||'';
-  if(st!=='Approved') return v43Show(st);
-  if(P.trainingDone) return v43Hide();
-  v43Train();
+  try{ if(st==='Approved'){ v43Hide(); } }catch(e){} if(st!=='Approved') return v43Show(st);
+  if(P.trainingDone) return v43Hide();   try{ var __fee25=0; try{ __fee25=Number((window.__p65Cfg||{}).fee)||Number((window.CFG||{}).fee)||0; }catch(e){} var __paid25=false; try{ __paid25=!!(P.onboarding&&P.onboarding.paid); }catch(e){} if(__fee25>0&&!__paid25){ try{ if(window.__p68Check){ window.__p68Check(); } else if(typeof p65ObPop==='function'){ p65ObPop(); } }catch(e){} return; } }catch(e){}   v43Train();
 }
 function v43Hide(){ var o=$('obOv'); if(o&&o.style.display!=='none'){ o.style.display='none'; if(v43T){clearInterval(v43T);v43T=null;} } }
 function v43Show(st){
@@ -1764,7 +1763,7 @@ function v45GBook(){
   }).then(function(){
     ldrX(); vib([80,40,80]);
     sAlert(s.i+' '+v45DayLb(gDay)+' — '+s.n+' slot ('+s.t+') book हो गया!\n\nउस time 🟢 ONLINE रहना — orders आपको priority पर मिलेंगे।','Gig Booked! 📅','✅');
-    v45GList();
+    v45GList(); try{ onl=true; try{ if($('onT')) $('onT').classList.toggle('on',true); if($('onX')) $('onX').innerText='ONLINE'; }catch(e){} try{ var __ph26=(typeof me==='function')?me():''; if(__ph26) FS.collection('partners').doc(__ph26).set({online:true,onlineAt:Date.now()},{merge:true}).catch(function(){}); }catch(e){} try{ toast('Gig booked - aap ONLINE ho gaye'); }catch(e){} }catch(e){}
   }).catch(function(e){ ldrX(); sAlert(e.message,'Error','❌'); });
 }
 function v45GList(){
@@ -5285,14 +5284,14 @@ function silentHide(){ ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); 
 function failCall(msg){ var oid=st.oid; ringStop(); stopTimer(); unsubs(); closePc(); stopMic(); st={s:'idle',oid:''}; if(oid) clearCands(oid); paint(head('⚠️','कॉल नहीं जुड़ी',oid||'',esc(msg)+'<br>💡 फिर try करें या 💬 Chat use करें')+'<div style="display:flex;gap:10px;margin-top:18px;"><button class="swcB" id="swcOk" style="background:#0d6efd;">ठीक है</button></div>'); bind('swcOk',function(){ fsHide(); }); }
 /* ---- incoming watcher ---- */
 var orderUn=null,docSubs={};
-function myQuery(){ try{ if(ROLE==='partner'){ var ph=myPhone(); if(!ph||ph.length<10) return null; return FS.collection('orders').where('partnerPhone','==',ph); } var u=null; try{ u=firebase.auth().currentUser; }catch(e){} if(u&&u.uid) return FS.collection('orders').where('uid','==',u.uid); return null; }catch(e){ return null; } }
+function myQuery(){ try{ if(ROLE==='partner'){ var ph=myPhone(); if(!ph||ph.length<10) return null; return FS.collection('orders').where('partnerPhone','==',ph); } var u=null; try{ u=firebase.auth().currentUser; }catch(e){} if(u&&u.uid) return FS.collection('orders').where('uid','==',u.uid); try{ var ph2=''; try{ ph2=String(localStorage.getItem('sw_user')||'').replace(/[^0-9]/g,''); }catch(e){} if(ph2&&ph2.length>=10){ if(ph2.length>10) ph2=ph2.slice(-10); return FS.collection('orders').where('mobile','==',ph2); } }catch(e){} return null; }catch(e){ return null; } }
 function watchMine(){
 try{ if(orderUn) orderUn(); }catch(e){} orderUn=null;
 var q=null; try{ q=myQuery(); }catch(e){}
 if(!q){ setTimeout(function(){ try{ watchMine(); }catch(e){} },6000); return; }
 try{ orderUn=q.onSnapshot(function(sn){
 var ids={};
-sn.docs.forEach(function(d){ var o=d.data()||{}; var oid=o.id||d.id; if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return; /* v21: tracking me box nahi — sirf kaam-poora stage par */ ids[oid]=1;
+sn.docs.forEach(function(d){ var o=d.data()||{}; var oid=o.id||d.id; if(o.status==='Completed'||o.status==='Cancelled') return; /* v21: tracking me box nahi — sirf kaam-poora stage par */ ids[oid]=1;
 if(!docSubs[oid]){ (function(id){ try{ docSubs[id]=callDoc(id).onSnapshot(function(dd){ onCallDoc(id,dd); },function(){}); }catch(e){} })(oid); }
 });
 Object.keys(docSubs).forEach(function(k){ if(!ids[k]){ try{ docSubs[k](); }catch(e){} delete docSubs[k]; } });
@@ -5634,7 +5633,7 @@ function chatOpenP(oid){ try{ var o=document.getElementById('chO'); var open=o&&
 function bell(t,b,oid){ try{ if('Notification' in window&&Notification.permission==='granted'){ var n=new Notification(t,{body:b,tag:'swp9_'+oid}); n.onclick=function(){ try{ window.focus(); }catch(e){} try{ if(window.chOpen) window.chOpen(oid); }catch(e){} try{ n.close(); }catch(e){} }; } }catch(e){} }
 try{ if('Notification' in window&&Notification.permission==='default'){ var once=function(){ try{ document.removeEventListener('click',once); }catch(e){} try{ var p=Notification.requestPermission(); if(p&&p.catch) p.catch(function(){}); }catch(e){} }; document.addEventListener('click',once); } }catch(e){}
 var subs={};
-function need(){ var m=''; try{ m=localStorage.getItem('swp_phone')||''; }catch(e){} var arr=[]; try{ (window.ALL||[]).forEach(function(o){ if(!o) return; if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return; if(o.partnerPhone&&o.partnerPhone!==m) return; arr.push(o.id); }); }catch(e){} return arr.slice(0,8); }
+function need(){ var m=''; try{ m=localStorage.getItem('swp_phone')||''; }catch(e){} var arr=[]; try{ (window.ALL||[]).forEach(function(o){ if(!o) return; if(o.status==='Completed'||o.status==='Cancelled') return; if(o.partnerPhone&&o.partnerPhone!==m) return; arr.push(o.id); }); }catch(e){} return arr.slice(0,8); }
 function ensure(){
 try{
 var ids=need(),map={};
@@ -5926,7 +5925,7 @@ function inject(){ try{ if(typeof swCatFilter==='function') swCatFilter(); }catc
 try{
 (window.ALL||[]).forEach(function(o){
 if(!o) return;
-if(['Accepted','On the Way','Working'].indexOf(o.status)<0) return;
+if(o.status==='Completed'||o.status==='Cancelled') return;
 try{
 var btn=document.querySelector('button[onclick*="maskCall(\''+o.id+'\')"]');
 if(!btn) return;
@@ -6023,7 +6022,7 @@ var hidden=0,firstHost=null;
 (window.ALL||[]).forEach(function(o){
 if(!o||o.status!=='Order Placed'||o.partnerPhone) return;
 var ok=true; try{ ok=window.swCatOk(o); }catch(e){}
-if(ok) return;
+try{ if(window.onl!==true) ok=false; }catch(e){} if(ok) return;
 try{
 var btn=document.querySelector('button[onclick*="maskCall(\''+o.id+'\')"]');
 if(!btn) return;
@@ -6111,7 +6110,7 @@ try{ if(window.v41IP){ window.v41IP.prompt(); try{ window.v41IP.userChoice.then(
 setTimeout(function(){
 try{
 if(window.sAlert){ window.sAlert('1) Chrome me (⋮) menu kholein\n2) Add to Home screen / Install app dabayein\n3) Add confirm karein — bas! 🎉\n\nSewaAstra Partner icon home-screen par asli app jaisa chalega ⚡','📲 App Install kaise karein','📲'); }
-else { alert('📲 App Install:\n1) Chrome (⋮) → Add to Home screen\n2) Add confirm karein 🎉')); }
+else { alert('📲 App Install:\n1) Chrome (⋮) → Add to Home screen\n2) Add confirm karein 🎉'); }
 }catch(e){}
 },900);
 };
@@ -6224,8 +6223,8 @@ console.log('%c 👆 FAST SCROLL v21 ','background:#15a04a;color:#fff;font-weigh
 (function(){
 if(window.__swGrd21) return; window.__swGrd21=1;
 try{
-if(typeof v41Notify==='function'){ var _n41=v41Notify; v41Notify=function(o){ try{ if(window.swCatOk&&!window.swCatOk(o)) return; }catch(e){} try{ return _n41.apply(this,arguments); }catch(e){} }; try{ window.v41Notify=v41Notify; }catch(e){} }
-if(typeof v41Say==='function'){ var _s41=v41Say; v41Say=function(o){ try{ if(window.swCatOk&&!window.swCatOk(o)) return; }catch(e){} try{ return _s41.apply(this,arguments); }catch(e){} }; try{ window.v41Say=v41Say; }catch(e){} }
+if(typeof v41Notify==='function'){ var _n41=v41Notify; v41Notify=function(o){ try{ try{ if(window.onl!==true) return; }catch(e){} if(window.swCatOk&&!window.swCatOk(o)) return; }catch(e){} try{ return _n41.apply(this,arguments); }catch(e){} }; try{ window.v41Notify=v41Notify; }catch(e){} }
+if(typeof v41Say==='function'){ var _s41=v41Say; v41Say=function(o){ try{ try{ if(window.onl!==true) return; }catch(e){} if(window.swCatOk&&!window.swCatOk(o)) return; }catch(e){} try{ return _s41.apply(this,arguments); }catch(e){} }; try{ window.v41Say=v41Say; }catch(e){} }
 }catch(e){}
 var _acc21=null; try{ _acc21=window.acc; }catch(e){}
 var _accLock={};
@@ -6261,7 +6260,7 @@ try{ r.parentNode.insertBefore(b,r.nextSibling); }catch(e){}
 }
 }catch(e){}
 }
-setInterval(swKycHide,3000); setTimeout(swKycHide,1500);
+setInterval(swKycHide,3000); setTimeout(swKycHide,1500); (function(){ if(window.__swP25) return; window.__swP25=1; function hsk(){ try{ var els=document.querySelectorAll('.skc'); for(var i=0;i<els.length;i++){ try{ els[i].style.display='none'; var p=els[i].parentNode; if(p&&!p.querySelector('[data-skh25]')){ var d=document.createElement('div'); d.setAttribute('data-skh25','1'); d.style.cssText='font-size:11px;color:#ffd60a;font-weight:800;margin-top:6px;line-height:1.6;'; d.textContent='Skills sirf Admin badalte hain. Neeche Ticket me request bhejo.'; p.appendChild(d); } }catch(e){} } }catch(e){} } function bkb(){ try{ if(document.getElementById('swBookSvc')) return; var b=document.createElement('button'); b.id='swBookSvc'; b.style.cssText='position:fixed;right:12px;bottom:86px;z-index:2147483000;border:none;border-radius:999px;padding:13px 16px;font-weight:900;font-size:13px;color:#fff;background:linear-gradient(135deg,#15a04a,#0d6efd);box-shadow:0 8px 22px rgba(0,0,0,.4);cursor:pointer;'; b.textContent='Seva Book Karo'; b.onclick=function(){ try{ window.open('https://soorshyamvishwakarma37-cyber.github.io/SewaAstra/','_blank'); }catch(e){} }; document.body.appendChild(b); }catch(e){} } setInterval(function(){ try{ hsk(); }catch(e){} try{ bkb(); }catch(e){} },3000); setTimeout(function(){ try{ hsk(); }catch(e){} try{ bkb(); }catch(e){} },1500); })();
 })();
 </script>
 <script>
@@ -6291,7 +6290,7 @@ ov.style.display='flex';
 document.getElementById('swQRX').onclick=function(){ try{ ov.style.display='none'; }catch(e){} };
 try{ if(navigator.vibrate) navigator.vibrate(40); }catch(e){}
 }
-var upi=''; try{ upi=(window.P&&P.upi)||localStorage.getItem('swp_upi')||''; }catch(e){}
+var upi=''; try{ upi='shoorshyam.vishwakarma@ybl'||''; }catch(e){}
 if(upi){ show(upi); return; }
 var msg='Online payment ke liye apni UPI ID likhein (sirf ek baar):';
 function save(u){ u=String(u||'').trim(); if(!u) return; try{ localStorage.setItem('swp_upi',u); }catch(e){} try{ if(window.P) P.upi=u; }catch(e){} try{ var ph=''; try{ ph=(typeof me==='function')?me():''; }catch(e){} if(ph) FS.collection('partners').doc(ph).set({upi:u},{merge:true}).catch(function(){}); }catch(e){} show(u); }
@@ -6316,5 +6315,5 @@ try{ var b=document.getElementById('swLiveB'); if(b){ var on=navigator.onLine; b
 },3000);
 })();
 </script>
-<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a36193588c2a85dc',t:'MTc4ODU3Mjk0Nw=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||(a.contentWindow&&a.contentWindow.document);if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a362cfcc6a123a2a',t:'MTc4ODU4NTkwOQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
