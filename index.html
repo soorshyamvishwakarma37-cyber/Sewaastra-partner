@@ -1,17 +1,4 @@
 <!DOCTYPE html>
-<!-- ═══════════════════════════════════════════════════════════
-     SewaAstra — Partner App (secure build v3)
-     बना: 5 सितम्बर 2026
-
-     इस file में तीन सुरक्षा परतें पहले से लगी हैं:
-       1. SWXSS  — innerHTML पर XSS का आख़िरी जाल (<head> में सबसे पहले)
-       2. SWID   — doc का पता फोन नंबर नहीं, Firebase Auth uid
-       3. escape-at-source — जहाँ user data HTML में जाता है
-
-     ⚠️ ये तीनों client-side हैं. असली रोक firestore.rules +
-        Cloud Functions में है — वो deploy किए बिना यह file अकेली
-        सुरक्षित नहीं. पूरा क्रम: docs/DEPLOY-GUIDE.md
-     ═══════════════════════════════════════════════════════════ -->
 <html lang="hi">
 <head>
 <script>
@@ -155,7 +142,7 @@
 })(window);
 </script>
 
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com https://cdnjs.cloudflare.com https://apis.google.com https://www.google.com https://www.gstatic.com/firebasejs/; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; font-src 'self' data: https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net https://nominatim.openstreetmap.org https://www.google-analytics.com; frame-src https://*.firebaseapp.com https://www.youtube.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://www.google.com https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://fonts.googleapis.com; font-src 'self' data: https://cdnjs.cloudflare.com https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://*.cloudfunctions.net https://*.firebaseapp.com https://*.google-analytics.com https://*.analytics.google.com https://nominatim.openstreetmap.org; frame-src 'self' https://*.firebaseapp.com https://www.google.com https://accounts.google.com https://www.youtube.com; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta charset="UTF-8">
@@ -329,7 +316,9 @@ window.__SWID_ROLE = 'partner';
     /** सीधे query बना दो — null अगर पहचान नहीं */
     orderQuery: function (FS, role) {
       var k = this.orderKey(role);
-      return k ? FS.collection('orders').where(k[0], '==', k[1]) : null;
+      // 🔒 rules में orders.list पर capped(100) है — बिना .limit() के
+      //    पूरी query reject हो जाती थी और अपने ही orders नहीं दिखते थे.
+      return k ? FS.collection('orders').where(k[0], '==', k[1]).limit(100) : null;
     },
 
     uid: function () { return _uid || ''; },
@@ -529,7 +518,7 @@ body.dark #chB{background:#0d1320;}
 @keyframes rot{to{transform:rotate(360deg)}}
 </style>
 <!-- v9: Agora SDK हटाया — खुद की WebRTC mask calling -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" integrity="sha512-CNgIRecGo7nphbeZ04Sc13ka07paqdeTu0WR1IM4kNcpmBAUSHSQX0FslNhTDadL4O5SAGapGt4FodqL8/Z9lQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js" integrity="sha512-ZDSPMa/JM1D+7kdg2x3BsruQ6T/JpJo3jWDWkCZsP+5yVyp1KfESqLI+7RqB5k24F7p2cV7i2YHh/890y6P6Sw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <!-- ═══════ SewaAstra SECURITY CORE v1 (auto-injected) ═══════ -->
 <script>
@@ -603,7 +592,17 @@ body.dark #chB{background:#0d1320;}
   /* ── 5. Auth state पर claims हमेशा ताज़ा रखो ── */
   function hook(){
     if(!window.firebase || !firebase.auth) return setTimeout(hook, 120);
+    var _synced = false;
     firebase.auth().onAuthStateChanged(function(u){
+      /* 🔑 claim server पर बनता है, login पर अपने आप नहीं आता.
+         पहली बार user दिखते ही एक बार sync कराओ — वरना असली admin/partner
+         भी बाहर ही खड़ा रह जाता है. (यह call पहले कहीं से होती ही नहीं थी.) */
+      if (u && !_synced) {
+        _synced = true;
+        try { SW.syncClaims(); } catch (e) {}
+      }
+      if (!u) _synced = false;
+
       SW.refreshClaims(true).then(function(c){
         document.documentElement.setAttribute('data-role',
           c.admin ? 'admin' : (c.partner ? 'partner' : (u ? 'user' : 'guest')));
@@ -757,7 +756,7 @@ body.dark #chB{background:#0d1320;}
       <div><span class="dot" id="nvDot"></span>Customer<br><b id="nvC" style="font-size:10.5px;">—</b></div>
     </div>
     <div class="bns" style="margin-top:9px;">
-      <a class="bn d" id="nvG" style="flex:2;" href="#" target="_blank">🗺️ Google Maps Turn-by-Turn</a>
+      <a class="bn d" id="nvG" style="flex:2;" href="#" target="_blank" rel="noopener noreferrer">🗺️ Google Maps Turn-by-Turn</a>
       <a class="bn b" id="nvCl" href="#">📞</a>
     </div>
   </div>
@@ -777,7 +776,6 @@ body.dark #chB{background:#0d1320;}
 firebase.initializeApp({
   apiKey: "AIzaSyAL9dsBvNrp-ijxAk7ZYZcbN0BPaZ5gYtw",
   authDomain: "sewaastra.firebaseapp.com",
-  databaseURL: "https://sewaastra-default-rtdb.firebaseio.com",
   projectId: "sewaastra",
   storageBucket: "sewaastra.firebasestorage.app",
   messagingSenderId: "211091351218",
@@ -1017,7 +1015,20 @@ function bindGmailPartner(){
     var uid=(u.uid)||'';
     if(!em){ gate(); return; }                     /* phone login — doc phone से ही */
     try{
-      FS.collection('partners').where('email','==',em).get().then(function(sn){
+      /* 🔒 `partners` की list सिर्फ admin कर सकता है — वरना कोई भी partner
+         पूरा partner-database खींच लेता. v3 में doc ID = uid है, इसलिए अपना
+         doc सीधे uid से मिल जाता है और list की ज़रूरत ही नहीं रहती.
+         email वाली query सिर्फ migration से पहले बने accounts के लिए बची है,
+         और वो मना हो जाए तो login रुकना नहीं चाहिए. */
+      (uid ? FS.collection('partners').doc(uid).get()
+               .then(function(d){ return d.exists ? {docs:[d]} : {docs:[]}; })
+               .catch(function(){ return {docs:[]}; })
+           : Promise.resolve({docs:[]})
+      ).then(function(sn0){
+        if(sn0.docs.length) return sn0;
+        return FS.collection('partners').where('email','==',em).limit(1).get()
+                 .catch(function(){ return {docs:[]}; });
+      }).then(function(sn){
         try{
           if(sn.docs.length){
             var d0=sn.docs[0], nm0=d0.data().name||'';
@@ -1104,16 +1115,11 @@ function listenOrders(){
 
 /* ═══ PRESENCE ═══ */
 var uLive={};
-function listenUsers(){
-  FS.collection('users').onSnapshot(function(s){
-    uLive={};
-    s.docs.forEach(function(d){
-      var u=d.data(), on=u.online!==false && (Date.now()-(u.lastSeen||0))<150000;
-      uLive[d.id]=on; if(u.phone)uLive[u.phone]=on;
-    });
-    draw();
-  }, function(){});
-}
+/* 🚫 यह पूरी `users` collection सुनता था — यानी हर ग्राहक का नाम, नंबर और
+   पता किसी भी partner के ब्राउज़र में उतर आता. rules अब इसे मना करती हैं,
+   और करनी भी चाहिए. नीचे targeted presence (बैच 10) पहले से मौजूद है, जो
+   सिर्फ स्क्रीन पर दिख रहे ग्राहकों की online-status पूछता है. */
+function listenUsers(){ /* हटाया गया — targeted presence से काम चलता है */ }
 function dotHtml(m){ return '<span class="dot '+(uLive[m]?'on':'')+'"></span>'; }
 function onTxt(m){ return uLive[m]?'🟢 Online':'⚫ Offline'; }
 
@@ -1458,7 +1464,7 @@ function drawProfile(){
   '<div class="cd"><b style="font-size:12.5px;">🛠️ Skills</b><div style="margin-top:7px;">'+
   SKILLS.map(function(s){var on=(P.skills||[]).indexOf(s)>-1;return '<span class="skc '+(on?'on':'')+'" onclick="togSk(this,\''+s+'\')">'+s+'</span>';}).join('')+'</div>'+
   '<div class="srw" style="margin-top:7px;"><span>📍 Radius</span><span><input type="range" min="2" max="25" value="'+(P.radiusKm||8)+'" style="width:120px;accent-color:var(--pr);" oninput="document.getElementById(\'rV\').innerText=this.value" onchange="savRad(this.value)"> <b id="rV" style="color:var(--pr);">'+(P.radiusKm||8)+'</b> km</span></div></div>'+
-  '<div class="cd"><b style="font-size:12.5px;">🆘 Help</b><div class="bns" style="margin-top:8px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190" target="_blank">💬 WhatsApp</a></div></div>';
+  '<div class="cd"><b style="font-size:12.5px;">🆘 Help</b><div class="bns" style="margin-top:8px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a></div></div>';
 }
 function v49SelfieGo(){
   var f=document.getElementById('ofselfie');
@@ -1553,7 +1559,15 @@ function kycUniq(cb){
   }
   if(!em){ chkDoc(); return; }
   try{
-    FS.collection('partners').where('email','==',em).get().then(function(sn){
+    /* ⚠️ यह cross-account जाँच है ("यह Gmail पहले से किसी और partner पर तो
+       नहीं?"). इसके लिए पूरी partners collection पढ़नी पड़ती है, जो rules
+       जान-बूझकर मना करती हैं. मना होने पर registration अटकना नहीं चाहिए —
+       इसलिए catch करके आगे बढ़ते हैं.
+       असली रोक server पर है: create rule में partnerId == uid() और
+       phone == myPhone() ज़रूरी है, यानी एक uid = एक ही partner doc. */
+    FS.collection('partners').where('email','==',em).limit(2).get()
+      .catch(function(){ return {docs:[]}; })
+      .then(function(sn){
       try{
         var clash=null;
         sn.docs.forEach(function(d){ if(d.id!==ph) clash=d.id; });
@@ -1825,7 +1839,7 @@ function v43Show(st){
       '<div style="font-size:12.5px;color:#988;line-height:1.7;">आपके documents admin के पास पहुँच गए हैं।<br>Approve होते ही app <b>अपने आप खुल जाएगा</b> — यहीं रुकें या बाद में आएँ।</div>'+
       '<div class="cd" style="margin-top:20px;text-align:left;"><b style="font-size:12.5px;">📄 भेजे गए documents</b><div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">'+
       KDOCS.map(function(d){return '<span style="font-size:11px;font-weight:800;background:#e6f7ed;color:#0f7a37;border-radius:20px;padding:5px 11px;">'+d.i+' '+d.n+' ✓</span>';}).join('')+'</div></div>'+
-      '<div class="bns" style="margin-top:16px;"><a class="bn b" href="tel:+917869969190">📞 Admin से बात करें</a><a class="bn w" href="https://wa.me/917869969190?text=KYC%20approve%20karein%20-%20'+me()+'" target="_blank">💬 WhatsApp</a></div>'+
+      '<div class="bns" style="margin-top:16px;"><a class="bn b" href="tel:+917869969190">📞 Admin से बात करें</a><a class="bn w" href="https://wa.me/917869969190?text=KYC%20approve%20karein%20-%20'+me()+'" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a></div>'+
       '<button class="bn d" style="width:100%;margin-top:12px;padding:11px;" onclick="lgOut()">🚪 Logout</button></div>';
     return;
   }
@@ -2019,7 +2033,7 @@ function v44Fill(){
   /* 🤝 REFER & EARN */
   '<div class="cd"><div class="rw"><b style="font-size:12.5px;">🤝 Refer & Earn</b><b style="color:var(--pr);">+50 pts</b></div>'+
     '<div style="font-size:10.5px;color:#998;font-weight:700;margin-top:3px;">दोस्त को partner बनाओ — उसका पहला काम पूरा होते ही आपको 50 points!</div>'+
-    '<a class="bn w" style="display:block;text-align:center;margin-top:8px;padding:11px;text-decoration:none;" href="https://wa.me/?text='+encodeURIComponent('🧑‍🔧 SewaAstra Partner बनो, घर बैठे कमाओ! मेरा refer code: '+me()+'\nPartner App: https://soorshyamvishwakarma37-cyber.github.io/Sewaastra-partner/')+'" target="_blank">💬 WhatsApp पर share करें</a></div>';
+    '<a class="bn w" style="display:block;text-align:center;margin-top:8px;padding:11px;text-decoration:none;" href="https://wa.me/?text='+encodeURIComponent('🧑‍🔧 SewaAstra Partner बनो, घर बैठे कमाओ! मेरा refer code: '+me()+'\nPartner App: https://soorshyamvishwakarma37-cyber.github.io/Sewaastra-partner/')+'" target="_blank" rel="noopener noreferrer">💬 WhatsApp पर share करें</a></div>';
   v44Tix();
 }
 function v44Cntr(){
@@ -2068,7 +2082,7 @@ function v44Tik(){
 }
 function v44Tix(){
   var h=document.getElementById('tkL'); if(!h) return;
-  FS.collection('tickets').where('phone','==',me()).get().then(function(sn){
+  FS.collection('tickets').where('by','==',me()).limit(50).get().then(function(sn){
     var tk=sn.docs.map(function(d){return d.data();}).sort(function(a,b){return (b.ts||0)-(a.ts||0);});
     if(!tk.length) return h.innerHTML='';
     h.innerHTML='<div style="font-size:11px;font-weight:800;margin-top:11px;">📋 मेरी tickets</div>'+tk.slice(0,5).map(function(t){
@@ -2979,7 +2993,7 @@ function v51Blk(){
     '<div style="font-size:64px;">⛔</div>'+
     '<h2 style="font-size:19px;margin:14px 0 8px;color:#e53935;">आपका account BLOCK है</h2>'+
     '<div style="font-size:12px;color:#988;line-height:1.7;">Admin ने आपका account temporarily block किया है।<br>वजह जानने और unblock के लिए संपर्क करें।</div>'+
-    '<div class="bns" style="margin-top:18px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190?text=Unblock%20request%20-%20'+me()+'" target="_blank">💬 WhatsApp</a></div>'+
+    '<div class="bns" style="margin-top:18px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190?text=Unblock%20request%20-%20'+me()+'" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a></div>'+
     '<button class="bn d" style="width:100%;margin-top:12px;padding:11px;" onclick="lgOut()">🚪 Logout</button></div>';
 }
 var _gate51=v43Gate;
@@ -3253,7 +3267,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
   function listen(){
     if(v55L) return; v55L=true;
     try{
-      FS.collection('broadcasts').where('active','==',true).onSnapshot(function(s){
+      FS.collection('broadcasts').where('active','==',true).limit(30).onSnapshot(function(s){
         var was=v55B.slice();
         v55B=s.docs.map(function(d){ var b=d.data(); b._id=d.id; return b; }).filter(function(b){ var t=b.to||'all'; return t==='all'||t==='partner'; }).sort(function(a,b2){ return (b2.ts||0)-(a.ts||0); });
         /* naye aaye → seen नहीं तो toast */
@@ -4321,7 +4335,7 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px dashed #26324d;font-size:11px;font-weight:800;"><span>'+(i<paid?'✅':'⏳')+' Order #'+(i+1)+' complete</span><b style="color:#2bc96e;">+₹'+v+'</b></div>';
       }).join('')+'</div>'+
       '<div style="background:#0f1626;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:11px;font-weight:800;display:flex;justify-content:space-between;"><span>अब तक मिला bonus</span><b style="color:#2bc96e;">₹'+ref.toLocaleString('en-IN')+'</b></div>'+
-      '<a href="'+share+'" target="_blank" style="display:block;text-align:center;background:#25d366;color:#fff;font-weight:900;padding:13px;border-radius:13px;margin-top:12px;text-decoration:none;">💬 WhatsApp पर share करें</a>'+
+      '<a href="'+share+'" target="_blank" style="display:block;text-align:center;background:#25d366;color:#fff;font-weight:900;padding:13px;border-radius:13px;margin-top:12px;text-decoration:none;" rel="noopener noreferrer">💬 WhatsApp पर share करें</a>'+
       '<div style="font-size:9.5px;color:#8a94ab;margin-top:9px;text-align:center;">💡 सिर्फ नए customer जो आपके code से जुड़ें — उनके Completed orders गिने जाते हैं</div>'+
       '</div></div>';
     document.body.appendChild(ov); ov.classList.add('open');
@@ -4421,26 +4435,56 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
       try{ draw(); }catch(e){}
       try{ presRefresh(); }catch(e){}
     }
+    /* feed doc के field-नाम orders से अलग हैं (amount/area/approxLat…).
+       UI पहले से order-आकार के object की उम्मीद करता है, इसलिए यहाँ बदल देते हैं. */
+    function feedToOrder(f, docId){
+      if(!f) return null;
+      var names = Array.isArray(f.itemNames) ? f.itemNames : [];
+      return {
+        id:        f.orderId || docId,
+        status:    'Order Placed',
+        total:     Number(f.amount||0),
+        mode:      f.mode || 'Cash',
+        addr:      f.area || '',
+        city:      f.city || '',
+        pincode:   f.pincode || '',
+        lat:       f.approxLat, lng: f.approxLng,
+        custName:  (f.custInitial||'C') + '\u2022\u2022\u2022',
+        cats:      Array.isArray(f.cats) ? f.cats : [],
+        items:     names.map(function(n){ return { n:n, q:1 }; }),
+        itemCount: Number(f.itemCount||names.length||0),
+        createdAt: f.createdAt || 0,
+        _approx:   true
+      };
+    }
+
     /* A) global LIVE (नए + जो अपने पास जा रहे) */
+    /* 🔒 पहले यह सीधे `orders` collection सुनता था — rules उसे मना करती हैं
+       (partner सिर्फ अपने assign किए orders देख सकता है, वरना हर partner को
+       हर ग्राहक का नाम/नंबर/पूरा पता मिल जाता). नतीजा: partner को एक भी नया
+       job दिखता ही नहीं था.
+       अब `orders_feed` — Cloud Function का बनाया PII-मुक्त फ़ीड: सिर्फ इलाका,
+       ~1km पर धुँधला GPS, नाम की जगह पहला अक्षर. असली पता और नंबर accept
+       करने के बाद ही मिलते हैं. */
     try{
-      FS.collection('orders').where('status','in',['Order Placed','Accepted','On the Way','Working']).onSnapshot(function(s){
+      FS.collection('orders_feed').limit(60).onSnapshot(function(s){
         s.docChanges().forEach(function(ch){
           if(ch.type!=='added') return;
-          var o=ch.doc.data();
-          if(!o||o.status!=='Order Placed') return;
+          var o=feedToOrder(ch.doc.data(), ch.doc.id);
+          if(!o) return;
           var near=true; try{ near=window.v58Near? v58Near(o):true; }catch(e){}
           if(__p61first){ __p61first=false; }
           else if(near){ try{ beep(); vib([120,60,120,60,200]); }catch(e){} }
           try{ popup(o); }catch(e){}
         });
-        LIVE={}; s.docs.forEach(function(d){ var o=d.data(); if(o&&o.id) LIVE[o.id]=o; else if(o) LIVE[d.id]=o; });
+        LIVE={}; s.docs.forEach(function(d){ var o=feedToOrder(d.data(), d.id); if(o) LIVE[o.id]=o; });
         rebuild();
       },function(e){ ALL=[]; try{ draw(); }catch(err){} });
     }catch(e){}
 
     /* B) मेरे अपने orders — single-field query (कोई index नहीं चाहिए) */
     try{
-      (SWID.orderQuery(FS,'partner')||FS.collection('orders').where('partnerPhone','==',ph)).onSnapshot(function(s){
+      (SWID.orderQuery(FS,'partner')||FS.collection('orders').where('partnerPhone','==',ph).limit(100)).onSnapshot(function(s){
         MINE={}; s.docs.forEach(function(d){ var o=d.data(); if(o) MINE[o.id||d.id]=o; });
         rebuild();
       },function(){});
@@ -4466,8 +4510,13 @@ console.log('%c 💵🔐📡 v5.4 — CASH+OTP+AUTOSHARE ✅ ','background:#15a0
       var chains=[];
       for(var i=0;i<keys.length;i+=10){
         (function(chunk){
-          chains.push(FS.collection('presence').where('phone','in',chunk).get()
-            .catch(function(){ return FS.collection('presence').where('phone','in',chunk).get().catch(function(){return null;}); }));
+          /* 🚫 `presence` की list जान-बूझकर बंद है: उसके docs में फ़ोन नंबर
+             हैं, तो list खुलते ही कोई भी partner सारे ग्राहकों के नंबर इकट्ठे
+             कर सकता है (वही PII चोरी जो v3.4 में बंद की थी). ग्राहक का
+             online-dot अच्छी सुविधा है, पर नंबर लीक करके नहीं. इसलिए query
+             भेजते ही नहीं — बार-बार denied होकर console भरने से बेहतर है
+             साफ़ मना करना. dot बस offline दिखेगा. */
+          chains.push(Promise.resolve(null));
         })(keys.slice(i,i+10));
       }
       Promise.all(chains).then(function(res){
@@ -4854,7 +4903,7 @@ var LGS=[['hi','हिन्दी'],['en','English']];
     return {amt:f,free:false,orig:f};
   }
   function p64ObDone(){ try{ return !!(P&&P.onboarding&&P.onboarding.paid); }catch(e){ return false; } }
-  window.p64ObPay=function(){ /* UPI link */ var p=p64Payable(); try{ FS.collection('config').doc('global').get().then(function(d){ var upi=''; if(d.exists) upi=String(d.data().upiId||''); if(!upi) upi='soorshyam37@oksbi'; var l='upi://pay?pa='+encodeURIComponent(upi)+'&pn=SewaAstra&am='+p.amt+'&cu=INR&tn=Onboarding%20Fee'; window.open(l,'_blank'); toast('✅ UPI app खुलेगा — pay करके UTR नीचे डालें'); }).catch(function(){}); }catch(e){} };
+  window.p64ObPay=function(){ /* UPI link */ var p=p64Payable(); try{ FS.collection('config').doc('global').get().then(function(d){ var upi=''; if(d.exists) upi=String(d.data().upiId||''); if(!upi) upi='soorshyam37@oksbi'; var l='upi://pay?pa='+encodeURIComponent(upi)+'&pn=SewaAstra&am='+p.amt+'&cu=INR&tn=Onboarding%20Fee'; window.open(l, '_blank', 'noopener,noreferrer'); toast('✅ UPI app खुलेगा — pay करके UTR नीचे डालें'); }).catch(function(){}); }catch(e){} };
   window.p64ObSub=function(){
     var u=(document.getElementById('p64Ut')||{}).value||''; u=String(u).trim();
     if(u.length<6) return sAlert('UPI/UTR reference number डालें (pay के बाद आया)।','UTR चाहिए','🔤');
@@ -5296,7 +5345,7 @@ var LGS=[['hi','हिन्दी'],['en','English']];
   window.__p65ObPay=function(){
     var due=p65ObDue(); if(due.amt<=0) return;
     FS.collection('config').doc('global').get().then(function(d){ var upi=''; if(d.exists) upi=String(d.data().upiId||''); if(!upi) upi='soorshyam37@oksbi';
-      var l='upi://pay?pa='+encodeURIComponent(upi)+'&pn=SewaAstra&am='+due.amt+'&cu=INR&tn=Onboarding%20Fee'; window.open(l,'_blank'); toast('✅ UPI खुला — pay करके UTR डालें'); }).catch(function(){}); };
+      var l='upi://pay?pa='+encodeURIComponent(upi)+'&pn=SewaAstra&am='+due.amt+'&cu=INR&tn=Onboarding%20Fee'; window.open(l, '_blank', 'noopener,noreferrer'); toast('✅ UPI खुला — pay करके UTR डालें'); }).catch(function(){}); };
   window.p65ObSub=function(){
     var u=String((document.getElementById('p65ObUt')||{}).value||'').trim(); var due=p65ObDue();
     if(u.length<6) return sAlert('UTR/reference नंबर डालें (pay के बाद UPI app में दिखा)।','UTR चाहिए','🔤');
@@ -5597,7 +5646,7 @@ var LGS=[['hi','हिन्दी'],['en','English']];
         '<input id="p65ObUt" placeholder="UTR / Ref no. (pay के बाद UPI app में)" style="width:100%;box-sizing:border-box;text-align:center;font-weight:900;letter-spacing:1px;margin-top:8px;padding:11px;border-radius:11px;border:1px solid var(--bd);background:var(--card,#0f1626);color:var(--tx,#fff);">'+
         '<button class="bn o" style="width:100%;margin-top:8px;padding:13px;font-size:13.5px;" onclick="p65ObSub()">✅ UTR भरा — Onboarding पूरा करें</button>'+
         '<div style="font-size:10px;color:#8a94ab;font-weight:700;margin-top:8px;">UTR डालते ही app अपने-आप खुल जाएगा। Payment के बिना अभी आगे नहीं बढ़ सकते।</div>'+
-        '<div class="bns" style="margin-top:14px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190?text=Onboarding%20fee%20UTR%20verify%20karein%20-%20'+_ph+'" target="_blank">💬 WhatsApp</a></div>'+
+        '<div class="bns" style="margin-top:14px;"><a class="bn b" href="tel:+917869969190">📞 Admin</a><a class="bn w" href="https://wa.me/917869969190?text=Onboarding%20fee%20UTR%20verify%20karein%20-%20'+_ph+'" target="_blank" rel="noopener noreferrer">💬 WhatsApp</a></div>'+
         '<button class="bn d" style="width:100%;margin-top:10px;padding:11px;" onclick="lgOut()">🚪 Logout</button>'+
       '</div>';
   }
@@ -6722,7 +6771,7 @@ try{ r.parentNode.insertBefore(b,r.nextSibling); }catch(e){}
 }
 }catch(e){}
 }
-setInterval(swKycHide,3000); setTimeout(swKycHide,1500); (function(){ if(window.__swP25) return; window.__swP25=1; function hsk(){ try{ var els=document.querySelectorAll('.skc'); for(var i=0;i<els.length;i++){ try{ els[i].style.display='none'; var p=els[i].parentNode; if(p&&!p.querySelector('[data-skh25]')){ var d=document.createElement('div'); d.setAttribute('data-skh25','1'); d.style.cssText='font-size:11px;color:#ffd60a;font-weight:800;margin-top:6px;line-height:1.6;'; d.textContent='Skills sirf Admin badalte hain. Neeche Ticket me request bhejo.'; p.appendChild(d); } }catch(e){} } }catch(e){} } function bkb(){ try{ if(document.getElementById('swBookSvc')) return; var b=document.createElement('button'); b.id='swBookSvc'; b.style.cssText='position:fixed;right:12px;bottom:86px;z-index:2147483000;border:none;border-radius:999px;padding:13px 16px;font-weight:900;font-size:13px;color:#fff;background:linear-gradient(135deg,#15a04a,#0d6efd);box-shadow:0 8px 22px rgba(0,0,0,.4);cursor:pointer;'; b.textContent='Seva Book Karo'; b.onclick=function(){ try{ window.open('https://soorshyamvishwakarma37-cyber.github.io/SewaAstra/','_blank'); }catch(e){} }; document.body.appendChild(b); }catch(e){} } setInterval(function(){ try{ hsk(); }catch(e){} try{ bkb(); }catch(e){} },3000); setTimeout(function(){ try{ hsk(); }catch(e){} try{ bkb(); }catch(e){} },1500); })();
+setInterval(swKycHide,3000); setTimeout(swKycHide,1500); (function(){ if(window.__swP25) return; window.__swP25=1; function hsk(){ try{ var els=document.querySelectorAll('.skc'); for(var i=0;i<els.length;i++){ try{ els[i].style.display='none'; var p=els[i].parentNode; if(p&&!p.querySelector('[data-skh25]')){ var d=document.createElement('div'); d.setAttribute('data-skh25','1'); d.style.cssText='font-size:11px;color:#ffd60a;font-weight:800;margin-top:6px;line-height:1.6;'; d.textContent='Skills sirf Admin badalte hain. Neeche Ticket me request bhejo.'; p.appendChild(d); } }catch(e){} } }catch(e){} } function bkb(){ try{ if(document.getElementById('swBookSvc')) return; var b=document.createElement('button'); b.id='swBookSvc'; b.style.cssText='position:fixed;right:12px;bottom:86px;z-index:2147483000;border:none;border-radius:999px;padding:13px 16px;font-weight:900;font-size:13px;color:#fff;background:linear-gradient(135deg,#15a04a,#0d6efd);box-shadow:0 8px 22px rgba(0,0,0,.4);cursor:pointer;'; b.textContent='Seva Book Karo'; b.onclick=function(){ try{ window.open('https://soorshyamvishwakarma37-cyber.github.io/SewaAstra/', '_blank', 'noopener,noreferrer'); }catch(e){} }; document.body.appendChild(b); }catch(e){} } setInterval(function(){ try{ hsk(); }catch(e){} try{ bkb(); }catch(e){} },3000); setTimeout(function(){ try{ hsk(); }catch(e){} try{ bkb(); }catch(e){} },1500); })();
 })();
 </script>
 <script>
